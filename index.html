@@ -2308,6 +2308,136 @@ try{applyUI()}catch(e){}
 /* iOS 独立模式：自动进入全屏样式 */
 try{if(navigator.standalone||matchMedia('(display-mode: standalone)').matches)document.body.classList.add('fs')}catch(e){}
 </script>
+<script type="text/x-app">
+(function(){var st=document.createElement('style');st.textContent=`
+#sm,#cm{--bth:#E9E9EB;--bme:#000;--ct:#8E8E93}
+body.dark #sm,body.dark #cm{--bth:#262628;--bme:#e5e5ea}
+#sm .bb,#cm .bb,.ims .bb{border-radius:18px!important;padding:8px 14px;line-height:1.3}
+#sm .bb.them,#cm .bb.them{background:var(--bth);color:#000}
+#sm .bb.me:not(.sms),#cm .bb.me{background:var(--bme);color:#fff}
+body.dark #sm .bb.them,body.dark #cm .bb.them{color:#f2f2f7}
+body.dark #sm .bb.me:not(.sms),body.dark #cm .bb.me{color:#000}
+#sm .bb.me.sms{background:#34c759;color:#fff}
+.ims .bb.l::before,.ims .bb.l::after,#sm .bb.l::before,#sm .bb.l::after,#cm .bb.l::before,#cm .bb.l::after{display:none!important;content:none!important}
+.ims.wp .bb.me:not(.media),.ims.wp .bb.me.l{background:var(--bme)}
+.ims.wp .bb.them:not(.media){background:var(--bth)}
+`;document.body.appendChild(st)})();
+</script>
+<script>
+(function(){var st=document.createElement('style');st.id='fsfix';st.textContent=`
+html{--sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px)}
+body.fs #scr{top:var(--sat)}
+body.fs #sb{top:var(--sat)}
+body.fs .hd{padding-top:0}
+body.fs #home{padding-top:64px}
+body.fs #bar{bottom:max(8px,var(--sab))}
+html.sa body.fs::before{content:"";position:fixed;left:0;right:0;top:0;height:var(--sat);background:#000;z-index:9999;pointer-events:none}
+html.sa body.fs #sb{display:none}
+html.sa body.fs #boot0{top:0}
+`;document.body.appendChild(st);
+try{var sa=navigator.standalone||matchMedia('(display-mode: standalone)').matches||matchMedia('(display-mode: fullscreen)').matches;
+ if(sa&&/iPad|iPhone|iPod/.test(navigator.userAgent)||(sa&&navigator.platform=='MacIntel'&&navigator.maxTouchPoints>1))document.documentElement.classList.add('sa')}catch(e){}
+})();
+</script>
+<script type="text/x-app">
+/* ================= 一句一条横幅 ================= */
+var _nOld=notify,nq=[],nbusy=false,nFlag=false;
+function nSents(t){t=String(t==null?'':t).replace(/\s+/g,' ').trim();if(!t)return[];var a=t.match(/[^。！？!?…\n~～]+[。！？!?…~～]*/g)||[t],o=[];a.forEach(function(s){s=s.trim();if(!s)return;if(o.length&&s.replace(/[\s。！？!?…~～，,、.]/g,'').length<2)o[o.length-1]+=s;else o.push(s)});if(o.length>6)o=o.slice(0,5).concat([o.slice(5).join('')]);return o}
+function pumpN(){if(nbusy||!nq.length)return;nbusy=true;var it=nq.shift(),n=document.getElementById('nt');
+ var show=function(){_nOld(it.app,it.t,it.x,it.fn);setTimeout(function(){var n2=document.getElementById('nt');n2&&n2.classList.remove('on');setTimeout(function(){nbusy=false;pumpN()},360)},it.hold||2100)};
+ if(n&&n.classList.contains('on')){n.classList.remove('on');setTimeout(show,320)}else show()}
+function hmNames(app){var o={};try{(S.ct||[]).forEach(function(c){if(c.m)return;var on=app=='wx'?hmOn(c.id):((S.smcfg||{})['c:'+c.id]||{}).hm!==false;if(on){o[c.name]=1;if(c.remark)o[c.remark]=1}})}catch(e){}return o}
+notify=function(app,t,x,fn){
+ if(!t)return _nOld(app,t,x,fn);                      /* toast 直接显示 */
+ if((app=='wx'||app=='sms')&&fn&&!nFlag&&hmNames(app)[t])return;  /* 真人发送引擎会逐句自己发横幅 */
+ if(app=='wx'||app=='sms'){var ss=nSents(x);if(ss.length){ss.forEach(function(s){nq.push({app:app,t:t,x:s,fn:fn})});if(nq.length>12)nq=nq.slice(-12);pumpN();return}}
+ nq.push({app:app,t:t,x:x,fn:fn,hold:2400});pumpN()};
+var _hpN=hmPlay;hmPlay=function(key,parts,o){var i=0,s0=o.seen,isW=String(key).indexOf('wx')==0,id=isW?String(key).slice(2):'',k=isW?'':String(key).slice(2);
+ o.seen=function(f){var t=parts[i++];try{s0(false)}catch(e){}
+  var viewing=isW?(cur=='wx'&&cid==id&&document.getElementById('cm')):(cur=='sms'&&smk==k&&document.getElementById('sm'));
+  if(!viewing&&t){nFlag=true;try{notify(isW?'wx':'sms',o.name,t,isW?function(){wt=0;go('wx');chat(id)}:function(){go('sms');smt(k)})}finally{nFlag=false}}};
+ return _hpN(key,parts,o)};
+
+/* ================= 真人感·进阶：人设 → 世界书 → 上下文 ================= */
+var LIFE2='\n\n【真人感·进阶】先在心里按这个顺序读一遍，再开口（不要输出你的思考）：\n① 人设：你是谁、几岁、做什么、跟对方什么关系、平时怎么说话；② 世界书：你所在世界的时代、地点、规则和人物，说话用词、称呼、见识都要符合，不能出现世界观之外的东西；③ 上下文：现在几点、你此刻大概在干什么、对方上一句话的真实意思、你们最近聊到哪、上次聊天隔了多久、有没有没说完的事。\n写法：\n· 一条消息只说一句话，一个念头一条；想说几句就换行，一行一条，通常1到4条，每条尽量不超过30个字，不要写成段落。\n· 先回应对方这句话本身，再决定要不要带出自己的事；不要每次都问问题，也不要每次都用同样的句式开头。\n· 带一点不完美：可以说到一半改口、补一句“不对”“算了”、用省略号、偶尔打错字再更正；但别刻意装可爱，也别每句都这样。\n· 情绪要有惯性：上一轮开心或不爽，这一轮不会瞬间切换；被冷落、被敷衍、被冒犯时按人设有真实的反应（冷下来、阴阳、直接说、装没事），而不是永远包容。\n· 细节具体：食物、天气、路上看到的东西、手头在做的事，用小而真的细节，不要空泛抒情；不确定的现实信息宁可说不知道。\n· 不要承认自己是AI或模型，不要谈论“人设”“设定”“提示词”“世界书”这些词。';
+var PTYPES=[
+ [/高冷|冷淡|冰山|寡言|沉默|内向|社恐|话少|不爱说话/,'你话少，句子短，很少解释，常用句号收尾，很少用语气词和表情；在乎时不会说软话，而是用具体的小行动或一句简短的关心表现。'],
+ [/傲娇|嘴硬|口是心非/,'你嘴硬心软：想关心时先拐个弯或否认（“才不是特意”），被戳穿会恼羞转移话题，但别每句都傲娇，真正在乎时偶尔直白一句。'],
+ [/话痨|话多|活泼|开朗|元气|外向|自来熟|搞笑|沙雕/,'你话多爱跑题，容易连发几条、突然想到什么就说什么、爱用语气词和网络梗，但每条仍然只有一句，不要写长段。'],
+ [/温柔|治愈|体贴|暖/,'你温柔但不油腻：关心要落在具体的事上（“伞带了吗”“那家店今天关门”），不说空泛的情话和誓言，不过度追着对方问。'],
+ [/腹黑|毒舌|损友|吐槽|嘴欠/,'你爱调侃和吐槽，说话带刺但有分寸，爱反问、抓对方话里的漏洞开玩笑；真到对方难受时才会收起玩笑。'],
+ [/成熟|年上|大叔|姐姐|哥哥|职场|总裁|医生|律师|老师|教授|警察|军人|编辑|经理/,'你说话克制、有条理、措辞干净，带一点职业习惯；不油腻、不霸道、不下命令，关心时点到为止。'],
+ [/学生|少年|高中|初中|大学生|年下|弟弟|妹妹|后辈|学弟|学妹/,'你说话偏口语和年轻化，句子碎、标点少，可能用缩写、颜文字或网络用语，爱发“？”“哈”“救命”，情绪来得直接。'],
+ [/古风|古代|武侠|仙侠|江湖|宫廷|王爷|公子|师尊|将军|皇/,'你的世界是古代背景：用符合那个时代的称谓和措辞（不要现代网络梗和现代器物），句子偏简练含蓄；若世界书里写了聊天方式（飞鸽、传音符等），按它的方式来。'],
+ [/妈妈|母亲|奶奶|外婆|爸爸|父亲|爷爷|外公|长辈|阿姨|叔叔/,'你是长辈口吻：爱唠叨具体的生活事（吃饭、天气、衣服），标点随意、偶尔发语音式的长句，不懂的新东西会直接问，不会撒娇卖萌。'],
+ [/病娇|占有|偏执/,'你的情感很重，但在聊天里要克制成真人会有的样子：用频繁的在意细节和小心翼翼的试探表现，不要宣示占有，不要威胁，不要说过激的话。'],
+ [/外国|留学|英国|美国|日本|韩国|法国|德国|混血|英语|日语|韩语/,'你偶尔会夹杂母语里的口头词或语气词，中文表达带一点那边的习惯，但不要整句外语，不要刻意卖弄。']];
+function lifeHints(c){var p=(c.persona||'')+' '+(c.name||''),o=[];var mat=/教授|老师|医生|律师|警察|军人|经理|总裁|成熟|年上|大叔/.test(p);PTYPES.forEach(function(r){if(r[0].test(p)&&!(mat&&/年轻化/.test(r[1])))o.push(r[1])});if(!o.length)o.push('人设没有明确写说话方式：按这个人的年龄、身份和关系，合理补全一种真实的说话习惯（例如爱用的词、句子长短、是否爱用表情），并在整个对话里保持一致，不要写成通用的“温柔体贴”。');return o.slice(0,3)}
+function lifeTime(){var d=new Date(),h=d.getHours(),w=['日','一','二','三','四','五','六'][d.getDay()],s='现在是周'+w+' '+String(h).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+'。';
+ if(h<5)s+='深夜，正常人这时多半在睡觉或刚睡不着，回话可以带困意、慢、简短；除非人设就是夜猫子。';else if(h<8)s+='清晨，可能刚醒或在赶路。';else if(h<11)s+='上午，工作日多半在忙。';else if(h<14)s+='接近饭点或午休。';else if(h<18)s+='下午。';else if(h<21)s+='傍晚到晚上，下班/吃饭/放松的时间。';else s+='晚上，比较放松，也可能快要睡了。';return s}
+function lifeCtx(L,id){var s='',now=Date.now(),vis=(L||[]).filter(function(m){return !m.ph&&(m.t||m.k)});if(!vis.length)return '这是你们的第一次对话，还不熟，保持分寸。';
+ var lu=null,la=null;for(var i=vis.length-1;i>=0;i--){if(!lu&&vis[i].r=='u')lu=vis[i];if(!la&&vis[i].r=='a')la=vis[i];if(lu&&la)break}
+ if(lu&&la&&la.ts>lu.ts&&la.ts-lu.ts>0){var gap=Math.round((now-la.ts)/60000);if(gap>=3)s+='你上一条消息发出去后，对方已经 '+(gap<60?gap+' 分钟':Math.round(gap/60)+' 小时')+'没有回复。'}
+ var prev=vis.length>1?vis[vis.length-2]:null,last=vis[vis.length-1];
+ if(last&&last.ts&&prev&&prev.ts&&last.ts-prev.ts>3600000)s+='这句话距离上一句已经隔了 '+(Math.round((last.ts-prev.ts)/3600000))+' 小时，开头可以自然地提一下隔了多久，而不是当作刚说完。';
+ var n=vis.length;s+=n<8?'你们刚认识不久，聊得不多，别太亲近。':n<60?'你们聊了一阵，有些熟悉。':'你们已经聊了很多，有默契和共同话题，可以提起之前聊过的事。';return s}
+var _aiL2=ai;ai=function(msgs,sys,on,cfg){
+ try{if(sys&&sys.indexOf('⁣WB⁣')>=0&&!sys.includes('群聊')&&!sys.includes('【真人感·进阶】')&&/正在用微信|正在用短信|你正在用短信|改用短信/.test(sys)){
+  var id=xKey&&xKey.id,L=null,sk=String(smCtxK||'');if(id)L=S.ch[id];else if(sk.indexOf('c:')==0){id=sk.slice(2);L=S.sm[sk]}else if(sk.indexOf('n:')==0){L=S.sm[sk]}
+  var c=id&&S.ct.find(function(x){return x.id==id});var add=LIFE2;
+  if(c){var h=lifeHints(c);add+='\n\n【此刻的你】\n'+h.map(function(x){return '· '+x}).join('\n')}
+  add+='\n· '+lifeTime();add+='\n· '+lifeCtx(L,id);
+  sys+=add}}catch(e){}
+ return _aiL2(msgs,sys,on,cfg)};
+</script>
+<script type="text/x-app">
+/* ===== 全屏：真实状态栏可见时不再重复绘制假状态栏 ===== */
+function saApply(){try{var fs=document.body.classList.contains('fs'),touch=navigator.maxTouchPoints>0,full=matchMedia('(display-mode: fullscreen)').matches||!!document.fullscreenElement;
+ document.documentElement.classList.toggle('sa',!!(fs&&touch&&!full))}catch(e){}}
+var _auSa=applyUI;applyUI=function(){var r=_auSa.apply(this,arguments);saApply();try{var m=document.querySelector('meta[name=theme-color]');if(m)m.content=document.body.classList.contains('dark')?'#131310':'#f6f6f4'}catch(e){}return r};
+['resize','orientationchange','fullscreenchange'].forEach(function(e){addEventListener(e,saApply);document.addEventListener(e,saApply)});
+try{matchMedia('(display-mode: fullscreen)').addEventListener('change',saApply);matchMedia('(display-mode: standalone)').addEventListener('change',saApply)}catch(e){}
+(function(){var st=document.createElement('style');st.textContent='html,body{background:#f6f6f4}body.dark,body.dark.fs{background:#131310}body.fs{background:#f6f6f4}body.dark.fs{background:#131310}';document.body.appendChild(st)})();
+try{applyUI()}catch(e){}saApply();
+
+/* ===== 系统通知：不在该聊天界面 / 切到后台 都弹；每一句一条 ===== */
+try{if(!S.dev.sysMig){S.dev.sys=true;S.dev.sysMig=1;save()}}catch(e){}
+function sysOn(){return S.dev&&S.dev.sys!==false}
+function sendSys(title,body){try{if(!sysOn()||!window.Notification||Notification.permission!='granted')return;
+ var opt={body:String(body||'').slice(0,140),icon:'icon-192.png',badge:'icon-192.png',tag:'dsj'+Date.now()+Math.random().toString(36).slice(2,6),renotify:false,data:{ts:Date.now()}};
+ var fb=function(){try{new Notification(title||'淡水机',opt)}catch(e){}};
+ if(navigator.serviceWorker&&navigator.serviceWorker.getRegistration)navigator.serviceWorker.getRegistration().then(function(r){r?r.showNotification(title||'淡水机',opt).catch(fb):fb()}).catch(fb);else fb()}catch(e){}}
+var _nSys=notify;notify=function(app,t,x,fn){
+ if(!t)return _nSys(app,t,x,fn);
+ var chat=(app=='wx'||app=='sms');
+ if(chat&&fn&&!nFlag&&hmNames(app)[t])return;
+ if(chat){var ss=nSents(x);if(ss.length){ss.forEach(function(s){if(document.hidden||true)sendSys(t,s)});
+   if(document.hidden)return;ss.forEach(function(s){nq.push({app:app,t:t,x:s,fn:fn,sk:1})});if(nq.length>12)nq=nq.slice(-12);pumpN();return}}
+ if(document.hidden){sendSys(t,x);return}
+ nq.push({app:app,t:t,x:x,fn:fn,hold:2400,sk:1});pumpN()};
+/* 横幅显示时别让旧链路再重复弹系统通知 */
+var _nO2=_nOld;_nOld=function(a,t,x,f){var sv=S.dev.sys;S.dev.sys=false;try{return _nO2(a,t,x,f)}finally{S.dev.sys=sv}};
+/* 第一次触摸时申请通知权限（iOS 需从主屏幕打开） */
+(function(){var done=0;function ask(){if(done)return;done=1;['touchend','click'].forEach(function(t){removeEventListener(t,ask,true)});
+ try{if(!window.Notification||Notification.permission!='default'||(S.dev&&S.dev.nAsk))return;var ios=/iPad|iPhone|iPod/.test(navigator.userAgent);if(ios&&!navigator.standalone)return;S.dev.nAsk=1;save();Notification.requestPermission().then(function(){try{A.set&&cur=='set'&&PG.dev}catch(e){}})}catch(e){}}
+ ['touchend','click'].forEach(function(t){addEventListener(t,ask,true)})})();
+
+/* ===== 后台保活：循环播放静音音频 ===== */
+var KURL='https://imgbed.heliar.top/i/93zdMSNlbJNb3T6R_%E9%9D%99%E9%9F%B330min.mp3';
+function silentWav(){var n=8000,b=new Uint8Array(44+n),v=new DataView(b.buffer),w=function(o,s){for(var i=0;i<s.length;i++)b[o+i]=s.charCodeAt(i)};w(0,'RIFF');v.setUint32(4,36+n,true);w(8,'WAVEfmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,8000,true);v.setUint32(28,8000,true);v.setUint16(32,1,true);v.setUint16(34,8,true);w(36,'data');v.setUint32(40,n,true);for(var i=0;i<n;i++)b[44+i]=128;return URL.createObjectURL(new Blob([b],{type:'audio/wav'}))}
+function keepEl(){if(window.__ka)return window.__ka;var a=new Audio();a.loop=true;a.preload='auto';a.setAttribute('playsinline','');a.setAttribute('webkit-playsinline','');a.src=KURL;
+ a.addEventListener('error',function(){if(a.__fb)return;a.__fb=1;try{a.src=silentWav();a.play().catch(function(){})}catch(e){}});window.__ka=a;return a}
+function keepApply(){try{var a=keepEl();if(S.dev.keep===false){a.pause();return}
+ var p=a.play();p&&p.catch&&p.catch(function(){});
+ if('mediaSession' in navigator){try{navigator.mediaSession.metadata=new MediaMetadata({title:'淡水机',artist:'后台运行中',artwork:[{src:'icon-512.png',sizes:'512x512',type:'image/png'}]});navigator.mediaSession.playbackState='playing';navigator.mediaSession.setActionHandler('pause',function(){});navigator.mediaSession.setActionHandler('play',function(){keepApply()})}catch(e){}}}catch(e){}}
+(function(){var g=0;function go1(){if(g)return;g=1;['touchend','click','keydown'].forEach(function(t){removeEventListener(t,go1,true)});keepApply()}
+ ['touchend','click','keydown'].forEach(function(t){addEventListener(t,go1,true)});
+ document.addEventListener('visibilitychange',function(){if(S.dev.keep!==false&&window.__ka&&window.__ka.paused)keepApply()});
+ setInterval(function(){if(S.dev.keep!==false&&window.__ka&&window.__ka.paused&&g)keepApply()},15000)})();
+/* 设置里加两个开关 */
+var _pdK=PG.dev;PG.dev=function(){var tg=function(k,l,s,fn){return '<label class="cr t"><span>'+l+(s?'<small>'+s+'</small>':'')+'</span><input type="checkbox" '+(S.dev[k]!==false?'checked':'')+' onchange="S.dev.'+k+'=this.checked;save();'+(fn||'')+'"></label>'};
+ return _pdK.apply(this,arguments)+'<div class="lbl2">后台与通知</div><div class="grp">'+tg('keep','后台保活','循环播放静音音频，切出网页后继续收消息；锁屏界面可能出现播放控件','keepApply()')+tg('sys','系统通知','不在该聊天界面、或切到后台时，每一句弹一条系统通知','')+'</div>'};
+</script>
 <script>
 (function(){var DB='aiphone-db',ST='kv',KEY='aiphone',db=null,ok=false,tmr=0,dirty=false,dead=false,inflight=false,pend=null,warnT=0,LSL=4400000;
 window.__info={engine:'',last:0,size:0,err:''};
