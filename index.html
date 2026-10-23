@@ -1562,7 +1562,7 @@ R={sleep:'在睡觉（如果被消息吵醒：迷糊、很短、可能有错别�
 M={happy:'语气轻快，话稍多，爱用语气词',sad:'语气低，话少，不想多说',angry:'带着情绪，冷淡或冲，话短，不太配合',anxious:'不安，爱追问确认',tired:'没力气，话少',shy:'含蓄，不好意思，会躲闪',excited:'兴奋，话多，感叹多',calm:''};
 const rel=(s.fav<20?'保持距离，客气甚至冷淡，不主动亲昵':s.fav<45?'保持普通朋友的分寸':s.fav<70?'比较亲近，放松自然，会关心、开玩笑':'很亲密，依赖，会撒娇、吃醋、惦记')+'；'+(s.trust<25?'防备，不轻易说隐私和真实想法，会试探':s.trust>=65?'愿意坦白、交心':'有所保留');
 let t=`\n\n【你此刻的状态——这是你自己的感受，不要报数字，不要说“好感度/状态值”】\n现在${tm}，你${R[n.st]||'有空'}。心情：${MOOD[s.mood]}${s.mood!='calm'?'（'+(s.mi|0)+'/100）':''}${M[s.mood]?'，'+M[s.mood]:''}。对用户：好感${stage(s.fav)}、信任${stage(s.trust)}——${rel}。`;
-if(['sleep','work','study','commute','meal','out'].includes(n.st))t+='\n字数要少：每条不超过15字，最多两条。';if(stHint[id]){t+='\n'+stHint[id];delete stHint[id]}
+if(['sleep','work','study','commute','meal','out'].includes(n.st))t+='\n回复保持简短口语，条数不设限制，按你的人设和此刻的状态自然决定（忙的时候可能只回一条，也可能忍不住连发几条）。';if(stHint[id]){t+='\n'+stHint[id];delete stHint[id]}
 if(['wx','sms','pa'].includes(ch))t+='\n（回复末尾，如果你的心情或对用户的看法有明显变化，另起一行写【状态：心情=开心；好感+2；信任-1】，数值1到5；没有变化就不写。这一行用户看不到。）';return t}
 var _aiS=ai;ai=function(msgs,sys,on,cfg){if(sys&&S.stg.on){let id=xKey&&xKey.id;if(!id&&smCtxK){const dl=String(smCtxK).startsWith('n:')&&dlByNum(smCtxK.slice(2));id=String(smCtxK).startsWith('c:')?smCtxK.slice(2):(dl&&dl.c.id)}
 if(id&&S.ct.some(x=>x.id==id)&&!sys.includes('记忆整理助手')){sys+=stPrompt(id,xKey?xKey.ch:'sms');if(['wx','pa'].includes(xKey&&xKey.ch)&&imgReady()&&!sys.includes('群聊'))sys+='\n\n（想发照片时——自拍、拍到的风景/美食/路上的东西、截图等——单独一行写【图片:类型】加画面描述（具体到人物、场景、光线、构图；自拍要符合你的外貌和此刻的处境），再另起一行写配文。偶尔发，别每条都发，也别动不动自拍。）'}}
@@ -2303,7 +2303,7 @@ var _nI=notify;notify=function(a,t,x,f){_nI.apply(this,arguments);try{if(!IOS||!
  navigator.serviceWorker.ready.then(function(r){r.showNotification(t||'淡水机',{body:String(x||'').slice(0,120),icon:'icon-192.png',badge:'icon-192.png',tag:'dsj'})})}catch(e){}};
 var _nr=notiReq;notiReq=function(){if(IOS&&!navigator.standalone&&window.matchMedia&&!matchMedia('(display-mode: standalone)').matches){toast('iOS 需先「分享 → 添加到主屏幕」，从主屏幕打开后才能开启通知');return}_nr.apply(this,arguments)};
 /* 动态 theme-color（深色/浅色） */
-var _au=applyUI;applyUI=function(){var r=_au.apply(this,arguments);try{var m=document.querySelector('meta[name=theme-color]');if(m)m.content=document.body.classList.contains('dark')?'#000000':'#ffffff'}catch(e){}return r};
+var _auIos=applyUI;applyUI=function(){var r=_auIos.apply(this,arguments);try{var m=document.querySelector('meta[name=theme-color]');if(m)m.content=document.body.classList.contains('dark')?'#000000':'#ffffff'}catch(e){}return r};
 try{applyUI()}catch(e){}
 /* iOS 独立模式：自动进入全屏样式 */
 try{if(navigator.standalone||matchMedia('(display-mode: standalone)').matches)document.body.classList.add('fs')}catch(e){}
@@ -2342,7 +2342,7 @@ try{var sa=navigator.standalone||matchMedia('(display-mode: standalone)').matche
 <script type="text/x-app">
 /* ================= 一句一条横幅 ================= */
 var _nOld=notify,nq=[],nbusy=false,nFlag=false;
-function nSents(t){t=String(t==null?'':t).replace(/\s+/g,' ').trim();if(!t)return[];var a=t.match(/[^。！？!?…\n~～]+[。！？!?…~～]*/g)||[t],o=[];a.forEach(function(s){s=s.trim();if(!s)return;if(o.length&&s.replace(/[\s。！？!?…~～，,、.]/g,'').length<2)o[o.length-1]+=s;else o.push(s)});if(o.length>6)o=o.slice(0,5).concat([o.slice(5).join('')]);return o}
+function nSents(t){t=String(t==null?'':t).replace(/\s+/g,' ').trim();if(!t)return[];var a=t.match(/[^。！？!?…\n~～]+[。！？!?…~～]*/g)||[t],o=[];a.forEach(function(s){s=s.trim();if(!s)return;if(o.length&&s.replace(/[\s。！？!?…~～，,、.]/g,'').length<2)o[o.length-1]+=s;else o.push(s)});if(o.length>20)o=o.slice(0,19).concat([o.slice(19).join('')]);return o}
 function pumpN(){if(nbusy||!nq.length)return;nbusy=true;var it=nq.shift(),n=document.getElementById('nt');
  var show=function(){_nOld(it.app,it.t,it.x,it.fn);setTimeout(function(){var n2=document.getElementById('nt');n2&&n2.classList.remove('on');setTimeout(function(){nbusy=false;pumpN()},360)},it.hold||2100)};
  if(n&&n.classList.contains('on')){n.classList.remove('on');setTimeout(show,320)}else show()}
@@ -2350,7 +2350,7 @@ function hmNames(app){var o={};try{(S.ct||[]).forEach(function(c){if(c.m)return;
 notify=function(app,t,x,fn){
  if(!t)return _nOld(app,t,x,fn);                      /* toast 直接显示 */
  if((app=='wx'||app=='sms')&&fn&&!nFlag&&hmNames(app)[t])return;  /* 真人发送引擎会逐句自己发横幅 */
- if(app=='wx'||app=='sms'){var ss=nSents(x);if(ss.length){ss.forEach(function(s){nq.push({app:app,t:t,x:s,fn:fn})});if(nq.length>12)nq=nq.slice(-12);pumpN();return}}
+ if(app=='wx'||app=='sms'){var ss=nSents(x);if(ss.length){ss.forEach(function(s){nq.push({app:app,t:t,x:s,fn:fn})});if(nq.length>40)nq=nq.slice(-40);pumpN();return}}
  nq.push({app:app,t:t,x:x,fn:fn,hold:2400});pumpN()};
 var _hpN=hmPlay;hmPlay=function(key,parts,o){var i=0,s0=o.seen,isW=String(key).indexOf('wx')==0,id=isW?String(key).slice(2):'',k=isW?'':String(key).slice(2);
  o.seen=function(f){var t=parts[i++];try{s0(false)}catch(e){}
@@ -2412,7 +2412,7 @@ var _nSys=notify;notify=function(app,t,x,fn){
  var chat=(app=='wx'||app=='sms');
  if(chat&&fn&&!nFlag&&hmNames(app)[t])return;
  if(chat){var ss=nSents(x);if(ss.length){ss.forEach(function(s){if(document.hidden||true)sendSys(t,s)});
-   if(document.hidden)return;ss.forEach(function(s){nq.push({app:app,t:t,x:s,fn:fn,sk:1})});if(nq.length>12)nq=nq.slice(-12);pumpN();return}}
+   if(document.hidden)return;ss.forEach(function(s){nq.push({app:app,t:t,x:s,fn:fn,sk:1})});if(nq.length>40)nq=nq.slice(-40);pumpN();return}}
  if(document.hidden){sendSys(t,x);return}
  nq.push({app:app,t:t,x:x,fn:fn,hold:2400,sk:1});pumpN()};
 /* 横幅显示时别让旧链路再重复弹系统通知 */
@@ -2437,6 +2437,169 @@ function keepApply(){try{var a=keepEl();if(S.dev.keep===false){a.pause();return}
 /* 设置里加两个开关 */
 var _pdK=PG.dev;PG.dev=function(){var tg=function(k,l,s,fn){return '<label class="cr t"><span>'+l+(s?'<small>'+s+'</small>':'')+'</span><input type="checkbox" '+(S.dev[k]!==false?'checked':'')+' onchange="S.dev.'+k+'=this.checked;save();'+(fn||'')+'"></label>'};
  return _pdK.apply(this,arguments)+'<div class="lbl2">后台与通知</div><div class="grp">'+tg('keep','后台保活','循环播放静音音频，切出网页后继续收消息；锁屏界面可能出现播放控件','keepApply()')+tg('sys','系统通知','不在该聊天界面、或切到后台时，每一句弹一条系统通知','')+'</div>'};
+</script>
+<script type="text/x-app">
+(function(){var st=document.createElement('style');st.textContent=`
+body.fs #home{padding-left:22px;padding-right:22px}
+body.fs #wg{margin-left:0;margin-right:0;display:grid;grid-template-columns:minmax(0,1fr) 96px;gap:14px;align-items:end}
+body.fs .w1{width:auto}
+#ic{width:100%}.ap{touch-action:none!important}
+.ap i.cu{background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important;overflow:visible}
+.ap i.cu svg{display:none}
+.icp{width:76px;height:76px;border-radius:24px;margin:6px auto 14px;background:rgba(0,0,0,.05) center/cover no-repeat;display:grid;place-items:center;box-shadow:inset 0 0 0 .5px rgba(0,0,0,.1)}
+body.dark .icp{background-color:rgba(255,255,255,.08)}
+.icl{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:.5px solid rgba(0,0,0,.08)}
+.icl:last-child{border:0}.icl .icp{width:44px;height:44px;border-radius:14px;margin:0;flex:none}.icl span{flex:1}
+`;document.body.appendChild(st)})();
+var ICL=[['wx','微信'],['sms','信息'],['tel','电话'],['book','世界书'],['sim','通信'],['wallet','钱包'],['mask','面具'],['mcp','MCP'],['theme','主题'],['set','设置']];
+S.ui.aic=S.ui.aic||{};S.ui.anm=S.ui.anm||{};
+function icGeo(){var c=document.getElementById('ic'),W=c?c.offsetWidth:328,cw=Math.max(82,W/4),rh=document.body.classList.contains('fs')?(innerHeight>760?106:96):92;return{W:W,cw:cw,rh:rh}}
+function icLay(){var c=document.getElementById('ic');if(!c)return;var g=icGeo(),p=S.ui.pos||{},mr=0;
+ [].forEach.call(c.querySelectorAll('.ap'),function(el){var m=(el.getAttribute('onclick')||'').match(/go\('(\w+)'\)/);if(!m)return;var n=m[1],q=p[n];if(!q)return;
+  el.style.left=(q[0]*g.cw+(g.cw-82)/2)+'px';el.style.top=(q[1]*g.rh)+'px';mr=Math.max(mr,q[1]);
+  var i=el.querySelector('i'),a=S.ui.aic[n];
+  if(a){i.classList.add('cu');i.style.backgroundImage='url("'+String(a).replace(/"/g,'%22')+'")'}else{i.classList.remove('cu');i.style.backgroundImage=''}
+  var nm=S.ui.anm[n];if(nm){var t=el.lastChild;if(t&&t.nodeType==3)t.textContent=nm}
+  if(!el._lp){el._lp=1;var tm=0,sx=0,sy=0;el.addEventListener('pointerdown',function(e){sx=e.clientX;sy=e.clientY;clearTimeout(tm);tm=setTimeout(function(){tm=0;if(typeof dg!='undefined'){dg=1;setTimeout(function(){dg=0},400)}icEdit(n)},600)});
+   ['pointerup','pointercancel'].forEach(function(ev){el.addEventListener(ev,function(){clearTimeout(tm)})});el.addEventListener('pointermove',function(e){if(Math.hypot(e.clientX-sx,e.clientY-sy)>6)clearTimeout(tm)});el.addEventListener('contextmenu',function(e){e.preventDefault()})}});
+ c.style.height=((mr+1)*g.rh+16)+'px'}
+var _icL=icons;icons=function(){_icL.apply(this,arguments);try{icLay()}catch(e){}};
+addEventListener('resize',function(){try{icLay()}catch(e){}});
+pd=function(e,n){var el=e.currentTarget,sc=parseFloat(S.ui.s)||1,sx=e.clientX,sy=e.clientY,ox=el.offsetLeft,oy=el.offsetTop,g=icGeo(),id=e.pointerId;
+ function mv(v){if(v.pointerId!=id)return;var dx=(v.clientX-sx)/sc,dy=(v.clientY-sy)/sc;if(!dg&&Math.hypot(dx,dy)<6)return;dg=1;el.classList.add('dr');el.style.left=Math.max(0,Math.min(g.W-82,ox+dx))+'px';el.style.top=Math.max(0,Math.min(g.rh*5,oy+dy))+'px';v.preventDefault&&v.preventDefault()}
+ function up(v){if(v.pointerId!=id)return;document.removeEventListener('pointermove',mv,true);document.removeEventListener('pointerup',up,true);document.removeEventListener('pointercancel',up,true);
+  if(dg){var p=S.ui.pos,c=Math.max(0,Math.min(3,Math.round((el.offsetLeft-(g.cw-82)/2)/g.cw))),r=Math.max(0,Math.min(5,Math.round(el.offsetTop/g.rh))),old=p[n],o=Object.keys(p).find(function(k){return k!=n&&p[k][0]==c&&p[k][1]==r});if(o)p[o]=old;p[n]=[c,r];save();icons()}setTimeout(function(){dg=0},0)}
+ document.addEventListener('pointermove',mv,true);document.addEventListener('pointerup',up,true);document.addEventListener('pointercancel',up,true)};
+function icSave(n,v){if(v)S.ui.aic[n]=v;else delete S.ui.aic[n];save();icons();try{var b=document.getElementById('icp');if(b)b.style.backgroundImage=v?'url("'+v+'")':''}catch(e){}}
+function icFit(src,cb){var im=new Image();im.crossOrigin='anonymous';im.onload=function(){var s=Math.min(im.width,im.height),c=document.createElement('canvas');c.width=c.height=256;var x=c.getContext('2d');x.drawImage(im,(im.width-s)/2,(im.height-s)/2,s,s,0,0,256,256);var o;try{o=c.toDataURL('image/png')}catch(e){o=src}cb(o)};im.onerror=function(){cb(src)};im.src=src}
+function icFile(n,inp){var f=inp.files&&inp.files[0];inp.value='';if(!f)return;var r=new FileReader();r.onload=function(){icFit(r.result,function(d){icSave(n,d);icEdit(n)})};r.readAsDataURL(f)}
+function icUrl(n){var u=(document.getElementById('ic-u')||{}).value;u=u&&u.trim();if(!u)return toast('请先填写图片地址');icFit(u,function(d){icSave(n,d);icEdit(n)})}
+function icName(n,v){v=v.trim();if(v)S.ui.anm[n]=v;else delete S.ui.anm[n];save();icons()}
+function icEdit(n){var d=ICL.filter(function(x){return x[0]==n})[0]||[n,n],a=S.ui.aic[n]||'';
+ modal('<div class="h1" style="font-size:19px;text-align:center">'+esc(S.ui.anm[n]||d[1])+'</div><div class="icp" id="icp" style="'+(a?'background-image:url(\''+a.replace(/\'/g,'%27')+'\')':'')+'">'+(a?'':ic(n,28))+'</div>'+
+ '<label class="lb">名称</label><input class="in" value="'+esc(S.ui.anm[n]||'')+'" placeholder="'+esc(d[1])+'" onchange="icName(\''+n+'\',this.value)">'+
+ '<label class="lb">图片地址（可选）</label><input class="in" id="ic-u" placeholder="https://…"><div class="fl" style="margin-top:10px"><button class="btn g" onclick="icUrl(\''+n+'\')">使用地址</button><label class="btn g" style="display:inline-grid;place-items:center;cursor:pointer">上传图片<input type="file" accept="image/*" style="display:none" onchange="icFile(\''+n+'\',this)"></label></div>'+
+ '<div class="fl" style="margin-top:10px"><button class="btn g" onclick="icSave(\''+n+'\',\'\');icEdit(\''+n+'\')">还原图标</button><button class="btn" onclick="closeM()">完成</button></div>')}
+function icAll(){modal('<div class="h1" style="font-size:19px">桌面图标</div><div style="max-height:56vh;overflow:auto;margin-top:6px">'+ICL.map(function(x){var a=S.ui.aic[x[0]]||'';return '<div class="icl" onclick="icEdit(\''+x[0]+'\')"><div class="icp" style="'+(a?'background-image:url(\''+a.replace(/\'/g,'%27')+'\')':'')+'">'+(a?'':ic(x[0],20))+'</div><span>'+esc(S.ui.anm[x[0]]||x[1])+'</span><small class="mut">更换</small></div>'}).join('')+'</div><div class="fl" style="margin-top:12px"><button class="btn g" onclick="S.ui.aic={};S.ui.anm={};save();icons();icAll()">全部还原</button><button class="btn" onclick="closeM()">完成</button></div>')}
+/* 主题 App 里放一个入口 */
+var _thI=A.theme;A.theme=function(){_thI.apply(this,arguments);var b=document.querySelector('.body');if(!b||b.querySelector('#icEntry'))return;var h=b.querySelector('.h1');if(!h||h.textContent!='Theme')return;
+ var d=document.createElement('div');d.id='icEntry';d.className='grp';d.style.margin='14px 0';d.innerHTML='<div class="cell" onclick="icAll()" style="cursor:pointer"><div style="flex:1"><div>桌面图标</div><small>长按桌面图标也能更换图片、改名称</small></div><span class="mut">›</span></div>';
+ var anchor=b.querySelector('.thp');(anchor&&anchor.parentNode?anchor.parentNode:b).insertBefore(d,anchor||b.children[1]||null)};
+try{icons()}catch(e){}
+</script>
+<script type="text/x-app">
+/* ===== 回复条数：像真人一样连发几条短消息 ===== */
+var CNT='条数：不设上限，完全由你的人设、情绪和当下的事情决定——话多、兴奋、有很多想说时可以连着发很多条（十几条也可以），话少或不想理人时可以只发一条。每条只说一句话（一个念头），不要把几句话塞在一行，也不要为了凑条数灌水。';
+var LIFE3=LIFE2.replace('通常1到4条，每条尽量不超过30个字，不要写成段落。','每条尽量不超过30个字，不要写成段落。\n· '+CNT);
+var R6='回复长短跟着情绪和内容走，不凑数：有时一个字、一个表情就够；有话要说才多说，分几条发时每条是一个自然的念头。';
+var LIVEX=LIVE.replace(R6,'回复条数和长短完全跟着人设和情绪走，不设上限：话多时可以连发很多条短消息，每条一个念头；话少或不想理人时一条也可以。');
+var _aiC=ai;ai=function(msgs,sys,on,cfg){
+ try{if(sys&&sys.indexOf('⁣WB⁣')>=0&&!sys.includes('群聊')&&!sys.includes('【真人感·进阶】')&&/正在用微信|正在用短信|你正在用短信|改用短信/.test(sys)){
+  var id=xKey&&xKey.id,L=null,sk=String(smCtxK||'');if(id)L=S.ch[id];else if(sk.indexOf('c:')==0){id=sk.slice(2);L=S.sm[sk]}else if(sk.indexOf('n:')==0){L=S.sm[sk]}
+  var c=id&&S.ct.find(function(x){return x.id==id});var add=LIFE3;
+  if(c){var h=lifeHints(c);add+='\n\n【此刻的你】\n'+h.map(function(x){return '· '+x}).join('\n')}
+  add+='\n· '+lifeTime();add+='\n· '+lifeCtx(L,id);
+  sys=sys.replace('语气自然口语、简短，只以人设身份对话，不要暴露设定之外的信息。','')+add;
+  if(!sys.includes('【说话方式：做一个活生生的人】'))sys+=LIVEX}}catch(e){}
+ return _aiC(msgs,sys,on,cfg)};
+/* 兜底：模型把几句话塞在一行时，按句子拆成多条 */
+function sentSplit(t){t=String(t).trim();if(t.length<14)return[t];var a=t.match(/[^。！？!?…\n]+[。！？!?…]*/g)||[t],o=[];a.forEach(function(s){s=s.trim();if(!s)return;if(o.length&&s.replace(/[\s。！？!?…~～，,、.]/g,'').length<2)o[o.length-1]+=s;else o.push(s)});return o.length?o:[t]}
+var _hsC=hmSplit;hmSplit=function(L,from){var p=_hsC(L,from);if(!p)return p;var out=[];p.forEach(function(x){if(/^\[|^【|^（|^\(/.test(x)||/https?:/.test(x))out.push(x);else sentSplit(x).forEach(function(y){out.push(y)})});return out};
+</script>
+<script type="text/x-app">
+(function(){var st=document.createElement('style');st.textContent=`
+.chp{display:flex;flex-wrap:wrap;gap:8px;padding:10px 16px 14px}
+.chp button{padding:7px 13px;border-radius:15px;background:rgba(0,0,0,.05);font-size:13px;line-height:1.2;white-space:nowrap}
+body.dark .chp button{background:rgba(255,255,255,.1)}
+.chp button.on{background:#111;color:#fff}body.dark .chp button.on{background:#f2f2f7;color:#111}
+.cpage .cl{padding:14px 16px 2px;font-size:14px}.cpage .cl small{display:block;color:#8e8e93;font-size:12px;margin-top:2px;line-height:1.4}
+.csw{display:flex;gap:10px;padding:10px 16px 6px;flex-wrap:wrap}
+.csw i{width:44px;height:58px;border-radius:12px;background-size:cover;background-position:center;box-shadow:inset 0 0 0 .5px rgba(0,0,0,.12);cursor:pointer;position:relative}
+.csw i.on{box-shadow:0 0 0 2px #0a84ff}
+.cpage .cr small{display:block;font-size:12px;color:#8e8e93;margin-top:2px;line-height:1.4;white-space:normal}.csr{display:flex;align-items:center;gap:12px;padding:10px 16px}.csr span{flex:none;font-size:14px;min-width:64px}.csr input{flex:1}.csr em{font-style:normal;color:#8e8e93;font-size:12px;width:34px;text-align:right}
+.csp{white-space:pre-wrap;font-size:12.5px;line-height:1.6;max-height:52vh;overflow:auto;background:rgba(0,0,0,.04);padding:12px;border-radius:12px;margin:8px 0}
+`;document.body.appendChild(st)})();
+function csSet(k,v){csO()[k]=v;save()}
+function csPick(k,v){var o=csO();if(o[k]===v)delete o[k];else o[k]=v;save();csM()}
+function csGrad(a,b,ang){return 'data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="800"><defs><linearGradient id="g" gradientTransform="rotate('+(ang||160)+' .5 .5)"><stop offset="0" stop-color="'+a+'"/><stop offset="1" stop-color="'+b+'"/></linearGradient></defs><rect width="400" height="800" fill="url(#g)"/></svg>')}
+var CS_BG=[['#ffffff','#f2f2f7'],['#f6efe9','#e8dfd6'],['#e7eef5','#d4e0ec'],['#eef3ea','#dbe6d4'],['#f3e8ee','#e4d3dc'],['#1c1c1e','#2c2c2e'],['#0f1419','#1b2733'],['#2a1f2d','#3d2c40']];
+function csApplyBg(){try{var m=document.getElementById('cm');if(!m)return;var o=S.cs[cid]||{},d=+o.dim||0;m.style.backgroundColor=d?'rgba(0,0,0,'+(d/100)+')':'';m.style.backgroundBlendMode=d?'multiply':''}catch(e){}}
+var _rcB=rc;rc=function(){var r=_rcB.apply(this,arguments);csApplyBg();return r};
+var _csCh=chat;chat=function(){var r=_csCh.apply(this,arguments);setTimeout(csApplyBg,60);return r};
+
+var CS_TONE=[['','默认'],['lively','活泼'],['gentle','温柔'],['cool','冷淡克制'],['sharp','毒舌'],['formal','正式']];
+var CS_LINES={len:{s:'本聊天专属设置：你每条消息都更短，以10个字以内为主。',l:'本聊天专属设置：你更愿意把话说细一点，每条可以写到40到60字，但仍然分成多条发送。'},
+ cnt:{f:'本聊天专属设置（优先于其他条数规则）：每次只发1到3条。',m:'本聊天专属设置（优先于其他条数规则）：每次发5到9条短消息。'},
+ tone:{lively:'语气更活泼，爱用语气词，反应更夸张一点。',gentle:'语气更温柔，说话放慢、体贴，但不油腻。',cool:'语气冷淡克制，少废话，不主动热络。',sharp:'语气带点毒舌和调侃，爱吐槽，但有分寸。',formal:'语气偏正式礼貌，用词规整，少用口头禅和网络用语。'},
+ emo:{n:'不要使用任何emoji和颜文字。',f:'偶尔才用一个emoji，不要频繁使用。',m:'可以多用emoji和颜文字来表达情绪。'},
+ pun:{min:'少用标点，句末不加句号，像随手打字。',full:'标点完整规范，句末正常使用标点。'},
+ mix:{1:'说话时可以自然夹杂少量英文单词或缩写。'}};
+function csStyleTxt(id){var o=S.cs[id]||{},a=[];if(o.len&&CS_LINES.len[o.len])a.push(CS_LINES.len[o.len]);if(o.cnt&&CS_LINES.cnt[o.cnt])a.push(CS_LINES.cnt[o.cnt]);if(o.tone&&CS_LINES.tone[o.tone])a.push(CS_LINES.tone[o.tone]);if(o.emo&&CS_LINES.emo[o.emo])a.push(CS_LINES.emo[o.emo]);if(o.pun&&CS_LINES.pun[o.pun])a.push(CS_LINES.pun[o.pun]);if(o.mix)a.push(CS_LINES.mix[1]);if(o.nick)a.push('在这个聊天里，你称呼对方为“'+o.nick+'”。');return a.length?'\n\n【本聊天的说话偏好】\n'+a.map(function(x){return '· '+x}).join('\n'):''}
+var _aiCS=ai;ai=function(msgs,sys,on,cfg){try{if(sys&&sys.indexOf('⁣WB⁣')>=0&&!sys.includes('群聊')&&!sys.includes('【本聊天的说话偏好】')&&/正在用微信|正在用短信|你正在用短信|改用短信/.test(sys)){
+  var id=xKey&&xKey.id,sk=String(smCtxK||'');if(!id&&sk.indexOf('c:')==0)id=sk.slice(2);if(id)sys+=csStyleTxt(id)}}catch(e){}return _aiCS(msgs,sys,on,cfg)};
+
+/* 通知：按聊天控制 */
+function ctByTitle(t){return(S.ct||[]).filter(function(c){return !c.m&&(c.name==t||c.remark==t)})[0]}
+var _nO3=_nOld;_nOld=function(a,t,x,f){if(t&&(a=='wx'||a=='sms')){var c=ctByTitle(t),o=c&&S.cs[c.id];if(o){if(o.mute||o.nb===false)return;if(o.nh)x='发来一条消息'}}return _nO3(a,t,x,f)};
+var _sS=sendSys;sendSys=function(t,b){var c=ctByTitle(t),o=c&&S.cs[c.id];if(o){if(o.mute||o.ns===false)return;if(o.nh)b='发来一条消息'}return _sS(t,b)};
+
+function csKeep(){ask('只保留最近多少条消息？','例如 100','100',function(v){var n=Math.floor(+v);if(!(n>0))return toast('请输入大于 0 的数字');var L=S.ch[cid]||[];if(L.length<=n)return toast('当前只有 '+L.length+' 条，无需清理');cf('将删除更早的 '+(L.length-n)+' 条消息，确认？',function(){S.ch[cid]=L.slice(-n);save();toast('已保留最近 '+n+' 条');csM()})},'number')}
+function csJson(){var c=TG(cid),b=new Blob([JSON.stringify({chat:c.remark||c.name,exported:new Date().toISOString(),messages:S.ch[cid]||[]},null,1)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=(c.remark||c.name)+'-聊天记录.json';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},2000)}
+function csPrev(){var id=cid,c=TG(id),o=S.cs[id]||{},nb=S.wb.filter(function(w){return(w.bind||[]).includes(id)}).length,h=lifeHints(c||{}),t='';
+ t+='【人设】\n'+(c.persona||'（未填写，按普通朋友处理）')+'\n\n【世界书】\n'+(o.wb===false?'已对该聊天关闭':(o.wbOnly?'仅使用绑定条目（'+nb+' 条）':'全局条目 + 绑定 '+nb+' 条'))+'\n\n【此刻的你】\n'+h.map(function(x){return '· '+x}).join('\n')+'\n· '+lifeTime()+'\n· '+lifeCtx(S.ch[id],id)+csStyleTxt(id);
+ t+='\n\n【上下文条数】'+(o.ctx&&o.ctx>=99999999?'全部':(o.ctx||20))+(o.sys?'\n\n【追加提示词】\n'+o.sys:'');
+ modal('<div class="h1" style="font-size:19px">提示词预览</div><div class="csp">'+esc(t)+'</div><div class="fl"><button class="btn" onclick="closeM()">关闭</button></div>')}
+
+var _csR=csM;csM=function(){_csR.apply(this,arguments);var id=cid,c=TG(id),b=document.querySelector('.body.cpage');if(!c||!b||b.querySelector('#csx'))return;var o=csO(),g=!!c.m;
+ var chips=function(k,arr,def){return '<div class="chp">'+arr.map(function(a){var on=(o[k]===undefined?def:o[k])===a[0];return '<button class="'+(on?'on':'')+'" onclick="csPick(\''+k+'\','+JSON.stringify(a[0])+')">'+a[1]+'</button>'}).join('')+'</div>'};
+ var row=function(l,s){return '<div class="cl">'+l+(s?'<small>'+s+'</small>':'')+'</div>'};
+ var sw=function(k,l,def,s){return '<label class="cr t"><span>'+l+(s?'<small>'+s+'</small>':'')+'</span><input type="checkbox" '+((def?o[k]!==false:!!o[k])?'checked':'')+' onchange="csSet(\''+k+'\',this.checked)"></label>'};
+ var html='<div id="csx">';
+ if(!g){
+  html+='<div class="lbl2">回复风格</div><div class="grp">'
+   +row('每条消息长度','控制 TA 每条消息的字数')+chips('len',[['s','更短'],['','默认'],['l','更细']],'')
+   +row('每次回复条数','覆盖默认的连发条数')+chips('cnt',[['f','少 1–3'],['','默认'],['m','多 5–9']],'')
+   +row('说话语气')+chips('tone',CS_TONE,'')
+   +row('表情符号')+chips('emo',[['n','不用'],['f','很少'],['','默认'],['m','多用']],'')
+   +row('标点')+chips('pun',[['min','少用标点'],['','默认'],['full','标点完整']],'')
+   +sw('mix','可夹杂英文',0)
+   +'<div class="cr t"><span>称呼我为<small>仅在这个聊天里</small></span><input class="cri" style="flex:none;width:110px;text-align:right" value="'+esc(o.nick||'')+'" placeholder="默认" onchange="csSet(\'nick\',this.value.trim())"></div></div>'}
+ html+='<div class="lbl2">通知</div><div class="grp">'+sw('nb','应用内横幅',1)+sw('ns','系统通知',1)+sw('nh','隐藏消息内容','','通知里只显示“发来一条消息”')+'</div><p class="mut" style="margin:-6px 6px 16px;font-size:12px">消息免打扰开启时，横幅和系统通知都不会出现，未读数仍会累计。</p>';
+ html+='<div class="lbl2">上下文与记忆</div><div class="grp">'+row('参考的聊天记录条数','每次回复时带给 TA 的最近消息数')+chips('ctx',[[20,'20'],[50,'50'],[100,'100'],[200,'200'],[500,'500'],[1000,'1000'],[99999999,'全部']],20)+'</div>';
+ var cur=o.bg||'';
+ html+='<div class="lbl2">聊天背景</div><div class="grp">'+'<div class="csw">'+CS_BG.map(function(p,i){var u=csGrad(p[0],p[1],160);return '<i class="'+(cur==u?'on':'')+'" style="background-image:url(&quot;'+u+'&quot;)" onclick="csO().bg=CS_BGU['+i+'];save();csM()"></i>'}).join('')+'</div>'
+  +'<div class="csr"><span>背景压暗</span><input type="range" min="0" max="70" value="'+(+o.dim||0)+'" oninput="this.nextElementSibling.textContent=this.value+\'%\';csO().dim=+this.value;csApplyBg()" onchange="save()"><em>'+(+o.dim||0)+'%</em></div></div>';
+ html+='<div class="lbl2">数据与调试</div><div class="grp"><div class="cell" onclick="csPrev()"><span>查看本聊天提示词</span><span class="chev" style="margin-left:auto">'+ic('back',14)+'</span></div><div class="cell" onclick="csKeep()"><span>只保留最近 N 条</span><span class="chev" style="margin-left:auto">'+ic('back',14)+'</span></div><div class="cell" onclick="csJson()"><span>导出聊天记录 (.json)</span><span class="chev" style="margin-left:auto">'+ic('back',14)+'</span></div></div></div>';
+ var anc=[].filter.call(b.querySelectorAll('.lbl2'),function(e){return e.textContent.trim()=='角色'})[0]||b.lastElementChild;anc.insertAdjacentHTML('beforebegin',html)};
+var CS_BGU=CS_BG.map(function(p){return csGrad(p[0],p[1],160)});
+</script>
+<script type="text/x-app">
+(function(){var st=document.createElement('style');st.textContent=`
+/* 已送达/已读：紧贴最后一条气泡下方（参考文件：bottom:-20px，约 6px 间距） */
+.ims .bst,#cm .bst{margin:0!important;padding:0 20px 0 0!important;line-height:13px;height:13px;transform:translateY(-1px);margin-bottom:6px!important;text-align:right;align-self:flex-end}
+.ims .bb.l:not(.them){margin-bottom:5px}
+.ims .bwr:has(+.bst) .bb.l,.ims .bb.me.l:has(+.bst){margin-bottom:0!important}
+.ims .bwr:has(+.bst){margin-bottom:6px!important}
+/* 气泡小尾巴（按文件：只出现在一组消息的最后一条；默认关闭，可在主题 App 打开） */
+body.tail .ims .bb.l::before,body.tail #sm .bb.l::before,body.tail #cm .bb.l::before{content:""!important;display:block!important;position:absolute;width:16px;height:14px;bottom:-8px;top:auto;border-radius:0!important;-webkit-mask:var(--tail) center/100% 100% no-repeat;mask:var(--tail) center/100% 100% no-repeat}
+body.tail .bb.them.l::before{left:7px!important;right:auto!important;background:var(--bth)!important}
+body.tail .bb.me.l::before{right:7px!important;left:auto!important;background:var(--bme)!important;transform:scaleX(-1)}
+body.tail #sm .bb.me.sms.l::before{background:#34c759!important}
+body.tail .ims .bb.media::before,body.tail .ims .bb.big::before,body.tail .ims .bb.typ::before{display:none!important}
+`;document.body.appendChild(st)})();
+function tailApply(){document.body.classList.toggle('tail',!!(S.ui&&S.ui.tail))}
+var _auTail=applyUI;applyUI=function(){var r=_auTail.apply(this,arguments);tailApply();return r};tailApply();
+var _thTail=A.theme;A.theme=function(){_thTail.apply(this,arguments);var g=document.querySelector('#icEntry');if(!g||g.querySelector('#tailRow'))return;
+ g.insertAdjacentHTML('beforeend','<label class="cr t" id="tailRow" style="padding:12px 16px"><span>气泡小尾巴<small style="display:block;font-size:12px;color:#8e8e93;margin-top:2px">只显示在每组消息的最后一条（与参考样式一致）；关闭则为纯圆角</small></span><input type="checkbox" '+(S.ui.tail?'checked':'')+' onchange="S.ui.tail=this.checked;save();tailApply()"></label>')};
+/* 系统通知：测试 */
+function notiTest(delay){
+ var run=function(){var go1=function(){var t='淡水机',x='这是一条测试通知，应用内横幅正常。';notify('set',t,x,function(){go('set')});};
+  if(delay){toast('已安排，'+(delay/1000)+' 秒后发送，现在可以切到后台');setTimeout(function(){sendSys('淡水机','测试通知：你现在看到的是系统通知。');if(!document.hidden)notify('set','淡水机','测试通知：应用内横幅。')},delay)}else{sendSys('淡水机','这是一条系统通知测试。');go1()}};
+ if(!window.Notification)return toast('当前浏览器不支持系统通知（iOS 需先添加到主屏幕再从主屏幕打开）');
+ if(Notification.permission=='granted')return run();
+ if(Notification.permission=='denied')return toast('通知已被拒绝，请在浏览器的网站设置里允许通知后再试');
+ Notification.requestPermission().then(function(p){if(p=='granted')run();else toast('未授予通知权限')})}
+var _pdTest=PG.dev;PG.dev=function(){return _pdTest.apply(this,arguments)+'<div class="grp" style="margin-top:12px"><div class="cell" onclick="notiTest()" style="cursor:pointer"><div style="flex:1"><div>发送测试通知</div><small>立即发一条系统通知和一条横幅</small></div><span class="mut">›</span></div><div class="cell" onclick="notiTest(5000)" style="cursor:pointer"><div style="flex:1"><div>5 秒后发送测试通知</div><small>点一下后切到后台或锁屏，检查是否弹出</small></div><span class="mut">›</span></div></div>'};
 </script>
 <script>
 (function(){var DB='aiphone-db',ST='kv',KEY='aiphone',db=null,ok=false,tmr=0,dirty=false,dead=false,inflight=false,pend=null,warnT=0,LSL=4400000;
