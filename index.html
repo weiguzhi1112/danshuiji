@@ -1468,20 +1468,20 @@ function paLast(id){let u=0,a=0;const c=S.ct.find(x=>x.id==id),ks=['c:'+id].conc
 function paUnans(id,u){return(S.pa.log[id]||[]).filter(x=>x.act!='none'&&x.ts>u).length}
 function paToday(id){const d=new Date();d.setHours(0,0,0,0);return(S.pa.log[id]||[]).filter(x=>x.act!='none'&&x.ts>=d.getTime()).length}
 function paLog(id,act,t,why){const L=S.pa.log[id]=S.pa.log[id]||[];L.push({ts:Date.now(),act,t:String(t||'').slice(0,120),why:String(why||'').slice(0,80)});if(L.length>60)L.splice(0,L.length-60);if(act!='none')S.pa.last=Date.now();save()}
-async function paThink(id,o){o=o||{};const c=S.ct.find(x=>x.id==id);if(!c)return'none';const cs=S.cs[id]||{},al=o.allow||['wx'].concat(cs.psm!==false?['sms']:[],cs.pmo!==false?['moment']:[],cs.pcl===true?['call']:[]),ls=paLast(id),now=Date.now(),
+async function paThink(id,o){o=o||{};const c=S.ct.find(x=>x.id==id);if(!c)return'none';const cs=S.cs[id]||{},al=o.allow||['wx'].concat(cs.psm!==false?['sms']:[],cs.pmo!==false?['moment']:[],cs.pcl!==false?['call']:[]),ls=paLast(id),now=Date.now(),
 nm={wx:'微信消息',sms:'短信',moment:'朋友圈',call:'电话'},hist=(S.pa.log[id]||[]).filter(x=>x.act!='none').slice(-4).map(x=>xAgo(x.ts)+'你主动'+nm[x.act]+'：'+x.t).join('\n'),
 tm=new Date().toLocaleString('zh-CN',{month:'long',day:'numeric',weekday:'long',hour:'2-digit',minute:'2-digit',hour12:false});
 const facts=`现在是${tm}。你和对方最近一次互动是${ls.any?xAgo(ls.any):'从未'}；对方最后一次发消息是${ls.u?xAgo(ls.u):'从未'}，你最后一次发消息是${ls.a?xAgo(ls.a):'从未'}。`+(ls.a>ls.u&&ls.a?'对方还没有回复你上一条消息。':'')+(hist?'\n你最近主动联系过：\n'+hist:'')+(o.hint?'\n'+o.hint:'');
-const sys=`你是${c.name}。人设：${c.persona||'普通朋友'}。\n${wbTxt()}\n你有自己的生活和作息。现在请凭人设、作息、心情、你们的关系和上面的往来记录，决定此刻要不要主动联系对方。真人不会无缘无故一直找人：深夜、忙碌、刚聊完、对方没回你时就别打扰；想分享点什么、突然想起对方、有事要说、很久没聊时才联系。可用方式：${al.map(a=>({wx:'wx（微信消息）',sms:'sms（短信）',moment:'moment（发朋友圈）',call:'call（打电话，text是接通后你说的第一句话）'}[a])).join('、')}。${o.force?'这次你必须选一种方式联系对方。':'大多数时候应该选 none。'}\n只输出JSON：{"act":"none或${al.join('或')}","text":"要发的内容，口语自然，可用换行分成几条，不要像通知","why":"一句话理由"}`;
+const sys=`你是${c.name}。人设：${c.persona||'普通朋友'}。\n${wbTxt()}\n你有自己的生活和作息。现在请凭人设、作息、心情、你们的关系和上面的往来记录，决定此刻要不要主动联系对方。真人不会无缘无故一直找人：深夜、忙碌、刚聊完、对方没回你时就别打扰；想分享点什么、突然想起对方、有事要说、很久没聊时才联系。可用方式：${al.map(a=>({wx:'wx（微信消息）',sms:'sms（短信）',moment:'moment（发朋友圈）',call:'call（打电话，text是接通后你说的第一句话；想打视频就在JSON里再加 "video":true，只想打语音就不加）'}[a])).join('、')}。${o.force?'这次你必须选一种方式联系对方。':'大多数时候应该选 none。'}\n只输出JSON：{"act":"none或${al.join('或')}","text":"要发的内容，口语自然，可用换行分成几条，不要像通知","why":"一句话理由"}`;
 let r;xKey={id,ch:'pa'};try{r=jp(await ai([{role:'user',content:facts}],sys))}catch(e){if(o.force)toast('请求失败：'+e.message);return'none'}finally{xKey=null}
 if(!r||typeof r!='object')return'none';let act=String(r.act||'none'),text=String(r.text||'').trim();if(!al.includes(act)||!text)act='none';
 if(act=='none'){paLog(id,'none','',r.why);if(o.force)toast('TA 这会儿没打算联系你'+(r.why?'：'+r.why:''));return'none'}
-paLog(id,act,text,r.why);paDo(id,act,text);return act}
-function paDo(id,act,text){const c=S.ct.find(x=>x.id==id);if(!c)return;const first=text.split('\n')[0].slice(0,34),name=c.remark||c.name;
+paLog(id,act,text,r.why);paDo(id,act,text,r.video===true||r.video=='true');return act}
+function paDo(id,act,text,vd){const c=S.ct.find(x=>x.id==id);if(!c)return;const first=text.split('\n')[0].slice(0,34),name=c.remark||c.name;
 if(act=='wx'){(S.ch[id]=S.ch[id]||[]).push({r:'a',t:text,ts:Date.now()});save();notify('wx',name,first,()=>{wt=0;go('wx');chat(id)});if(hmOn(id))splitMsgs(id);else{_spM(id);if(!(cur=='wx'&&cid==id&&$('#cm'))){S.un[id]=(S.un[id]||0)+1;save();try{icons()}catch(e){}}else rc()}}
 else if(act=='sms'){const k='c:'+id,L=S.sm[k]=S.sm[k]||[];L.push({r:'a',t:text,ts:Date.now()});save();if((S.smcfg[k]||{}).hm===false){splitSm(k);if(!(cur=='sms'&&smk==k&&$('#sm'))){S.smu[k]=(S.smu[k]||0)+1;save();try{icons()}catch(e){}notify('sms',name,first,()=>{go('sms');smt(k)})}else smR()}else splitSm(k)}
 else if(act=='moment'){S.mo.unshift({id:'o'+Date.now()+id,by:id,t:text,ts:Date.now(),likes:[],cm:[]});save();notify('wx','朋友圈',name+' 发了一条动态',()=>{wt=0;go('wx');moP()})}
-else if(act=='call')paRing(id,text)}
+else if(act=='call')paRing(id,text,vd)}
 /* ---- 来电 ---- */
 function paBeep(on){try{if(on){paAC=paAC||new(window.AudioContext||window.webkitAudioContext)();const b=()=>{const o=paAC.createOscillator(),g=paAC.createGain();o.frequency.value=880;g.gain.value=.07;o.connect(g);g.connect(paAC.destination);o.start();o.stop(paAC.currentTime+.18)};b();paRingT=setInterval(()=>{b();setTimeout(b,260)},1800);navigator.vibrate&&navigator.vibrate([400,200,400,200,400])}else{clearInterval(paRingT);navigator.vibrate&&navigator.vibrate(0)}}catch(e){}}
 function paRing(id,text){const c=S.ct.find(x=>x.id==id);if(!c||cl)return;S.pa.ring={id,text};const name=esc(c.remark||c.name);
@@ -1507,7 +1507,7 @@ function paDlg(id){const P=S.pa,n=(l,k,mn)=>`<div class="cr t" style="padding:10
 modal(`<div class="h1" style="font-size:19px">主动联系</div><label class="cr t" style="padding:10px 0"><span>总开关</span><input type="checkbox" ${P.on?'checked':''} onchange="S.pa.on=this.checked;save()"></label>${n('每人每天最多','cap',1)}${n('距上次互动至少（分钟）','sil',0)}${n('对方不回时最多连发','un',1)}<p class="mut" style="font-size:12px;margin:6px 0 12px">只在页面打开时运行；遵守“免打扰时段”。</p><div class="fl"><button class="btn g" onclick="closeM()">关闭</button><button class="btn" onclick="closeM();toast('TA 正在想…');paThink('${id}',{force:1})">让 TA 现在联系我</button></div>`)}
 var _csP=csM;csM=function(){_csP();const id=cid,c=TG(id);if(!c||c.m)return;const o=S.cs[id]=S.cs[id]||{},t=[...document.querySelectorAll('.body .lbl2')].find(x=>x.textContent=='回复');if(!t)return;
 const tg=(k,l,def)=>`<label class="cr t"><span>${l}</span><input type="checkbox" ${(def?o[k]!==false:o[k]===true)?'checked':''} onchange="S.cs['${id}'].${k}=this.checked;save()"></label>`;
-t.insertAdjacentHTML('beforebegin',`<div class="lbl2">主动联系</div><div class="grp">${tg('pa','允许 TA 主动联系我',1)}<div class="cr t"><span>活跃度</span><select class="cri" style="flex:none;direction:rtl" onchange="S.cs['${id}'].pl=this.value;save()">${[['l','低'],['m','中'],['h','高']].map(([v,x])=>`<option value="${v}" ${(o.pl||'m')==v?'selected':''}>${x}</option>`).join('')}</select></div>${tg('psm','可以发短信',1)}${tg('pmo','可以发朋友圈',1)}${tg('pcl','可以打电话')}<div class="cell" onclick="paDlg('${id}')">${ic('set',20)}<span>全局设置与测试</span><span class="chev" style="margin-left:auto">${ic('back',14)}</span></div></div><div class="grp"><div class="cell" onclick="voPage('${id}')">${ic('mic',20)}<span>语音设置</span><small class="mut" style="margin-left:auto">${S.vo.prov=='minimax'?'MiniMax':'浏览器'}</small><span class="chev" style="margin-left:8px">${ic('back',14)}</span></div></div>`)};
+t.insertAdjacentHTML('beforebegin',`<div class="lbl2">主动联系</div><div class="grp">${tg('pa','允许 TA 主动联系我',1)}<div class="cr t"><span>活跃度</span><select class="cri" style="flex:none;direction:rtl" onchange="S.cs['${id}'].pl=this.value;save()">${[['l','低'],['m','中'],['h','高']].map(([v,x])=>`<option value="${v}" ${(o.pl||'m')==v?'selected':''}>${x}</option>`).join('')}</select></div>${tg('psm','可以发短信',1)}${tg('pmo','可以发朋友圈',1)}${tg('pcl','可以打语音/视频电话',1)}<div class="cell" onclick="paDlg('${id}')">${ic('set',20)}<span>全局设置与测试</span><span class="chev" style="margin-left:auto">${ic('back',14)}</span></div></div><div class="grp"><div class="cell" onclick="voPage('${id}')">${ic('mic',20)}<span>语音设置</span><small class="mut" style="margin-left:auto">${S.vo.prov=='minimax'?'MiniMax':'浏览器'}</small><span class="chev" style="margin-left:8px">${ic('back',14)}</span></div></div>`)};
 </script>
 <script type="text/x-app">
 var _pgdS=PG.data;PG.data=()=>{const i=window.__info||{},t=i.last?new Date(i.last).toLocaleTimeString('zh-CN',{hour12:false}):'—';return _pgdS()+`<p class="mut" style="margin-top:10px">存储引擎：${esc(window.__store?__store():'')} · 最近一次保存 ${t} · 约 ${(i.size/1048576||0).toFixed(1)} MB${i.err?' · 最近错误：'+esc(i.err):''}</p><div class="fl"><button class="btn g" onclick="__flush().then(()=>{toast('已保存');A.set&&0})">立即保存</button></div>`};
@@ -1523,8 +1523,8 @@ S.img=Object.assign({on:false,dsc:true,prov:'openai',host:'',key:'',model:'gpt-i
 S.vis=Object.assign({on:true,detail:'auto',n:3,cap:true},S.vis||{});
 const imgKey=()=>S.img.key||(S.img.prov=='minimax'?S.vo.key:'')||(S.main&&S.main.key)||'',imgHost=()=>String(S.img.host||(S.img.prov=='minimax'?S.vo.host:'')||(S.main&&S.main.url)||'').replace(/\/+$/,''),imgReady=()=>!!(S.img.on&&imgKey()&&imgHost());
 async function imgGen(prompt){const g=S.img,host=imgHost(),key=imgKey();if(!host||!key)throw Error('未配置图片接口');
-if(g.prov=='minimax'){const r=await fetch(host+'/v1/image_generation',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+key},body:JSON.stringify({model:g.model||'image-01',prompt:prompt.slice(0,1400),aspect_ratio:'1:1',response_format:'base64',n:1})});if(!r.ok)throw Error(r.status+' '+(await r.text()).slice(0,100));const j=await r.json();if(j.base_resp&&j.base_resp.status_code)throw Error(j.base_resp.status_msg||'接口错误');const b=j.data&&j.data.image_base64&&j.data.image_base64[0];if(!b)throw Error('没有返回图片');return'data:image/jpeg;base64,'+b}
-const r=await fetch(host+'/images/generations',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+key},body:JSON.stringify({model:g.model,prompt,size:g.size,n:1,...(/dall-e/i.test(g.model||'')?{response_format:'b64_json'}:{})})});if(!r.ok)throw Error(r.status+' '+(await r.text()).slice(0,100));const j=await r.json(),d=j.data&&j.data[0];if(!d)throw Error('没有返回图片');
+if(g.prov=='minimax'){const r=await fetch(host+'/v1/image_generation',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+key},body:JSON.stringify({model:g.model||'image-01',prompt:prompt.slice(0,1400),aspect_ratio:g.ar||'1:1',response_format:'base64',n:1})});if(!r.ok)throw Error(r.status+' '+(await r.text()).slice(0,100));const j=await r.json();if(j.base_resp&&j.base_resp.status_code)throw Error(j.base_resp.status_msg||'接口错误');const b=j.data&&j.data.image_base64&&j.data.image_base64[0];if(!b)throw Error('没有返回图片');return'data:image/jpeg;base64,'+b}
+const r=await fetch(host+'/images/generations',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+key},body:JSON.stringify({model:g.model,prompt,size:g.size,n:1,...(/dall-e/i.test(g.model||'')?{response_format:'b64_json'}:{}),...imgQ(g)})});if(!r.ok)throw Error(r.status+' '+(await r.text()).slice(0,100));const j=await r.json(),d=j.data&&j.data[0];if(!d)throw Error('没有返回图片');
 if(d.b64_json)return'data:image/png;base64,'+d.b64_json;try{const bl=await (await fetch(d.url)).blob();return await new Promise(res=>{const f=new FileReader();f.onload=()=>res(f.result);f.readAsDataURL(bl)})}catch(e){return d.url}}
 function imgPrompt(id,m){const look=(S.img.c[id]||{}).look||'',self=/自拍|selfie|合影|人像/i.test((m.gt||'')+(m.gp||''));return[(m.gt||'照片')+'：'+m.gp,self&&look?'人物外貌：'+look:'',S.img.style].filter(Boolean).join('。')}
 async function imgRun(m,id){m.gs='gen';m.ge='';const draw=()=>{cid==id&&$('#cm')&&rc()};draw();try{m.u=await imgGen(imgPrompt(id,m));m.cap=((m.gt||'')+'：'+m.gp).slice(0,160);m.gs='ok'}catch(e){m.gs='err';m.ge=String(e.message||e).slice(0,60)}save();draw();if(m.gs=='ok'&&!(cur=='wx'&&cid==id&&$('#cm'))){S.un[id]=(S.un[id]||0);}}
@@ -1536,16 +1536,16 @@ var _imbG=imBody;imBody=function(m,i){if(m.k=='img'&&!m.u&&(m.gp||m.gs)){const e
 if(typeof m.t=='string'&&/[【\[]状态[:：]/.test(m.t))m=Object.assign({},m,{t:stStrip(m.t)});return _imbG(m,i)};
 /* ---- 看图：把最近几张图片真正发给模型 ---- */
 const visMem=new Map();
-function visScale(u){if(!/^data:image/.test(u))return Promise.resolve(u);const mx={low:512,auto:1024,high:2048}[S.vis.detail]||1024,k=mx+'|'+u.length+'|'+u.slice(-48);if(visMem.has(k))return Promise.resolve(visMem.get(k));return new Promise(res=>{const im=new Image();im.onload=()=>{const sc=Math.min(1,mx/Math.max(im.width,im.height));if(sc>=1&&u.length<4e6){visMem.set(k,u);return res(u)}const c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.width*sc));c.height=Math.max(1,Math.round(im.height*sc));c.getContext('2d').drawImage(im,0,0,c.width,c.height);const o=c.toDataURL('image/jpeg',S.vis.detail=='low'?.7:.85);visMem.set(k,o);res(o)};im.onerror=()=>res(u);im.src=u})}
-function visPick(L){const s=new Set();if(!S.vis.on)return s;for(let i=L.length-1;i>=0&&s.size<(+S.vis.n||0);i--)if(L[i].k=='img'&&L[i].u)s.add(L[i]);return s}
-function histC(x,see){const q=x.q?'（引用「'+x.q+'」）':'',nm=x.n?x.n+'：':'';if(x.k=='img'){if(x.u&&see)return[{type:'text',text:q+nm+'[图片]'},{type:'image_url',image_url:{url:x.u}}];return q+nm+'['+(x.r=='a'?'你发了一张图片':'图片')+(x.cap||x.gp?'：'+(x.cap||x.gp):'')+']'}return q+nm+(x.t==null?'':x.t)}
+function visScale(u){if(!/^data:image/.test(u))return Promise.resolve(u);const mx={low:512,auto:1024,high:2048}[S.vis.detail]||1024,k=mx+'|'+u.length+'|'+u.slice(-48);if(visMem.has(k))return Promise.resolve(visMem.get(k));return new Promise(res=>{const im=new Image();im.onload=()=>{const sc=Math.min(1,mx/Math.max(im.width,im.height));if(sc>=1&&u.length<4e6&&/^data:image\/(png|jpe?g);/i.test(u)){visMem.set(k,u);return res(u)}const c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.width*sc));c.height=Math.max(1,Math.round(im.height*sc));const cx2=c.getContext('2d');cx2.fillStyle='#fff';cx2.fillRect(0,0,c.width,c.height);cx2.drawImage(im,0,0,c.width,c.height);const o=c.toDataURL('image/jpeg',S.vis.detail=='low'?.7:.85);visMem.set(k,o);res(o)};im.onerror=()=>res(u);im.src=u})}
+function visPick(L){const s=new Set();if(!S.vis.on)return s;for(let i=L.length-1;i>=0&&s.size<(+S.vis.n||0);i--)if((L[i].k=='img'||L[i].k=='stk')&&L[i].u)s.add(L[i]);return s}
+function histC(x,see){const q=x.q?'（引用「'+x.q+'」）':'',nm=x.n?x.n+'：':'';if(x.k=='img'||x.k=='stk'){const sk=x.k=='stk',lb=sk?'表情包':'图片';if(x.u&&see)return[{type:'text',text:q+nm+'['+lb+']'},{type:'image_url',image_url:{url:x.u}}];return q+nm+'['+(x.r=='a'?'你发了一张'+lb:lb)+(x.cap||x.gp?'：'+(x.cap||x.gp):'')+']'}return q+nm+(x.t==null?'':x.t)}
 var _aiVi=ai;ai=async function(msgs,sys,on,cfg){if(msgs.some(m=>Array.isArray(m.content))){const c=cfg||S[S.act||'main'];msgs=await Promise.all(msgs.map(async m=>{if(!Array.isArray(m.content))return m;const P=[];for(const p of m.content){if(p.type!='image_url'){P.push(c.type=='anthropic'?{type:'text',text:p.text}:p);continue}let u=p.image_url.url;try{u=await visScale(u)}catch(e){}if(c.type=='anthropic'){const mm=u.match(/^data:([^;]+);base64,(.+)$/);P.push(mm?{type:'image',source:{type:'base64',media_type:mm[1],data:mm[2]}}:{type:'image',source:{type:'url',url:u}})}else P.push({type:'image_url',image_url:{url:u,detail:S.vis.detail}})}return{...m,content:P}}))}return _aiVi(msgs,sys,on,cfg)};
-let visBusy=false;async function visCapAll(id){if(visBusy||!S.vis.on||!S.vis.cap||!S.main.key)return;const L=S.ch[id]||[];visBusy=true;try{for(const m of visPick(L)){if(m.cap||!m.u)continue;try{const r=await ai([{role:'user',content:[{type:'text',text:'用一两句话客观描述这张图片的内容（不超过60字，只输出描述）'},{type:'image_url',image_url:{url:m.u}}]}],'你是图片描述助手。',null);m.cap=String(r).trim().slice(0,120);save()}catch(e){break}}}finally{visBusy=false}}
+let visBusy=false;async function visCapAll(id){if(visBusy||!S.vis.on||!S.vis.cap||!S.main.key)return;const L=S.ch[id]||[];visBusy=true;try{for(const m of visPick(L)){if(m.cap||!m.u)continue;try{const r=await ai([{role:'user',content:[{type:'text',text:m.k=='stk'?'这是聊天里的一个表情包（可能是 GIF/PNG 的第一帧），用一句话说明画面里是什么、表达什么情绪或意思（不超过40字，只输出描述）':'用一两句话客观描述这张图片的内容（不超过60字，只输出描述）'},{type:'image_url',image_url:{url:m.u}}]}],'你是图片描述助手。',null);m.cap=String(r).trim().slice(0,120);save()}catch(e){break}}}finally{visBusy=false}}
 var _gV=gen;gen=async function(id,at){try{return await _gV(id,at)}finally{S.vis.on&&S.vis.cap&&setTimeout(()=>visCapAll(id),4000)}};
 /* ---- 图片与视觉设置页 ---- */
 function imgPage(id){const c=TG(id),g=S.img,v=S.vis,tg=(o,k,l)=>`<label class="cr t"><span>${l}</span><input type="checkbox" ${S[o][k]?'checked':''} onchange="S.${o}.${k}=this.checked;save();${k=='on'&&o=='img'?`imgPage('${id}')`:''}"></label>`,tx=(l,k,ph,t)=>`<div class="cr"><span style="width:74px">${l}</span><input class="cri" type="${t||'text'}" value="${esc(g[k])}" placeholder="${ph}" onchange="S.img.${k}=this.value.trim();save()"></div>`;
 view(hd('图片与视觉','','csM()')+`<div class="body cpage"><div class="chead"><div style="font-size:19px;font-weight:500">${esc(c.remark||c.name)}</div><small class="mut">角色发图片、以及看懂你发的图</small></div>
-<div class="lbl2">角色发图片</div><div class="grp">${tg('img','dsc','允许角色发文字描述图（长按图片卡片可生成图片）')}${tg('img','on','角色发图时自动生成（需配置下面的图片接口）')}${`<div class="cr t"><span>图片接口</span><select class="cri" style="flex:none;direction:rtl" onchange="S.img.prov=this.value;S.img.model=this.value=='minimax'?'image-01':'gpt-image-1';save();imgPage('${id}')"><option value="openai" ${g.prov=='openai'?'selected':''}>OpenAI 兼容</option><option value="minimax" ${g.prov=='minimax'?'selected':''}>MiniMax</option></select></div>${tx('接口地址','host','留空则用'+(g.prov=='minimax'?'语音处填的 MiniMax 地址':'主接口'))}${tx('密钥','key','留空则复用'+(g.prov=='minimax'?'MiniMax 语音密钥':'主接口密钥'),'password')}${tx('模型','model',g.prov=='minimax'?'image-01':'gpt-image-1')}${g.prov=='minimax'?'':`<div class="cr t"><span>尺寸</span><select class="cri" style="flex:none;direction:rtl" onchange="S.img.size=this.value;save()">${['1024x1024','1024x1536','1536x1024','512x512'].map(x=>`<option ${g.size==x?'selected':''}>${x}</option>`).join('')}</select></div>`}${tx('画风前缀','style','如：手机拍摄的真实照片')}<div class="cell" onclick="imgTest()">${ic('img',20)}<span>生成测试图</span></div>`}</div>
+<div class="lbl2">角色发图片</div><div class="grp">${tg('img','dsc','允许角色发文字描述图（长按图片卡片可生成图片）')}${tg('img','on','角色发图时自动生成（需配置下面的图片接口）')}${`<div class="cr t"><span>图片接口</span><select class="cri" style="flex:none;direction:rtl" onchange="S.img.prov=this.value;S.img.model=this.value=='minimax'?'image-01':'gpt-image-1';save();imgPage('${id}')"><option value="openai" ${g.prov=='openai'?'selected':''}>OpenAI 兼容</option><option value="minimax" ${g.prov=='minimax'?'selected':''}>MiniMax</option></select></div>${tx('接口地址','host','留空则用'+(g.prov=='minimax'?'语音处填的 MiniMax 地址':'主接口'))}${tx('密钥','key','留空则复用'+(g.prov=='minimax'?'MiniMax 语音密钥':'主接口密钥'),'password')}${tx('模型','model',g.prov=='minimax'?'image-01':'gpt-image-1')}${g.prov=='minimax'?'':`<div class="cr t"><span>尺寸</span><select class="cri" style="flex:none;direction:rtl" onchange="S.img.size=this.value;save()">${['1024x1024','1024x1536','1536x1024','1792x1024','1024x1792','2048x2048','512x512'].map(x=>`<option ${g.size==x?'selected':''}>${x}</option>`).join('')}</select></div>`}${imgQSel(g)}${tx('画风前缀','style','如：手机拍摄的真实照片')}<div class="cell" onclick="imgTest()">${ic('img',20)}<span>生成测试图</span></div>`}</div>
 <div class="lbl2">${esc(c.remark||c.name)} 的外貌</div><div class="grp"><textarea class="cri ct" rows="3" placeholder="用于生成自拍：发型、五官、穿衣风格、气质……" onchange="S.img.c['${id}']=Object.assign(S.img.c['${id}']||{},{look:this.value.trim()});save()">${esc((S.img.c[id]||{}).look||'')}</textarea></div>
 <div class="lbl2">看图（多模态）</div><div class="grp">${tg('vis','on','让模型看到聊天里的图片')}<div class="cr t"><span>精度</span><select class="cri" style="flex:none;direction:rtl" onchange="S.vis.detail=this.value;save()">${[['low','低（省流量，看大意）'],['auto','自动'],['high','高（看细节，较贵）']].map(([a,b])=>`<option value="${a}" ${v.detail==a?'selected':''}>${b}</option>`).join('')}</select></div><div class="cr t"><span>同时看最近几张</span><input class="cri" type="number" min="1" value="${v.n}" style="flex:none;width:72px" onchange="S.vis.n=Math.max(1,+this.value||1);save()"></div>${tg('vis','cap','记住每张图的内容（更早的图靠文字描述回忆）')}</div>
 <p class="mut" style="margin:6px 6px 0;font-size:12px">角色想发图时会在回复里写出画面描述：没开自动生成（或没配接口）时，聊天里是一张文字描述卡片，长按它选“生成图片”即可出图，已生成的也能“重新生成”；开启自动生成后会直接出图，失败的点一下可重试。看图精度影响上传前的压缩尺寸：低 512px、自动 1024px、高 2048px。</p></div>`)}
@@ -1997,8 +1997,8 @@ var _wbS=wbSave;wbSave=function(i){var box=document.getElementById('wbbd'),sel=b
 </script>
 <script type="text/x-app">
 (function(){var st=document.createElement('style');st.textContent=`
-body.fs{background:#000;align-items:stretch;justify-content:stretch;height:100vh;height:100dvh;overscroll-behavior:none}
-body.fs #ph{width:100vw;height:100vh;height:100dvh;transform:none;border-radius:0;box-shadow:none}
+body.fs{background:#000;align-items:stretch;justify-content:stretch;height:100vh;overscroll-behavior:none}
+body.fs #ph{width:100vw;height:100vh;transform:none;border-radius:0;box-shadow:none}
 body.fs.rsb #sb{display:none}
 body.fs #home{padding-top:calc(64px + env(safe-area-inset-top,0px))}
 body.fs #bar{bottom:max(8px,env(safe-area-inset-bottom,0px))}
@@ -2278,11 +2278,11 @@ html,body{overscroll-behavior:none;-webkit-text-size-adjust:100%;text-size-adjus
 button,a,.cell,.row,.ic,.app,[onclick]{touch-action:manipulation}
 @supports(-webkit-touch-callout:none){
  #ph input,#ph textarea,#ph select,.in{font-size:16px!important}
- body.fs,body.fs #ph{height:var(--vvh,100dvh)!important}
+ body.fs,body.fs #ph{height:100vh!important}
 }
 html.ios body.fs{position:fixed;inset:0;width:100%}
 body.fs #ph{padding-left:env(safe-area-inset-left,0);padding-right:env(safe-area-inset-right,0);box-sizing:border-box}
-@media(min-width:700px){body.fs{align-items:center;justify-content:center}body.fs #ph{width:min(100vw,460px);height:min(var(--vvh,100dvh),980px)!important;border-radius:28px;overflow:hidden}}
+@media(min-width:700px){body.fs{align-items:center;justify-content:center}body.fs #ph{width:min(100vw,460px);height:min(100vh,980px)!important;border-radius:28px;overflow:hidden}}
 `;document.body.appendChild(st)})();
 var IOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform=='MacIntel'&&navigator.maxTouchPoints>1);
 if(IOS)document.documentElement.classList.add('ios');
@@ -2458,7 +2458,7 @@ S.ui.aic=S.ui.aic||{};S.ui.anm=S.ui.anm||{};
 function icGeo(){var c=document.getElementById('ic'),W=c?c.offsetWidth:328,cw=Math.max(82,W/4),rh=document.body.classList.contains('fs')?(innerHeight>760?106:96):92;return{W:W,cw:cw,rh:rh}}
 function icLay(){var c=document.getElementById('ic');if(!c)return;var g=icGeo(),p=S.ui.pos||{},mr=0;
  [].forEach.call(c.querySelectorAll('.ap'),function(el){var m=(el.getAttribute('onclick')||'').match(/go\('(\w+)'\)/);if(!m)return;var n=m[1],q=p[n];if(!q)return;
-  el.style.left=(q[0]*g.cw+(g.cw-82)/2)+'px';el.style.top=(q[1]*g.rh)+'px';mr=Math.max(mr,q[1]);
+  el.style.left=(q[0]*g.cw+(g.cw-82)/2+(g.ox||0))+'px';el.style.top=(q[1]*g.rh)+'px';mr=Math.max(mr,q[1]);
   var i=el.querySelector('i'),a=S.ui.aic[n];
   if(a){i.classList.add('cu');i.style.backgroundImage='url("'+String(a).replace(/"/g,'%22')+'")'}else{i.classList.remove('cu');i.style.backgroundImage=''}
   var nm=S.ui.anm[n];if(nm){var t=el.lastChild;if(t&&t.nodeType==3)t.textContent=nm}
@@ -2470,7 +2470,7 @@ addEventListener('resize',function(){try{icLay()}catch(e){}});
 pd=function(e,n){var el=e.currentTarget,sc=parseFloat(S.ui.s)||1,sx=e.clientX,sy=e.clientY,ox=el.offsetLeft,oy=el.offsetTop,g=icGeo(),id=e.pointerId;
  function mv(v){if(v.pointerId!=id)return;var dx=(v.clientX-sx)/sc,dy=(v.clientY-sy)/sc;if(!dg&&Math.hypot(dx,dy)<6)return;dg=1;el.classList.add('dr');el.style.left=Math.max(0,Math.min(g.W-82,ox+dx))+'px';el.style.top=Math.max(0,Math.min(g.rh*5,oy+dy))+'px';v.preventDefault&&v.preventDefault()}
  function up(v){if(v.pointerId!=id)return;document.removeEventListener('pointermove',mv,true);document.removeEventListener('pointerup',up,true);document.removeEventListener('pointercancel',up,true);
-  if(dg){var p=S.ui.pos,c=Math.max(0,Math.min(3,Math.round((el.offsetLeft-(g.cw-82)/2)/g.cw))),r=Math.max(0,Math.min(5,Math.round(el.offsetTop/g.rh))),old=p[n],o=Object.keys(p).find(function(k){return k!=n&&p[k][0]==c&&p[k][1]==r});if(o)p[o]=old;p[n]=[c,r];save();icons()}setTimeout(function(){dg=0},0)}
+  if(dg){var p=S.ui.pos,c=Math.max(0,Math.min(3,Math.round((el.offsetLeft-(g.cw-82)/2-(g.ox||0))/g.cw))),r=Math.max(0,Math.min(5,Math.round(el.offsetTop/g.rh))),old=p[n],o=Object.keys(p).find(function(k){return k!=n&&p[k][0]==c&&p[k][1]==r});if(o)p[o]=old;p[n]=[c,r];save();icons()}setTimeout(function(){dg=0},0)}
  document.addEventListener('pointermove',mv,true);document.addEventListener('pointerup',up,true);document.addEventListener('pointercancel',up,true)};
 function icSave(n,v){if(v)S.ui.aic[n]=v;else delete S.ui.aic[n];save();icons();try{var b=document.getElementById('icp');if(b)b.style.backgroundImage=v?'url("'+v+'")':''}catch(e){}}
 function icFit(src,cb){var im=new Image();im.crossOrigin='anonymous';im.onload=function(){var s=Math.min(im.width,im.height),c=document.createElement('canvas');c.width=c.height=256;var x=c.getContext('2d');x.drawImage(im,(im.width-s)/2,(im.height-s)/2,s,s,0,0,256,256);var o;try{o=c.toDataURL('image/png')}catch(e){o=src}cb(o)};im.onerror=function(){cb(src)};im.src=src}
@@ -3003,8 +3003,8 @@ var _auHs=applyUI;applyUI=function(){_auHs.apply(this,arguments);document.body.c
 document.body.classList.toggle('hclk',!!S.ui.hclk);document.body.classList.toggle('hwg',!!S.ui.hwg);
 /* 拖拽：显示网格、实时吸附预览 */
 pd=function(e,n){var el=e.currentTarget,c0=document.getElementById('ic'),sc=parseFloat(S.ui.s)||1,sx=e.clientX,sy=e.clientY,ox=el.offsetLeft,oy=el.offsetTop,g=icGeo(),id=e.pointerId,grid=null,cells=[],ROWS=Math.min(8,Math.max.apply(null,Object.keys(S.ui.pos||{}).map(function(k){return S.ui.pos[k][1]}).concat([0]))+2);
- function mk(){if(grid||!c0)return;grid=document.createElement('div');grid.id='icg';grid.style.height=(ROWS*g.rh)+'px';for(var r=0;r<ROWS;r++)for(var c=0;c<4;c++){var i=document.createElement('i');i.style.left=(c*g.cw+(g.cw-82)/2-2)+'px';i.style.top=(r*g.rh-2)+'px';i.style.width='86px';i.style.height=(g.rh-14)+'px';grid.appendChild(i);cells.push(i)}c0.insertBefore(grid,c0.firstChild);c0.style.minHeight=(ROWS*g.rh)+'px'}
- function cell(){var c=Math.max(0,Math.min(3,Math.round((el.offsetLeft-(g.cw-82)/2)/g.cw))),r=Math.max(0,Math.min(ROWS-1,Math.round(el.offsetTop/g.rh)));return[c,r]}
+ function mk(){if(grid||!c0)return;grid=document.createElement('div');grid.id='icg';grid.style.height=(ROWS*g.rh)+'px';for(var r=0;r<ROWS;r++)for(var c=0;c<4;c++){var i=document.createElement('i');i.style.left=(c*g.cw+(g.cw-82)/2+(g.ox||0)-2)+'px';i.style.top=(r*g.rh-2)+'px';i.style.width='86px';i.style.height=(g.rh-14)+'px';grid.appendChild(i);cells.push(i)}c0.insertBefore(grid,c0.firstChild);c0.style.minHeight=(ROWS*g.rh)+'px'}
+ function cell(){var c=Math.max(0,Math.min(3,Math.round((el.offsetLeft-(g.cw-82)/2-(g.ox||0))/g.cw))),r=Math.max(0,Math.min(ROWS-1,Math.round(el.offsetTop/g.rh)));return[c,r]}
  function hl(){var t=cell();cells.forEach(function(i,k){i.classList.toggle('on',k==t[1]*4+t[0])})}
  function mv(v){if(v.pointerId!=id)return;var dx=(v.clientX-sx)/sc,dy=(v.clientY-sy)/sc;if(!dg&&Math.hypot(dx,dy)<6)return;dg=1;mk();el.classList.add('dr');el.style.left=Math.max(0,Math.min(g.W-82,ox+dx))+'px';el.style.top=Math.max(0,Math.min(g.rh*(ROWS-1),oy+dy))+'px';hl();v.preventDefault&&v.preventDefault()}
  function up(v){if(v.pointerId!=id)return;document.removeEventListener('pointermove',mv,true);document.removeEventListener('pointerup',up,true);document.removeEventListener('pointercancel',up,true);
@@ -3407,6 +3407,101 @@ var _apFz=applyUI;applyUI=function(){var r=_apFz.apply(this,arguments);try{docum
 var _aTFz=A.theme;A.theme=function(){_aTFz.apply(this,arguments);try{var b=document.querySelector('.body');if(!b||b.querySelector('#fzb'))return;var w=document.createElement('div');w.id='fzb';
  w.innerHTML='<label class="lb" id="fz-l" style="margin-top:4px">整体字号 '+Math.round(S.ui.fz*100)+'%</label><input type="range" min=".8" max="1.05" step=".02" value="'+S.ui.fz+'" oninput="S.ui.fz=+this.value;document.getElementById(\'fz-l\').textContent=\'整体字号 \'+Math.round(S.ui.fz*100)+\'%\';fzApply();save()"><p class="mut" style="margin:6px 0 18px;font-size:12px;line-height:1.6">标题和大号字缩得多，小字基本不变；默认 90%，想更精致就往左拖。</p>';
  var h=b.querySelector('.h1');if(h)h.insertAdjacentElement('afterend',w);else b.appendChild(w)}catch(e){}};
+</script>
+<script type="text/x-app">
+/* ===== 图片清晰度 ===== */
+function imgQ(g){var q=g.q||'auto';if(q=='auto')return{};if(/dall-e-3/i.test(g.model||''))return{quality:(q=='high'||q=='hd')?'hd':'standard'};if(/dall-e-2/i.test(g.model||''))return{};return{quality:q=='hd'?'high':q}}
+function imgQSel(g){if(g.prov=='minimax')return '<div class="cr t"><span>画幅</span><select class="cri" style="flex:none;direction:rtl" onchange="S.img.ar=this.value;save()">'+['1:1','3:4','4:3','2:3','3:2','9:16','16:9','21:9'].map(function(x){return '<option '+((g.ar||'1:1')==x?'selected':'')+'>'+x+'</option>'}).join('')+'</select></div>';
+ return '<div class="cr t"><span>清晰度</span><select class="cri" style="flex:none;direction:rtl" onchange="S.img.q=this.value;save()">'+[['auto','自动'],['low','标准（快）'],['medium','较高'],['high','高清（最清晰，较慢）']].map(function(o){return '<option value="'+o[0]+'" '+((g.q||'auto')==o[0]?'selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></div>'}
+/* ===== 桌面图标：大小 / 间距 ===== */
+function icSz(){return typeof S.ui.isz=='number'?S.ui.isz:.84}
+function icGp(){return typeof S.ui.igp=='number'?S.ui.igp:.86}
+function icApply(){document.documentElement.style.setProperty('--isz',icSz())}
+icGeo=function(){var c=document.getElementById('ic'),W=c?c.offsetWidth:328,f=icGp(),cw=Math.max(58,W/4*f),rh=Math.round((document.body.classList.contains('fs')?(innerHeight>760?106:96):92)*f);return{W:W,cw:cw,rh:rh,ox:(W-4*cw)/2}};
+(function(){var st=document.createElement('style');st.textContent=`
+#ic .ap i{width:calc(56px*var(--isz,1));height:calc(56px*var(--isz,1));border-radius:calc(19px*var(--isz,1))}
+#ic .ap i svg{width:calc(24px*var(--isz,1));height:calc(24px*var(--isz,1))}
+#ic .ap{gap:calc(8px*var(--isz,1))}
+#imv{position:absolute;inset:0;z-index:95;background:#0b0b0c;touch-action:none;overflow:hidden;animation:ivin .2s ease both}
+@keyframes ivin{from{opacity:0}}
+#imv img{position:absolute;left:50%;top:50%;max-width:100%;max-height:100%;transform:translate(-50%,-50%);user-select:none;-webkit-user-drag:none;transform-origin:center}
+#imv .ivb{position:absolute;top:calc(var(--sat,0px) + 44px);left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:0 18px;z-index:3;pointer-events:none}
+#imv .ivb button{pointer-events:auto;height:34px;min-width:34px;padding:0 14px;border-radius:17px;border:1px solid rgba(255,255,255,.28);background:rgba(20,20,22,.9);color:#fff;font-size:12.5px;letter-spacing:.1em;display:flex;align-items:center;justify-content:center;gap:6px}
+#imv .ivb button svg{width:15px;height:15px}
+#imv .ivn{color:rgba(255,255,255,.7);font-size:11px;letter-spacing:.2em}
+#imv .ivp{position:absolute;top:50%;margin-top:-18px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:rgba(20,20,22,.9);color:#fff;z-index:3;display:grid;place-items:center}
+#imv .ivp svg{width:16px;height:16px}
+#imv .ivp.l{left:12px}#imv .ivp.r{right:12px}#imv .ivp.l svg{transform:none}#imv .ivp.r svg{transform:rotate(180deg)}
+#imv .ivc{position:absolute;left:24px;right:24px;bottom:calc(var(--sab,0px) + 36px);text-align:center;color:rgba(255,255,255,.75);font-size:12px;line-height:1.7;z-index:3;pointer-events:none}
+`;document.body.appendChild(st)})();
+icApply();var _icAp=icons;icons=function(){icApply();_icAp.apply(this,arguments)};
+var _aTIc=A.theme;A.theme=function(){_aTIc.apply(this,arguments);try{var b=document.querySelector('.body');if(!b||b.querySelector('#icsb'))return;var w=document.createElement('div');w.id='icsb';
+ var sl=function(l,id,k,mn,mx,v){return '<label class="lb" id="'+id+'" style="margin-top:12px">'+l+' '+Math.round(v*100)+'%</label><input type="range" min="'+mn+'" max="'+mx+'" step=".02" value="'+v+'" oninput="S.ui.'+k+'=+this.value;document.getElementById(\''+id+'\').textContent=\''+l+' \'+Math.round(this.value*100)+\'%\';icApply();icLay();save()">'};
+ w.innerHTML=sl('桌面图标大小','ics-a','isz',.6,1.1,icSz())+sl('桌面图标间距','ics-b','igp',.6,1.1,icGp());
+ var f=b.querySelector('#fzb');if(f)f.insertAdjacentElement('afterend',w);else{var h=b.querySelector('.h1');h?h.insertAdjacentElement('afterend',w):b.appendChild(w)}}catch(e){}};
+/* ===== 聊天图片：点开看大图 / 保存 ===== */
+var ivL=[],ivI=0,ivS={s:1,x:0,y:0};
+function ivList(){return [].filter.call(document.querySelectorAll('#cm .bb img,#sm .bb img'),function(i){return !i.closest('#fmo')&&/^(data:image|https?:|blob:)/.test(i.getAttribute('src')||'')})}
+function ivT(){var im=document.querySelector('#imv img');if(im)im.style.transform='translate(calc(-50% + '+ivS.x+'px),calc(-50% + '+ivS.y+'px)) scale('+ivS.s+')'}
+function ivShow(i){var im=document.querySelector('#imv img');if(!im||!ivL.length)return;ivI=(i+ivL.length)%ivL.length;im.src=ivL[ivI].getAttribute('src');ivS={s:1,x:0,y:0};ivT();var n=document.querySelector('#imv .ivn');if(n)n.textContent=ivL.length>1?(ivI+1)+' / '+ivL.length:''}
+function ivClose(){var o=document.getElementById('imv');o&&o.remove()}
+function ivSave(){var im=document.querySelector('#imv img');if(!im)return;var src=im.getAttribute('src');
+ var name='图片-'+new Date().toISOString().replace(/[-:T]/g,'').slice(0,14);
+ fetch(src).then(function(r){return r.blob()}).then(function(b){var ext=(b.type.split('/')[1]||'png').replace('jpeg','jpg').replace('+xml',''),fn=name+'.'+ext,f=null;try{f=new File([b],fn,{type:b.type})}catch(e){}
+  if(f&&navigator.canShare&&navigator.canShare({files:[f]})&&/iPhone|iPad|Android/i.test(navigator.userAgent)){return navigator.share({files:[f]}).catch(function(){})}
+  var u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},4000);toast('已保存：'+fn)}).catch(function(){window.open(src,'_blank')})}
+function ivOpen(img){ivL=ivList();var i=ivL.indexOf(img);if(i<0){ivL=[img];i=0}var host=document.getElementById('ph')||document.getElementById('scr');ivClose();
+ var o=document.createElement('div');o.id='imv';o.innerHTML='<img alt=""><div class="ivb"><button onclick="ivClose()" aria-label="关闭">'+ic('x',15)+'</button><span class="ivn"></span><button onclick="ivSave()">保存</button></div>'+(ivL.length>1?'<button class="ivp l" onclick="ivShow(ivI-1)">'+ic('back',16)+'</button><button class="ivp r" onclick="ivShow(ivI+1)">'+ic('back',16)+'</button>':'');
+ host.appendChild(o);ivShow(i);
+ var ps={},d0=0,s0=1,sx=0,sy=0,moved=0,t0=0;
+ o.addEventListener('pointerdown',function(e){if(e.target.closest('button'))return;ps[e.pointerId]={x:e.clientX,y:e.clientY};moved=0;t0=Date.now();sx=ivS.x;sy=ivS.y;var k=Object.keys(ps);if(k.length==2){var a=ps[k[0]],b=ps[k[1]];d0=Math.hypot(a.x-b.x,a.y-b.y);s0=ivS.s}try{o.setPointerCapture(e.pointerId)}catch(_){}});
+ o.addEventListener('pointermove',function(e){var p=ps[e.pointerId];if(!p)return;var k=Object.keys(ps);if(k.length==2){ps[e.pointerId]={x:e.clientX,y:e.clientY};var a=ps[k[0]],b=ps[k[1]],d=Math.hypot(a.x-b.x,a.y-b.y);ivS.s=Math.max(1,Math.min(6,s0*d/(d0||1)));moved=1;ivT();return}
+  var sc=document.getElementById('ph');var zf=(sc&&sc.getBoundingClientRect().width/sc.offsetWidth)||1;var dx=(e.clientX-p.x)/zf,dy=(e.clientY-p.y)/zf;if(Math.abs(dx)+Math.abs(dy)>5)moved=1;if(ivS.s>1){ivS.x=sx+dx;ivS.y=sy+dy;ivT()}else if(moved){ivS.x=dx;ivS.y=dy*.6;ivT()}});
+ var up=function(e){var p=ps[e.pointerId];delete ps[e.pointerId];if(!p)return;
+  if(ivS.s<=1.02){var dx=(e.clientX-p.x),dy=e.clientY-p.y;if(Math.abs(dx)>70&&Math.abs(dx)>Math.abs(dy)&&ivL.length>1){ivShow(ivI+(dx<0?1:-1));return}if(dy>110&&Math.abs(dy)>Math.abs(dx)){ivClose();return}ivS={s:1,x:0,y:0};ivT()}
+  if(!moved&&Date.now()-t0<300&&ivS.s<=1.02&&e.target===o)ivClose()};
+ o.addEventListener('pointerup',up);o.addEventListener('pointercancel',function(e){delete ps[e.pointerId]});
+ o.addEventListener('dblclick',function(e){if(e.target.closest('button'))return;if(ivS.s>1){ivS={s:1,x:0,y:0}}else ivS={s:2.5,x:0,y:0};ivT()});
+ o.addEventListener('wheel',function(e){e.preventDefault();ivS.s=Math.max(1,Math.min(6,ivS.s*(e.deltaY<0?1.15:.87)));if(ivS.s==1){ivS.x=0;ivS.y=0}ivT()},{passive:false})}
+document.addEventListener('click',function(e){var t=e.target;if(!t||t.tagName!='IMG'||!t.closest||document.getElementById('imv'))return;if(!t.closest('#cm .bb,#sm .bb')||t.closest('#fmo'))return;if(typeof msel!='undefined'&&msel)return;if(!/^(data:image|https?:|blob:)/.test(t.getAttribute('src')||''))return;e.preventDefault();e.stopPropagation();ivOpen(t)},true);
+document.addEventListener('keydown',function(e){if(!document.getElementById('imv'))return;if(e.key=='Escape')ivClose();if(e.key=='ArrowLeft')ivShow(ivI-1);if(e.key=='ArrowRight')ivShow(ivI+1)});
+</script>
+<script type="text/x-app">
+/* ===== 角色来电（语音 / 视频）：新来电界面 + 聊天里直接拨 ===== */
+(function(){var st=document.createElement('style');st.textContent=`
+#inc{position:absolute;inset:0;z-index:96;background:#f7f7f5;color:#111;display:flex;flex-direction:column;align-items:center;padding:calc(var(--sat,0px) + 70px) 30px calc(var(--sab,0px) + 54px);animation:ivin .25s ease both}
+body.dark #inc{background:#111113;color:#f2f2f7}
+#inc .icl{font:400 10px/1 -apple-system,sans-serif;letter-spacing:.34em;color:#8e8e93}
+#inc .icb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;margin-top:-30px}
+#inc .ica{width:116px;height:116px;border-radius:50%;background:#ecebe7 center/cover;display:grid;place-items:center;font:300 42px Georgia,'Songti SC',serif;color:#8e8e93;box-shadow:0 0 0 10px #f7f7f5,0 0 0 11px rgba(0,0,0,.13);animation:icp 2s ease-out infinite}
+body.dark #inc .ica{background-color:#232326;box-shadow:0 0 0 10px #111113,0 0 0 11px rgba(255,255,255,.18)}
+@keyframes icp{0%{filter:none}50%{filter:brightness(.97)}}
+#inc .icn{font:300 26px/1.2 Georgia,'Songti SC','Noto Serif SC',serif;letter-spacing:.08em;margin-top:34px}
+#inc .ics{font-size:12px;letter-spacing:.22em;color:#8e8e93;margin-top:14px}
+#inc .icc{display:flex;gap:70px;align-items:flex-start}
+#inc .icc button{display:flex;flex-direction:column;align-items:center;gap:9px;font-size:11px;letter-spacing:.2em;color:#8e8e93}
+#inc .icc button i{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;font-style:normal}
+#inc .icr i{border:1px solid rgba(0,0,0,.18);color:#111}body.dark #inc .icr i{border-color:rgba(255,255,255,.25);color:#f2f2f7}
+#inc .icy i{background:#111;color:#fff}body.dark #inc .icy i{background:#f2f2f7;color:#111}
+#inc .icc i svg{width:20px;height:20px}
+#inc .icr i svg{transform:none}
+body:has(#inc) #sb,body:has(#imv) #sb{z-index:99}body:has(#imv) #sb{color:#fff}
+`;document.body.appendChild(st)})();
+function incClose(){var o=document.getElementById('inc');o&&o.remove()}
+paRing=function(id,text,vd){var c=S.ct.find(function(x){return x.id==id});if(!c||cl||S.pa.ring)return;S.pa.ring={id:id,text:text||'喂？',video:!!vd};
+ var nm=c.remark||c.name,host=document.getElementById('ph')||document.getElementById('scr');incClose();var o=document.createElement('div');o.id='inc';
+ o.innerHTML='<div class="icl">'+(vd?'VIDEO CALL':'VOICE CALL')+'</div><div class="icb"><div class="ica" style="'+(c.av?'background-image:url(\''+String(c.av).replace(/\'/g,'%27')+'\')':'')+'">'+(c.av?'':esc((nm||'?')[0]))+'</div><div class="icn">'+esc(nm)+'</div><div class="ics">邀请你'+(vd?'视频':'语音')+'通话…</div></div><div class="icc"><button class="icr" onclick="paDecline()"><i>'+ic('off',20)+'</i>拒绝</button><button class="icy" onclick="paAnswer()"><i>'+ic(vd?'video':'tel',20)+'</i>接听</button></div>';
+ host.appendChild(o);paBeep(true);try{notify('tel',nm,vd?'视频来电':'语音来电')}catch(e){}
+ clearTimeout(paMiss);paMiss=setTimeout(function(){if(S.pa.ring&&S.pa.ring.id==id)paEnd(id,'未接来电')},30000)};
+var _paEI=paEnd;paEnd=function(id,why){incClose();return _paEI.apply(this,arguments)};
+var _paAI=paAnswer;paAnswer=function(){var r=S.pa.ring;incClose();var vd=r&&r.video;_paAI.apply(this,arguments);if(vd&&cl)setTimeout(function(){try{toVideo()}catch(e){}},200)};
+/* 聊天里：【来电:语音/视频】 */
+var ICRE=/^\s*[【\[]\s*来电\s*(?:[:：]\s*(语音|视频)?[^】\]]*)?[】\]]\s*$/;
+function icFromChat(id,vd){var cs=S.cs[id]||{};if(cs.pcl===false||cl||S.pa.ring)return;setTimeout(function(){try{if(!cl&&!S.pa.ring)paRing(id,'',vd)}catch(e){}},3500+Math.random()*4000)}
+var _hsIc=hmSplit;hmSplit=function(L,from){var p=_hsIc(L,from);if(!p)return p;var id=Object.keys(S.ch).find(function(k){return S.ch[k]===L}),vd=null,out=p.filter(function(x){var m=String(x).match(ICRE);if(m){vd=m[1]=='视频';return false}return true});if(vd!==null&&id)icFromChat(id,vd);return out.length?out:null};
+var _spIc=splitMsgs;splitMsgs=function(id){var L=S.ch[id]||[],ch=0,vd=null;for(var i=Math.max(0,L.length-8);i<L.length;i++){var m=L[i];if(!m||m.r!='a'||m.k||typeof m.t!='string'||!/来电/.test(m.t))continue;var ls=m.t.split(/\n/),keep=ls.filter(function(l){var mm=l.match(ICRE);if(mm){vd=mm[1]=='视频';return false}return true});if(keep.length!=ls.length){ch=1;if(keep.join('').trim())m.t=keep.join('\n').trim();else{L.splice(i,1);i--}}}if(ch)save();var r=_spIc(id);if(vd!==null)icFromChat(id,vd);return r};
+var _aiIc=ai;ai=async function(msgs,sys,on,cfg){if(sys&&typeof sys=='string'&&typeof xKey!='undefined'&&xKey&&xKey.ch=='wx'&&/正在用微信/.test(sys)&&!sys.includes('群聊')&&!sys.includes('记忆整理助手')&&(S.cs[xKey.id]||{}).pcl!==false&&!sys.includes('【来电:')&&S.ct.some(function(x){return x.id==xKey.id}))
+  sys+='\n\n（你也可以直接给对方打电话：在这次回复的最后单独一行写【来电:语音】或【来电:视频】，对方手机就会响。只有真的有话想当面说、想听到声音/看到对方、或者情绪到了的时候才打，别频繁打，一次聊天里最多一次。）';return _aiIc(msgs,sys,on,cfg)};
 </script>
 <script>
 (function(){var DB='aiphone-db',ST='kv',KEY='aiphone',db=null,ok=false,tmr=0,dirty=false,dead=false,inflight=false,pend=null,warnT=0,LSL=4400000;
