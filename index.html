@@ -3503,6 +3503,197 @@ var _spIc=splitMsgs;splitMsgs=function(id){var L=S.ch[id]||[],ch=0,vd=null;for(v
 var _aiIc=ai;ai=async function(msgs,sys,on,cfg){if(sys&&typeof sys=='string'&&typeof xKey!='undefined'&&xKey&&xKey.ch=='wx'&&/正在用微信/.test(sys)&&!sys.includes('群聊')&&!sys.includes('记忆整理助手')&&(S.cs[xKey.id]||{}).pcl!==false&&!sys.includes('【来电:')&&S.ct.some(function(x){return x.id==xKey.id}))
   sys+='\n\n（你也可以直接给对方打电话：在这次回复的最后单独一行写【来电:语音】或【来电:视频】，对方手机就会响。只有真的有话想当面说、想听到声音/看到对方、或者情绪到了的时候才打，别频繁打，一次聊天里最多一次。）';return _aiIc(msgs,sys,on,cfg)};
 </script>
+<script type="text/x-app">
+/* ===== 朋友圈：多图发布 / 角色读取动态并识图 / 角色互动 ===== */
+S.moRead=S.moRead!==false;
+(function(){var st=document.createElement('style');st.textContent=`
+.moimg{display:grid;gap:4px;margin:6px 0 2px;max-width:100%}
+.moimg.n1{grid-template-columns:minmax(0,62%)}.moimg.n2,.moimg.n4{grid-template-columns:repeat(2,minmax(0,1fr));max-width:74%}.moimg.n3,.moimg.n5,.moimg.n6,.moimg.n7,.moimg.n8,.moimg.n9{grid-template-columns:repeat(3,minmax(0,1fr))}
+.moimg img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px;display:block;background:#eee}.moimg.n1 img{aspect-ratio:auto;max-height:300px}
+.mog{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}
+.mog>div{position:relative;aspect-ratio:1;border-radius:12px;background:#f1f1ef center/cover;overflow:hidden}
+.mog>div b{position:absolute;top:5px;right:5px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;display:grid;place-items:center}
+.mog>div b svg{width:11px;height:11px}
+.mog .moadd{display:grid;place-items:center;color:#8e8e93;border:1px dashed rgba(128,128,128,.4);background:transparent;font-size:12px;letter-spacing:.1em;gap:4px;align-content:center}
+.mog .moadd svg{width:22px;height:22px}
+`;document.body.appendChild(st)})();
+function moComp(file,mx){return new Promise(function(res){var fr=new FileReader();fr.onload=function(){var im=new Image();im.onload=function(){var s=Math.min(1,(mx||1280)/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);var x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.82))};im.onerror=function(){res(fr.result)};im.src=fr.result};fr.onerror=function(){res('')};fr.readAsDataURL(file)})}
+function moGrid(){var a=tmp.mois||[];return '<div class="mog">'+a.map(function(u,i){return '<div style="background-image:url(\''+u+'\')"><b onclick="moDel('+i+')">'+ic('x',11)+'</b></div>'}).join('')+(a.length<9?'<div class="moadd" onclick="moAdd()">'+ic('plus',22)+'<span>添加图片</span></div>':'')+'</div>'}
+function moDraw(){var g=document.getElementById('mo-g');if(g)g.innerHTML=moGrid()}
+function moDel(i){(tmp.mois=tmp.mois||[]).splice(i,1);moDraw()}
+function moAdd(){var f=document.createElement('input');f.type='file';f.accept='image/*';f.multiple=true;f.style.display='none';document.body.appendChild(f);f.onchange=async function(){var fs=[].slice.call(f.files).slice(0,9-(tmp.mois||[]).length);f.remove();if(!fs.length)return;toast('处理图片中…');for(var i=0;i<fs.length;i++){var u=await moComp(fs[i]);u&&(tmp.mois=tmp.mois||[]).push(u)}moDraw()};f.click()}
+moNew=function(){tmp.mois=[];tmp.moi='';view(hd('发朋友圈','','moP()')+'<div class="body cpage"><textarea class="in" id="mo-t" rows="5" placeholder="这一刻的想法…" style="border:0;background:none;padding:6px 2px;font-size:15px;line-height:1.7"></textarea><div id="mo-g">'+moGrid()+'</div><p class="mut" style="font-size:12px;line-height:1.7;margin:0 0 16px">最多 9 张，好友会真的“看到”这些图片并做出反应。</p><div class="fl"><button class="btn" onclick="moPost()">发表</button></div></div>')};
+moPost=function(){var t=document.getElementById('mo-t').value.trim(),im=(tmp.mois||[]).slice();if(!t&&!im.length)return toast('内容不能为空');var p={id:'o'+Date.now(),by:'me',t:t,img:im[0]||'',imgs:im,ts:Date.now(),likes:[],cm:[],seen:{}};S.mo.unshift(p);save();tmp.mois=[];moP();moReact(p.id)};
+var _moHg=moH;moH=function(p){var h=_moHg(p);if(p&&p.imgs&&p.imgs.length){var n=Math.min(9,p.imgs.length),g='<div class="moimg n'+n+'">'+p.imgs.slice(0,9).map(function(u){return '<img src="'+esc(u)+'" decoding="async" loading="lazy">'}).join('')+'</div>';h=h.replace(/<img src="[^"]*" decoding="async" loading="lazy" style="max-width:70%;border-radius:8px;display:block">/,g)}return h};
+var _moPt=moP;moP=function(){_moPt.apply(this,arguments);try{var b=document.querySelector('.body>div:last-child');if(b&&!document.getElementById('mo-rd'))b.insertAdjacentHTML('beforeend','<label class="cr t" id="mo-rd" style="display:flex;justify-content:space-between;align-items:center;margin-top:22px"><span>允许好友读取我的朋友圈<br><small class="mut" style="font-size:12px">开启后，角色聊天时会看到你最近发的动态和图片，也可能点赞评论</small></span><input type="checkbox" '+(S.moRead!==false?'checked':'')+' onchange="S.moRead=this.checked;save()"></label>')}catch(e){}};
+/* 图片查看器：支持朋友圈 */
+var ivCtx=null;var _ivLm=ivList;ivList=function(){if(ivCtx){var g=ivCtx.closest&&ivCtx.closest('.moimg');if(g)return [].slice.call(g.querySelectorAll('img'))}return _ivLm()};
+document.addEventListener('click',function(e){var t=e.target;if(!t||t.tagName!='IMG'||document.getElementById('imv')||!t.closest||!t.closest('.moimg'))return;e.preventDefault();e.stopPropagation();ivCtx=t;try{ivOpen(t)}finally{ivCtx=null}},true);
+/* 好友看到并回应 */
+moReact=async function(id){var p=S.mo.find(function(x){return x.id==id});if(!p||!S.ct.length||S.moRead===false)return;
+ var cs=S.ct.filter(function(c){return(S.cs[c.id]||{}).rmo!==false}).slice(0,8);if(!cs.length)return;
+ var sys='用户发了一条朋友圈。以下是用户的好友：'+cs.map(function(c){return c.name+'（'+(c.persona||'普通朋友')+'）'}).join('；')+'。请让0到3位好友按各自人设、和用户的关系、此刻的作息，决定要不要点赞或评论；真人不会每条都互动，没话说就别硬凑。如果带了图片，评论要基于图片里真实能看到的内容，不要编造。只输出JSON：{"likes":["好友名"],"comments":[{"n":"好友名","t":"评论"}]}，评论简短口语。\n'+wbTxt();
+ var txt='朋友圈内容：'+(p.t||'（没有文字）')+(p.imgs&&p.imgs.length?'（配图 '+p.imgs.length+' 张，见下）':''),content=txt;
+ if(p.imgs&&p.imgs.length&&S.vis&&S.vis.on!==false){content=[{type:'text',text:txt}].concat(p.imgs.slice(0,4).map(function(u){return{type:'image_url',image_url:{url:u}}}))}
+ try{var j=jp(await ai([{role:'user',content:content}],sys));if(!j)return;var nm=S.ct.map(function(c){return c.name});p.likes=Array.from(new Set((p.likes||[]).concat((j.likes||[]).filter(function(n){return nm.indexOf(n)>=0}))));(j.comments||[]).filter(function(c){return nm.indexOf(c.n)>=0}).forEach(function(c){p.cm.push({n:c.n,t:String(c.t)})});(p.seen=p.seen||{});cs.forEach(function(c){p.seen[c.id]=1});save();document.getElementById('app').textContent.indexOf('刷新好友动态')>=0?moP():notify('wx','朋友圈','好友对你的动态有了新互动',function(){moP()})}catch(e){}};
+/* 聊天里：把动态带进上下文，新动态的图片让角色真的看到 */
+function moAgo(ts){var d=(Date.now()-ts)/6e4;return d<60?Math.max(1,d|0)+'分钟前':d<1440?(d/60|0)+'小时前':(d/1440|0)+'天前'}
+function moCtx(id){var c=S.ct.find(function(x){return x.id==id});if(!c)return'';var nm=c.name,now=Date.now(),mine=S.mo.filter(function(p){return p.by=='me'&&now-p.ts<7*864e5}).slice(0,3),self=S.mo.filter(function(p){return p.by==id&&now-p.ts<5*864e5}).slice(0,2),o=[];
+ mine.forEach(function(p){var l=[(p.likes||[]).indexOf(nm)>=0?'你赞过':'',(p.cm||[]).filter(function(x){return x.n==nm}).map(function(x){return '你评论过「'+x.t+'」'}).join('，')].filter(Boolean).join('，');o.push('对方 '+moAgo(p.ts)+' 发的朋友圈：「'+(p.t||'（只有图片）')+'」'+(p.imgs&&p.imgs.length?'（配图'+p.imgs.length+'张）':'')+(l?'（'+l+'）':''))});
+ self.forEach(function(p){o.push('你自己 '+moAgo(p.ts)+' 发的朋友圈：「'+p.t+'」')});if(!o.length)return'';
+ return '\n\n（朋友圈：\n'+o.join('\n')+'\n你可以自然地提起、接话、关心，但别每次都提；想互动时在回复里单独一行写【点赞朋友圈】或【评论朋友圈:内容】，会作用在对方最新那条上。）'}
+function moFresh(id){if(S.moRead===false)return null;var p=S.mo.find(function(x){return x.by=='me'&&x.imgs&&x.imgs.length&&Date.now()-x.ts<3*864e5&&!(x.seen&&x.seen[id])});return p||null}
+var _aiMo=ai;ai=async function(msgs,sys,on,cfg){if(sys&&typeof sys=='string'&&typeof xKey!='undefined'&&xKey&&xKey.ch=='wx'&&/正在用微信/.test(sys)&&!sys.includes('群聊')&&!sys.includes('记忆整理助手')&&S.moRead!==false&&(S.cs[xKey.id]||{}).rmo!==false&&S.ct.some(function(x){return x.id==xKey.id})){
+  if(!sys.includes('（朋友圈：'))sys+=moCtx(xKey.id);
+  var fp=S.vis&&S.vis.on!==false?moFresh(xKey.id):null;if(fp&&Array.isArray(msgs)){var i=msgs.length-1;while(i>=0&&msgs[i].role!='user')i--;if(i>=0&&typeof msgs[i].content=='string'){msgs=msgs.slice();msgs[i]={role:'user',content:[{type:'text',text:msgs[i].content+'\n（你刷到对方刚发的朋友圈「'+(fp.t||'')+'」，配图在下面，可以按图里真实看到的内容自然地回应一下。）'}].concat(fp.imgs.slice(0,4).map(function(u){return{type:'image_url',image_url:{url:u}}}))};(fp.seen=fp.seen||{})[xKey.id]=1;save()}}}
+ return _aiMo(msgs,sys,on,cfg)};
+/* 角色在聊天里互动 */
+var MOLK=/^\s*[【\[]\s*点赞朋友圈\s*[】\]]\s*$/,MOCM=/^\s*[【\[]\s*评论朋友圈\s*[:：]\s*([^】\]]+?)\s*[】\]]\s*$/;
+function moAct(id,k,t){var c=S.ct.find(function(x){return x.id==id}),p=S.mo.find(function(x){return x.by=='me'});if(!c||!p)return;setTimeout(function(){if(k=='like'){p.likes=p.likes||[];if(p.likes.indexOf(c.name)<0)p.likes.push(c.name)}else p.cm.push({n:c.name,t:t});save();try{notify('wx','朋友圈',(c.remark||c.name)+(k=='like'?' 赞了你的动态':' 评论了你的动态'),function(){moP()})}catch(e){}},1500+Math.random()*2500)}
+var _hsMo=hmSplit;hmSplit=function(L,from){var p=_hsMo(L,from);if(!p)return p;var id=Object.keys(S.ch).find(function(k){return S.ch[k]===L}),out=p.filter(function(x){if(MOLK.test(x)){id&&moAct(id,'like');return false}var m=String(x).match(MOCM);if(m){id&&moAct(id,'cm',m[1]);return false}return true});return out.length?out:null};
+var _spMo=splitMsgs;splitMsgs=function(id){var L=S.ch[id]||[],ch=0;for(var i=Math.max(0,L.length-8);i<L.length;i++){var m=L[i];if(!m||m.r!='a'||m.k||typeof m.t!='string'||!/朋友圈/.test(m.t))continue;var ls=m.t.split(/\n/),keep=ls.filter(function(l){if(MOLK.test(l)){moAct(id,'like');return false}var mm=l.match(MOCM);if(mm){moAct(id,'cm',mm[1]);return false}return true});if(keep.length!=ls.length){ch=1;if(keep.join('').trim())m.t=keep.join('\n').trim();else{L.splice(i,1);i--}}}if(ch)save();return _spMo(id)};
+</script>
+<script type="text/x-app">
+/* ===== 红包 / 转账：发送页、领取状态、角色收款/退还/主动发 ===== */
+S.pay=Object.assign({max:200,send:true},S.pay||{});
+(function(){var st=document.createElement('style');st.textContent=`
+.ims .pcd{width:226px;border-radius:16px;overflow:hidden;color:#fff;text-align:left;transition:filter .2s}
+.ims .pcd .pt{display:flex;align-items:center;gap:12px;padding:15px 16px 14px}
+.ims .pcd .pt i{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.22);display:grid;place-items:center;flex:none;font-style:normal}
+.ims .pcd .pt i svg{width:20px;height:20px}
+.ims .pcd .pt b{display:block;font-size:15.5px;font-weight:500;line-height:1.3;letter-spacing:.02em;word-break:break-all}
+.ims .pcd .pt small{display:block;font-size:11.5px;opacity:.85;margin-top:2px;letter-spacing:.06em}
+.ims .pcd .pf{background:rgba(255,255,255,.96);color:#8e8e93;font-size:10.5px;letter-spacing:.18em;padding:6px 16px}
+.ims .pcd.rp{background:#e2553f}.ims .pcd.tf{background:#f0a032}
+.ims .pcd.done{filter:saturate(.45) brightness(1.04);opacity:.82}
+.ppg .amt{display:flex;align-items:baseline;gap:6px;border-bottom:1px solid var(--line,#eee);padding:6px 0 10px;margin:18px 0 14px}
+.ppg .amt span{font:300 28px Georgia,serif}.ppg .amt input{flex:1;min-width:0;border:0;background:none;font:300 44px/1.1 Georgia,'Songti SC',serif;outline:0;color:inherit;padding:0}
+.ppg .chp{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px}
+.ppg .chp button{height:30px;padding:0 14px;border-radius:15px;border:1px solid rgba(128,128,128,.28);background:none;font-size:12.5px;color:inherit;letter-spacing:.04em}
+.ppg .chp button:active{background:rgba(128,128,128,.14)}
+.ppg .who{display:flex;align-items:center;gap:12px;margin-top:6px}
+.ppg .who .av{width:44px;height:44px;border-radius:14px}
+.ppg .nt{font-size:12px;line-height:1.7;color:#8e8e93;margin:12px 2px 18px}
+.pcl{text-align:center;padding:6px 4px 2px}
+.pcl .pbg{width:92px;height:92px;border-radius:26px;margin:4px auto 16px;display:grid;place-items:center;color:#fff}
+.pcl .pbg svg{width:42px;height:42px}
+.pcl h4{font:300 22px Georgia,'Songti SC',serif;margin:0 0 6px;letter-spacing:.04em}
+.pcl .pa{font:300 46px/1.15 Georgia,serif;margin:10px 0 4px}
+.pcl p{margin:0 0 18px;font-size:13px;color:#8e8e93;line-height:1.7}
+`;document.body.appendChild(st)})();
+var PAYQ={rp:[['6.66','6.66'],['8.88','8.88'],['18.88','18.88'],['52','52'],['66.6','66.6'],['99','99'],['188','188']],tf:[['10','10'],['52','52'],['100','100'],['200','200'],['520','520'],['1314','1314']]},
+ PAYW={rp:['恭喜发财，大吉大利','生日快乐','谢谢你','辛苦啦','请你喝奶茶','新年快乐'],tf:['','请你吃饭','AA 转你','还你的钱','谢谢','生日快乐']};
+function payStat(m){var rp=m.k=='rp',me=m.r=='u';if(!m.st)return me?'已发送':'已收到';if(m.st=='recv')return rp?(me?'已被领取':'已领取'):(me?'已被接收':'已收款');if(m.st=='back')return '已退还';if(m.st=='exp')return '已过期';return rp?(me?'等待对方领取':'领取红包'):(me?'等待对方收款':'请收款')}
+var _imbPay=imBody;imBody=function(m,i){if(m&&(m.k=='rp'||m.k=='tf')&&m.a!=null){var rp=m.k=='rp',done=!m.st||m.st!='wait',a=Number(m.a).toFixed(2),me=m.r=='u';
+  var h='<div class="pcd '+m.k+(done?' done':'')+'"><div class="pt"><i>'+(rp?ic('rp',20):ic('tf',20))+'</i><div><b>'+(rp?esc(m.w||'恭喜发财，大吉大利'):'¥'+a)+'</b><small>'+payStat(m)+(rp&&done&&m.st=='recv'?' · ¥'+a:'')+(!rp&&m.w?' · '+esc(m.w):'')+'</small></div></div><div class="pf">'+(rp?'微信红包':'微信转账')+'</div></div>';
+  return{c:' media',a:' onclick="if(Date.now()-lpd<700)return;payTap('+i+')"',h:h}}return _imbPay(m,i)};
+function payRefund(m,why){var a=Number(m.a);if(!(a>0))return;if(m.src=='w'||!m.src)S.wx.bal=(S.wx.bal||0)+a;else{var c=S.cards.find(function(x){return x.id==m.src});if(c)c.bal+=a;else S.wx.bal=(S.wx.bal||0)+a}bill(a,why,'微信',m.src||'w')}
+function payLine(id,t){(S.ch[id]=S.ch[id]||[]).push({r:'u',k:'pat',t:t,ts:Date.now()})}
+function payExp(){var now=Date.now(),ch=0;Object.keys(S.ch||{}).forEach(function(id){(S.ch[id]||[]).forEach(function(m){if((m.k=='rp'||m.k=='tf')&&m.st=='wait'&&m.ts&&now-m.ts>864e5){m.st='exp';ch=1;if(m.r=='u'){payRefund(m,(m.k=='rp'?'红包':'转账')+'过期退回');payLine(id,(m.k=='rp'?'红包':'转账')+'超过24小时未领取，¥'+Number(m.a).toFixed(2)+' 已退回')}}})});if(ch){save();try{if(cur=='wx'&&document.getElementById('cm'))rc()}catch(e){}}}
+setInterval(payExp,60000);setTimeout(payExp,3000);
+/* 发送页 */
+tMoney=function(k){var id=cid,c=TG(id);if(!c||c.m)return toast('群聊暂不支持');var rp=k=='rp';tmp.pk=k;
+ view(hd(rp?'发红包':'转账','','chat(\''+id+'\')')+'<div class="body cpage ppg"><div class="who"><div class="av" style="background-image:url(\''+esc(c.av||'')+'\')">'+(c.av?'':esc((c.name||'?')[0]))+'</div><div><b style="font-weight:500">'+esc(c.remark||c.name)+'</b><br><small class="mut">'+(rp?'单个红包最多 ¥200':'转账 24 小时未收款会自动退回')+'</small></div></div>'
+  +'<div class="amt"><span>¥</span><input id="pm-a" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" oninput="pmChk()"></div>'
+  +'<div class="chp">'+PAYQ[k].map(function(q){return '<button onclick="pmQ(\''+q[0]+'\')">'+q[1]+'</button>'}).join('')+'</div>'
+  +'<div class="grp"><div class="cr"><span style="width:60px">'+(rp?'祝福语':'备注')+'</span><input class="cri" id="pm-w" placeholder="'+(rp?'恭喜发财，大吉大利':'添加转账说明（选填）')+'" maxlength="24"></div></div>'
+  +'<div class="chp" style="margin-top:12px">'+PAYW[k].filter(Boolean).map(function(w,i){return '<button onclick="pmW(\''+w+'\')">'+w+'</button>'}).join('')+'</div>'
+  +'<div class="nt">零钱 ¥'+(S.wx.bal||0).toFixed(2)+(S.cards.filter(function(x){return x.wx}).length?' · 已绑定 '+S.cards.filter(function(x){return x.wx}).length+' 张银行卡':'')+'。点下面的按钮后选择付款方式。</div>'
+  +'<div class="fl"><button class="btn" id="pm-go" onclick="pmGo()">'+(rp?'塞钱进红包':'转账')+'</button></div></div>');setTimeout(function(){var e=document.getElementById('pm-a');e&&e.focus()},250)};
+function pmQ(v){var e=document.getElementById('pm-a');e&&(e.value=v);pmChk()}
+function pmW(w){var e=document.getElementById('pm-w');e&&(e.value=w)}
+function pmChk(){}
+function pmGo(){var k=tmp.pk,rp=k=='rp',id=cid,c=TG(id),a=Math.round(parseFloat(document.getElementById('pm-a').value)*100)/100,w=document.getElementById('pm-w').value.trim()||(rp?'恭喜发财，大吉大利':'');
+ if(!(a>0))return toast('请输入金额');if(rp&&a>200)return toast('单个红包最多 ¥200');if(!rp&&a>50000)return toast('单笔转账最多 ¥50000');
+ payPick(a,(rp?'红包给 ':'转账给 ')+(c.remark||c.name),function(p){spend(p,a,(rp?'微信红包-':'微信转账-')+(c.remark||c.name),'微信');cid=id;chat(id);put({k:k,a:a.toFixed(2),w:w,st:'wait',src:p,t:rp?'[红包 ¥'+a.toFixed(2)+'「'+w+'」]':'[转账 ¥'+a.toFixed(2)+(w?'「'+w+'」':'')+']'})})}
+/* 点击卡片 */
+function payTap(i){var L=S.ch[cid]||[],m=L[i];if(!m)return;var rp=m.k=='rp',a=Number(m.a).toFixed(2),c=TG(cid),nm=esc(c.remark||c.name);
+ if(m.r=='u'){var s=m.st&&m.st!='wait'?payStat(m):(rp?'对方还没有领取':'对方还没有收款');return toast(s+' · ¥'+a)}
+ if(m.st&&m.st!='wait')return toast(payStat(m)+' · ¥'+a);
+ if(rp)modal('<div class="pcl"><div class="pbg" style="background:#e2553f">'+ic('rp',42)+'</div><h4>'+nm+' 的红包</h4><p>'+esc(m.w||'恭喜发财，大吉大利')+'</p><div class="fl" style="justify-content:center"><button class="btn" onclick="payClaim('+i+',\'recv\')">開 · 领取红包</button></div></div>');
+ else modal('<div class="pcl"><div class="pbg" style="background:#f0a032">'+ic('tf',42)+'</div><h4>'+nm+' 向你转账</h4><div class="pa">¥'+a+'</div><p>'+(m.w?esc(m.w):'24 小时内未处理将自动退回')+'</p><div class="fl" style="justify-content:center;gap:10px"><button class="btn g" onclick="payClaim('+i+',\'back\')">退还</button><button class="btn" onclick="payClaim('+i+',\'recv\')">收款</button></div></div>')}
+function payClaim(i,k){closeM();var id=cid,L=S.ch[id]||[],m=L[i];if(!m||m.st&&m.st!='wait')return;var rp=m.k=='rp',a=Number(m.a),c=TG(id),nm=c.remark||c.name;
+ if(k=='recv'){m.st='recv';S.wx.bal=(S.wx.bal||0)+a;bill(a,(rp?'微信红包-':'微信转账-')+nm,'微信','w');payLine(id,'你领取了'+nm+'的'+(rp?'红包':'转账')+' ¥'+a.toFixed(2)+'，已存入零钱');toast('已存入零钱 ¥'+a.toFixed(2))}
+ else{m.st='back';payLine(id,'你退还了'+nm+'的转账 ¥'+a.toFixed(2))}save();rc();if((S.cs[id]||{}).auto!==false)setTimeout(function(){try{gen(id)}catch(e){}},600)}
+/* 角色：收款 / 退还 / 主动发 */
+var PYRV=/^\s*[【\[]\s*(收款|领取|领取红包|收下|接收)\s*[】\]]\s*$/,PYBK=/^\s*[【\[]\s*(退还|退回|拒收)\s*[】\]]\s*$/,PYSD=/^\s*[【\[]\s*(红包|转账)\s*[:：]\s*(\d+(?:\.\d{1,2})?)\s*(?:[:：]\s*([^】\]]*))?[】\]]\s*$/;
+function payCmd(id,line){var m;if(PYRV.test(line)||PYBK.test(line)){var back=PYBK.test(line);var L=S.ch[id]||[],t=null;for(var i=L.length-1;i>=0&&i>L.length-30;i--){var x=L[i];if(x.r=='u'&&(x.k=='rp'||x.k=='tf')&&x.st=='wait'){t=x;break}}
+   if(t){var c=S.ct.find(function(x){return x.id==id}),nm=(c&&(c.remark||c.name))||'对方',rp=t.k=='rp';setTimeout(function(){if(t.st!='wait')return;if(back&&!rp){t.st='back';payRefund(t,'转账被退还-'+nm);payLine(id,nm+'已退还你的转账 ¥'+Number(t.a).toFixed(2)+'，款项已退回')}else{t.st='recv';payLine(id,nm+(rp?'领取了你的红包':'已收款')+' ¥'+Number(t.a).toFixed(2))}save();try{if(cur=='wx'&&cid==id&&document.getElementById('cm'))rc()}catch(e){}},1500+Math.random()*1500)}return true}
+ if(m=line.match(PYSD)){var cs=S.cs[id]||{};if(S.pay.send===false||cs.psend===false)return true;var rp2=m[1]=='红包',a=Math.round(parseFloat(m[2])*100)/100,mx=rp2?200:Math.max(200,+S.pay.max||200);if(!(a>0))return true;if(a>mx)a=mx;var w=(m[3]||'').trim().slice(0,24);
+  setTimeout(function(){var L=(S.ch[id]=S.ch[id]||[]);L.push({r:'a',k:rp2?'rp':'tf',a:a.toFixed(2),w:w||(rp2?'恭喜发财，大吉大利':''),st:'wait',t:rp2?'[红包 ¥'+a.toFixed(2)+'「'+(w||'恭喜发财，大吉大利')+'」]':'[转账 ¥'+a.toFixed(2)+(w?'「'+w+'」':'')+']',ts:Date.now()});save();var c=S.ct.find(function(x){return x.id==id});try{if(cur=='wx'&&cid==id&&document.getElementById('cm'))rc();else{S.un[id]=(S.un[id]||0)+1;save();notify('wx',(c&&(c.remark||c.name))||'',rp2?'[微信红包] '+(w||'恭喜发财'):'[转账] ¥'+a.toFixed(2),function(){wt=0;go('wx');chat(id)});try{icons()}catch(e){}}}catch(e){}},1800+Math.random()*1800);return true}
+ return false}
+var _hsPy=hmSplit;hmSplit=function(L,from){var p=_hsPy(L,from);if(!p)return p;var id=Object.keys(S.ch).find(function(k){return S.ch[k]===L}),out=id?p.filter(function(x){return !payCmd(id,String(x))}):p;return out.length?out:null};
+var _spPy=splitMsgs;splitMsgs=function(id){var L=S.ch[id]||[],ch=0;for(var i=Math.max(0,L.length-8);i<L.length;i++){var m=L[i];if(!m||m.r!='a'||m.k||typeof m.t!='string'||!/[【\[](收款|领取|收下|接收|退还|退回|拒收|红包|转账)/.test(m.t))continue;var ls=m.t.split(/\n/),keep=ls.filter(function(l){return !payCmd(id,l)});if(keep.length!=ls.length){ch=1;if(keep.join('').trim())m.t=keep.join('\n').trim();else{L.splice(i,1);i--}}}if(ch)save();return _spPy(id)};
+var _hcPy=histC;histC=function(x,see){var r=_hcPy(x,see);if(x&&(x.k=='rp'||x.k=='tf')&&typeof r=='string'&&x.st)r+='（'+payStat(x).replace('等待对方领取','还没被领取').replace('等待对方收款','还没被收款').replace('请收款','你还没收').replace('领取红包','你还没领')+'）';return r};
+var _aiPy=ai;ai=async function(msgs,sys,on,cfg){if(sys&&typeof sys=='string'&&typeof xKey!='undefined'&&xKey&&xKey.ch=='wx'&&/正在用微信/.test(sys)&&!sys.includes('群聊')&&!sys.includes('记忆整理助手')&&S.ct.some(function(x){return x.id==xKey.id})&&!sys.includes('【收款】')){
+  var L=S.ch[xKey.id]||[],pend=null;for(var i=L.length-1;i>=0&&i>L.length-20;i--){var x=L[i];if(x.r=='u'&&(x.k=='rp'||x.k=='tf')&&x.st=='wait'){pend=x;break}}
+  if(pend){var rp=pend.k=='rp';sys+='\n\n（对方刚给你发了'+(rp?'红包':'转账')+' ¥'+pend.a+(pend.w?'「'+pend.w+'」':'')+'。要不要收由你按人设、你们的关系和当下的心情自己决定：单独一行写'+(rp?'【领取】':'【收款】或【退还】')+'，再自然地说话回应（道谢、推辞、调侃都行）。'+(rp?'':'只有关系不到位、金额太大、你过意不去时才退还，退还时要说明原因。')+'不要不回应金额。）'}
+  else if(S.pay.send!==false&&(S.cs[xKey.id]||{}).psend!==false)sys+='\n\n（你也可以给对方发红包或转账：单独一行写【红包:金额:祝福语】或【转账:金额:备注】。只有节日、生日、道谢、赔礼、哄人、亲密关系里撒糖等有理由时才偶尔发，金额要符合你的经济状况和性格（红包几块到几十块居多，最多200），别频繁、别为了表现而发。）'}
+ return _aiPy(msgs,sys,on,cfg)};
+</script>
+<script type="text/x-app">
+/* ===== 状态与显示：重做状态页 / 聊天顶部显示选项 ===== */
+var STC={free:'#8fb996',sleep:'#a3a3bd',work:'#d9a066',study:'#cf93a8',commute:'#b9b9b0',meal:'#e3b855',out:'#7fb3b0'};
+if(S.stg.hm===undefined)S.stg.hm=true;if(S.stg.ht===undefined)S.stg.ht=true;if(S.stg.hr===undefined)S.stg.hr=false;
+(function(){var st=document.createElement('style');st.textContent=`
+.st3h{display:flex;align-items:center;gap:14px;padding:6px 2px 4px}
+.st3h .av{width:60px;height:60px;border-radius:20px;flex:none}
+.st3h b{font:400 20px/1.2 Georgia,'Songti SC',serif;letter-spacing:.04em;display:block}
+.st3p{display:inline-flex;align-items:center;gap:7px;margin-top:7px;height:24px;padding:0 11px;border-radius:12px;background:rgba(128,128,128,.12);font-size:12px;letter-spacing:.06em}
+.st3p i{width:7px;height:7px;border-radius:50%;display:block}
+.st3p+.st3p{margin-left:6px}
+.st3t{margin:16px 2px 4px;position:relative}
+.st3t .tb{display:flex;height:14px;border-radius:7px;overflow:hidden;background:rgba(128,128,128,.14)}
+.st3t .tb i{display:block;height:100%}
+.st3t .nw{position:absolute;top:-5px;width:2px;height:24px;background:var(--ink,#111);border-radius:1px}
+.st3t .nw::after{content:'现在';position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-size:9.5px;letter-spacing:.1em;white-space:nowrap;color:#8e8e93}
+.st3t .hr{display:flex;justify-content:space-between;font-size:10px;color:#a0a0a8;margin-top:6px;letter-spacing:.06em}
+.st3l{display:flex;flex-wrap:wrap;gap:6px 14px;margin:12px 2px 16px;font-size:11px;color:#8e8e93}
+.st3l span{display:inline-flex;align-items:center;gap:5px}.st3l i{width:8px;height:8px;border-radius:3px;display:block}
+.st3m{padding:14px 16px}
+.st3m .t{display:flex;justify-content:space-between;align-items:baseline;font-size:14px}
+.st3m .t small{color:#8e8e93;font-size:11.5px;letter-spacing:.06em}
+.st3m .bar{height:8px;border-radius:4px;background:rgba(128,128,128,.16);margin:11px 0 9px;position:relative;overflow:hidden;cursor:pointer}
+.st3m .bar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:var(--ink,#111);transition:width .25s}
+.st3m .ad{display:flex;gap:8px;justify-content:flex-end}
+.st3m .ad button{height:26px;min-width:44px;padding:0 10px;border-radius:13px;border:1px solid rgba(128,128,128,.28);background:none;font-size:12px;color:inherit}
+.st3c{display:flex;flex-wrap:wrap;gap:8px;padding:12px 14px}
+.st3c button{height:30px;padding:0 14px;border-radius:15px;border:1px solid rgba(128,128,128,.28);background:none;font-size:12.5px;color:inherit;letter-spacing:.04em}
+.st3c button.on{background:var(--ink,#111);color:#fff;border-color:var(--ink,#111)}
+body.dark .st3c button.on{color:#111;background:#f2f2f7;border-color:#f2f2f7}
+.imh .imst::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--sd,#8fb996);margin-right:5px;vertical-align:1px}
+`;document.body.appendChild(st)})();
+function stHm(ts){var d=new Date(ts);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
+function stHdr(){var id=cid,c=TG(id),h=document.querySelector('.imc');if(!h||!c||c.m||cur!='wx')return;var e=h.querySelector('.imst');if(!S.stg.on||S.stg.show===false){e&&e.remove();return}
+ if(!e){e=document.createElement('small');e.className='imst';e.onclick=function(ev){ev.stopPropagation();stPage(id)};h.appendChild(e)}
+ var n=stNow(id),s=stGet(id),t=(n.label||STL[n.st]);if(S.stg.ht!==false&&n.until&&n.st!='free')t+=' · 到'+stHm(n.until);if(S.stg.hm!==false&&s.mood!='calm')t+=' · '+MOOD[s.mood];if(S.stg.hr===true)t+=' · '+stage(Math.round((s.fav+s.trust)/2));if(S.pq.some(function(q){return q.id==id}))t+=' · 稍后回复';
+ e.textContent=t;e.style.setProperty('--sd',STC[n.st]||'#8fb996')}
+function stTlHtml(sc){var segs=[];sc.forEach(function(b){var f=hm2m(b.f),t=hm2m(b.t);if(f<t)segs.push([f,t,b.st]);else{segs.push([f,1440,b.st]);if(t>0)segs.push([0,t,b.st])}});segs.sort(function(a,b){return a[0]-b[0]});var o='',cur0=0;segs.forEach(function(g){if(g[0]>cur0)o+='<i style="width:'+((g[0]-cur0)/14.4)+'%;background:transparent"></i>';o+='<i style="width:'+((g[1]-g[0])/14.4)+'%;background:'+(STC[g[2]]||'#ccc')+'"></i>';cur0=g[1]});if(cur0<1440)o+='<i style="width:'+((1440-cur0)/14.4)+'%;background:transparent"></i>';
+ var d=new Date(),nm=(d.getHours()*60+d.getMinutes())/14.4;return '<div class="st3t"><div class="tb">'+o+'</div><div class="nw" style="left:calc('+nm+'% - 1px)"></div><div class="hr"><span>0</span><span>6</span><span>12</span><span>18</span><span>24</span></div></div>'}
+function stBarSet(id,k,ev){var r=ev.currentTarget.getBoundingClientRect(),v=Math.round(Math.max(0,Math.min(1,(ev.clientX-r.left)/r.width))*100);stGet(id)[k]=v;save();stPage(id)}
+function stStep(id,k,d){var s=stGet(id);s[k]=Math.max(0,Math.min(100,(s[k]|0)+d));save();stPage(id)}
+function stMood(id,m){var x=stGet(id);x.mood=m;x.mi=m=='calm'?0:60;x.mt=Date.now();save();stHdr();stPage(id)}
+function stOv(id,v){var x=stGet(id);x.ov=v?{st:v,until:Date.now()+36e5}:null;save();stHdr();stPage(id)}
+function stTog(k,v){S.stg[k]=v;save();stHdr()}
+stPage=function(id){var c=TG(id),s=stGet(id),n=stNow(id),sc=s.sched||defSched(),av=c.av||'';
+ var opt=function(o,cur){return Object.keys(o).map(function(k){return '<option value="'+k+'" '+(cur==k?'selected':'')+'>'+o[k]+'</option>'}).join('')};
+ var meter=function(k,l){var v=s[k]|0;return '<div class="st3m cr" style="display:block"><div class="t"><span>'+l+'</span><small>'+v+' · '+stage(v)+'</small></div><div class="bar" onclick="stBarSet(\''+id+'\',\''+k+'\',event)"><i style="width:'+v+'%"></i></div><div class="ad"><button onclick="stStep(\''+id+'\',\''+k+'\',-5)">−5</button><button onclick="stStep(\''+id+'\',\''+k+'\',5)">＋5</button></div></div>'};
+ var tgl=function(k,l,sub,def){var on=S.stg[k]===undefined?def:!!S.stg[k];return '<label class="cr t"><span>'+l+(sub?'<br><small class="mut" style="font-size:11.5px">'+sub+'</small>':'')+'</span><input type="checkbox" '+(on?'checked':'')+' onchange="stTog(\''+k+'\',this.checked)"></label>'};
+ var used={};sc.forEach(function(b){used[b.st]=1});
+ var ovOn=s.ov&&s.ov.until>Date.now()?s.ov.st:'';
+ view(hd('状态与关系','','csM()')+'<div class="body cpage">'
+ +'<div class="st3h"><div class="av" style="background-image:url(\''+esc(av)+'\')">'+(av?'':esc((c.name||'?')[0]))+'</div><div><b>'+esc(c.remark||c.name)+'</b><span class="st3p"><i style="background:'+(STC[n.st]||'#8fb996')+'"></i>'+(n.label||STL[n.st])+(n.until&&n.st!='free'?' · 到'+stHm(n.until):'')+'</span>'+(s.mood!='calm'?'<span class="st3p">'+MOOD[s.mood]+'</span>':'')+'</div></div>'
+ +stTlHtml(sc)+'<div class="st3l">'+Object.keys(used).map(function(k){return '<span><i style="background:'+(STC[k]||'#ccc')+'"></i>'+STL[k]+'</span>'}).join('')+'</div>'
+ +'<div class="lbl2">关系</div><div class="grp">'+meter('fav','好感')+meter('trust','信任')+'</div>'
+ +'<div class="lbl2">心情</div><div class="grp"><div class="st3c">'+Object.keys(MOOD).map(function(k){return '<button class="'+(s.mood==k?'on':'')+'" onclick="stMood(\''+id+'\',\''+k+'\')">'+MOOD[k]+'</button>'}).join('')+'</div></div>'
+ +'<div class="lbl2">此刻在做什么</div><div class="grp"><div class="st3c"><button class="'+(ovOn?'':'on')+'" onclick="stOv(\''+id+'\',\'\')">按作息</button>'+Object.keys(STL).map(function(k){return '<button class="'+(ovOn==k?'on':'')+'" onclick="stOv(\''+id+'\',\''+k+'\')">'+STL[k].replace('中','')+'</button>'}).join('')+'</div><div class="cell" onclick="stWake(\''+id+'\')">'+ic('tel',20)+'<span>叫醒 / 立即让 TA 回复</span></div></div>'
+ +'<div class="lbl2">显示</div><div class="grp">'+tgl('show','聊天顶部显示状态','',true)+tgl('ht','显示持续到几点','例如“忙碌中 · 到12:00”',true)+tgl('hm','显示心情','心情不平静时才显示',true)+tgl('hr','显示关系阶段','生疏 / 普通 / 亲近 / 亲密',false)+'</div>'
+ +'<div class="lbl2">影响</div><div class="grp">'+tgl('on','状态影响回复','速度、字数、语气、已读不回',true)+tgl('auto','首次聊天时按人设生成作息','',true)+'</div>'
+ +'<details class="wbd" style="margin-top:14px"><summary>编辑作息</summary><div class="grp" style="margin-top:6px">'+sc.map(function(b,i){return '<div class="cr" style="gap:6px;padding:10px 14px"><input type="time" class="cri" style="text-align:left;flex:none;width:92px" value="'+b.f+'" onchange="stSch(\''+id+'\','+i+',\'f\',this.value)"><span style="width:auto;flex:none">–</span><input type="time" class="cri" style="text-align:left;flex:none;width:92px" value="'+b.t+'" onchange="stSch(\''+id+'\','+i+',\'t\',this.value)"><select class="cri" style="flex:1;direction:rtl" onchange="stSch(\''+id+'\','+i+',\'st\',this.value)">'+opt(STL,b.st)+'</select><button class="ib" style="width:24px;height:24px;flex:none" onclick="stSchDel(\''+id+'\','+i+')">'+ic('x',14)+'</button></div>'}).join('')+'</div><div class="fl" style="margin:10px 0 4px"><button class="btn g" onclick="stSchAdd(\''+id+'\')">添加时段</button><button class="btn" onclick="stInit(\''+id+'\',1)">按人设生成</button><button class="btn g" onclick="stGet(\''+id+'\').sched=null;save();stPage(\''+id+'\')">恢复默认</button></div></details>'
+ +(s.log&&s.log.length?'<div class="lbl2">最近变化</div><div class="grp">'+s.log.slice(-8).reverse().map(function(x){return '<div class="cr t"><span>'+esc(x.t)+'</span><small class="mut">'+xAgo(x.ts)+'</small></div>'}).join('')+'</div>':'')
+ +'</div>')};
+setInterval(function(){try{if(cur=='wx'&&document.querySelector('.imc .imst'))stHdr()}catch(e){}},30000);
+</script>
 <script>
 (function(){var DB='aiphone-db',ST='kv',KEY='aiphone',db=null,ok=false,tmr=0,dirty=false,dead=false,inflight=false,pend=null,warnT=0,LSL=4400000;
 window.__info={engine:'',last:0,size:0,err:''};
