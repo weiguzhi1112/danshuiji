@@ -95,7 +95,7 @@ if(S.think&&S.think.on){if(an){const bg=Math.max(1024,+S.think.budget||2048);bod
 try{const r=await fetch(url,{method:'POST',headers:H,body:JSON.stringify(body)});if(!r.ok)throw Error(r.status+' '+(await r.text()).slice(0,120));
 if(!st){const j=await r.json();const ms=!an&&j.choices&&j.choices[0]&&j.choices[0].message||{};window.__th=an?j.content.filter(x=>x.type=='thinking').map(x=>x.thinking||'').join('\n'):(ms.reasoning_content||ms.reasoning||'');return an?j.content.map(x=>x.text||'').join(''):j.choices[0].message.content}
 const rd=r.body.getReader(),dc=new TextDecoder();let buf='',all='',th='';for(;;){const{done,value}=await rd.read();if(done)break;buf+=dc.decode(value,{stream:true});const ls=buf.split('\n');buf=ls.pop();for(const l of ls){if(!l.startsWith('data:'))continue;const d=l.slice(5).trim();if(d=='[DONE]')continue;try{const j=JSON.parse(d),dl=j.choices?.[0]?.delta||{},rt=dl.reasoning_content||dl.reasoning||(j.type=='content_block_delta'&&j.delta.type=='thinking_delta'?j.delta.thinking:'')||'',t=dl.content||(j.type=='content_block_delta'?j.delta.text:'')||'';if(rt)th+=rt;if(t){all+=t;on&&on(t)}}catch(e){}}}window.__th=th;return all}
-catch(e){if(st&&c.stream=='auto'&&!S.bl.includes(base)){S.bl.push(base);save();return ai(msgs,sys,null,c)}throw e}}
+catch(e){if(e&&e.name=='AbortError')throw e;if(st&&c.stream=='auto'&&!S.bl.includes(base)){S.bl.push(base);save();return ai(msgs,sys,null,c)}throw e}}
 const wbTxt=()=>'\u2063WB\u2063';
 /* ---------- apps ---------- */
 const A={};function go(n){if(!A[n])return;cur=n;A[n]()}
@@ -761,7 +761,7 @@ try{const r=await ai(hist,sys,gp?null:d=>{acc+=d;ph.t=acc;rend()});const i=L.ind
 var _ai5=ai;ai=function(msgs,sys,on,cfg){const l=msgs[msgs.length-1];if(sys&&sys.includes('群聊')&&l&&l.role=='user'){const m=String(l.content).match(/@([^\s@：:，,]+)/);if(m)sys+=`\n用户在消息中@了「${m[1]}」，请务必让「${m[1]}」先回复。`}return _ai5(msgs,sys,on,cfg)};
 /* ===== split replies into several bubbles + typing delay ===== */
 function splitMsgs(id){const c=TG(id);if(!c||c.m||(S.cs[id]||{}).split===false)return;const L=S.ch[id]||[];let ch=0;for(let i=0;i<L.length;i++){const m=L[i];if(m.r!='a'||m.k||m.ph||m.sp||typeof m.t!='string')continue;m.sp=1;if(m.t.startsWith('［请求失败］'))continue;const p=m.t.split(/\n+/).map(s=>s.trim()).filter(Boolean);if(p.length>1){L.splice(i,1,...p.map((t,j)=>({r:'a',t,ts:(m.ts||Date.now())+j,sp:1})));i+=p.length-1;ch=1}}if(ch){save();cid==id&&$('#cm')&&rc()}}
-var _gen6=gen;gen=async function(id,at){const d=(S.cs[id]||{}).delay;if(d>0){const b=cid==id?$('.hd b'):null,o=b&&b.textContent;if(b)b.textContent='对方正在输入…';await sleep(d*1000);if(b&&b.isConnected)b.textContent=o}await _gen6(id,at);splitMsgs(id)};
+var _gen6=gen;gen=async function(id,at){const d=(S.cs[id]||{}).delay;if(d>0){const b=cid==id?$('.hd b'):null,o=b&&b.textContent;if(b)b.textContent='对方正在输入…';try{await gSleep(id,d*1000)}catch(e){if(b&&b.isConnected)b.textContent=o;return}if(b&&b.isConnected)b.textContent=o}await _gen6(id,at);splitMsgs(id)};
 var _cm4=csM;csM=function(){_cm4();const c=S.cs[cid]=S.cs[cid]||{};$('.body').insertAdjacentHTML('beforeend',`<div class="sec">回复方式</div><label class="sw2">分条发送（按换行拆成多条）<input type="checkbox" ${c.split===false?'':'checked'} onchange="S.cs[cid].split=this.checked;save()"></label><label class="lb">回复延迟（秒）</label><input class="in" type="number" min="0" max="30" value="${c.delay||0}" onchange="S.cs[cid].delay=+this.value||0;save()">`)};
 /* ===== quote / forward / recall in the long-press menu ===== */
 var _mm2=msgM;msgM=function(i,md='wx'){_mm2(i,md);if(md!='wx')return;const m=S.ch[cid][i],f=$('#mb .fl');if(!f)return;f.insertAdjacentHTML('beforeend',`<button class="btn g" onclick="qtMsg(${i})">引用</button><button class="btn g" onclick="fwMsg(${i})">转发</button>${m.r=='u'?`<button class="btn g" onclick="rcMsg(${i})">撤回</button>`:''}`)};
@@ -1321,7 +1321,7 @@ if(!raw.length)return null;const parts=[];raw.forEach(m=>String(m.t).split(/\n+/
 var _spM=splitMsgs;splitMsgs=function(id){if(!hmOn(id))return _spM(id);const L=S.ch[id]=S.ch[id]||[];const last=L[L.length-1];if(!last||last.r!='a'||last.k||last.ph||last.sp)return _spM(id);const parts=hmSplit(L);if(!parts)return _spM(id);const c=TG(id);
 hmPlay('wx'+id,parts,{L:()=>S.ch[id],sp:hmSp(id),recall:hmRc(id),name:c.remark||c.name,hdr:()=>cid==id&&cur=='wx'?($('.imc b')||$('.hd b')):null,draw:()=>{cid==id&&$('#cm')&&rc()},seen:()=>{if(!(cur=='wx'&&cid==id&&$('#cm'))){S.un[id]=(S.un[id]||0)+1;save();try{icons()}catch(e){}}}})};
 var _gH=gen;gen=async function(id,at){if(!hmOn(id))return _gH(id,at);hmTok['wx'+id]=(hmTok['wx'+id]||0)+1;const cfg=S[S.act||'main'],st=cfg.stream;cfg.stream='off';
-let b=null,o='';if(at===undefined&&cid==id&&cur=='wx'){b=$('.imc b')||$('.hd b');o=b?b.textContent:'';if(b){b.dataset.nm=o;b.textContent='对方正在输入…'}await sleep(dlR(500,2000)*hmSp(id));}
+let b=null,o='';if(at===undefined&&cid==id&&cur=='wx'){b=$('.imc b')||$('.hd b');o=b?b.textContent:'';if(b){b.dataset.nm=o;b.textContent='对方正在输入…'}try{await gSleep(id,dlR(500,2000)*hmSp(id))}catch(e){cfg.stream=st;if(b&&b.isConnected&&b.dataset.nm){b.textContent=b.dataset.nm;delete b.dataset.nm}return}}
 try{return await _gH(id,at)}finally{cfg.stream=st;if(b&&b.isConnected&&b.dataset.nm){b.textContent=b.dataset.nm;delete b.dataset.nm}setTimeout(()=>memMaybe(id),2500)}};
 var _spS=splitSm;splitSm=function(k){if(!k.startsWith('c:')||(S.smcfg[k]||{}).hm===false)return _spS(k);const id=k.slice(2),L=S.sm[k]=S.sm[k]||[],last=L[L.length-1];if(!last||last.r!='a'||last.ph||last.sp)return _spS(k);const parts=hmSplit(L);if(!parts)return _spS(k);const c=S.ct.find(x=>x.id==id);if(!c)return _spS(k);
 hmPlay('sm'+k,parts,{L:()=>S.sm[k],sp:1,recall:false,name:c.name,draw:()=>{cur=='sms'&&smk==k&&$('#sm')&&smR()},seen:f=>{if(!(cur=='sms'&&smk==k&&$('#sm'))){S.smu[k]=(S.smu[k]||0)+1;save();try{icons()}catch(e){}f&&notify('sms',c.remark||c.name,parts[0].slice(0,40),()=>{go('sms');smt(k)})}}})};
@@ -1538,16 +1538,16 @@ if(typeof m.t=='string'&&/[【\[]状态[:：]/.test(m.t))m=Object.assign({},m,{t
 const visMem=new Map();
 function visScale(u){if(!/^data:image/.test(u))return Promise.resolve(u);const mx={low:512,auto:1024,high:2048}[S.vis.detail]||1024,k=mx+'|'+u.length+'|'+u.slice(-48);if(visMem.has(k))return Promise.resolve(visMem.get(k));return new Promise(res=>{const im=new Image();im.onload=()=>{const sc=Math.min(1,mx/Math.max(im.width,im.height));if(sc>=1&&u.length<4e6&&/^data:image\/(png|jpe?g);/i.test(u)){visMem.set(k,u);return res(u)}const c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.width*sc));c.height=Math.max(1,Math.round(im.height*sc));const cx2=c.getContext('2d');cx2.fillStyle='#fff';cx2.fillRect(0,0,c.width,c.height);cx2.drawImage(im,0,0,c.width,c.height);const o=c.toDataURL('image/jpeg',S.vis.detail=='low'?.7:.85);visMem.set(k,o);res(o)};im.onerror=()=>res(u);im.src=u})}
 function visPick(L){const s=new Set();if(!S.vis.on)return s;for(let i=L.length-1;i>=0&&s.size<(+S.vis.n||0);i--)if((L[i].k=='img'||L[i].k=='stk')&&L[i].u)s.add(L[i]);return s}
-function histC(x,see){const q=x.q?'（引用「'+x.q+'」）':'',nm=x.n?x.n+'：':'';if(x.k=='img'||x.k=='stk'){const sk=x.k=='stk',lb=sk?'表情包':'图片';if(x.u&&see)return[{type:'text',text:q+nm+'['+lb+']'},{type:'image_url',image_url:{url:x.u}}];return q+nm+'['+(x.r=='a'?'你发了一张'+lb:lb)+(x.cap||x.gp?'：'+(x.cap||x.gp):'')+']'}return q+nm+(x.t==null?'':x.t)}
+function histC(x,see){const q=x.q?'（引用「'+x.q+'」）':'',nm=x.n?x.n+'：':'';if(x.k=='img'||x.k=='stk'){const sk=x.k=='stk',lb=sk?'表情包':'图片';if(x.u&&see){const fr=window.frGet&&frGet(x.u);if(fr&&fr.length>1)return[{type:'text',text:q+nm+'['+lb+'：动图，共 '+fr.n+' 帧，下面按时间顺序给出其中 '+fr.length+' 张关键帧，请结合起来理解它在表达什么]'},...fr.map(u=>({type:'image_url',image_url:{url:u}}))];return[{type:'text',text:q+nm+'['+lb+']'},{type:'image_url',image_url:{url:x.u}}]}return q+nm+'['+(x.r=='a'?'你发了一张'+lb:lb)+(x.cap||x.gp?'：'+(x.cap||x.gp):'')+']'}return q+nm+(x.t==null?'':x.t)}
 var _aiVi=ai;ai=async function(msgs,sys,on,cfg){if(msgs.some(m=>Array.isArray(m.content))){const c=cfg||S[S.act||'main'];msgs=await Promise.all(msgs.map(async m=>{if(!Array.isArray(m.content))return m;const P=[];for(const p of m.content){if(p.type!='image_url'){P.push(c.type=='anthropic'?{type:'text',text:p.text}:p);continue}let u=p.image_url.url;try{u=await visScale(u)}catch(e){}if(c.type=='anthropic'){const mm=u.match(/^data:([^;]+);base64,(.+)$/);P.push(mm?{type:'image',source:{type:'base64',media_type:mm[1],data:mm[2]}}:{type:'image',source:{type:'url',url:u}})}else P.push({type:'image_url',image_url:{url:u,detail:S.vis.detail}})}return{...m,content:P}}))}return _aiVi(msgs,sys,on,cfg)};
-let visBusy=false;async function visCapAll(id){if(visBusy||!S.vis.on||!S.vis.cap||!S.main.key)return;const L=S.ch[id]||[];visBusy=true;try{for(const m of visPick(L)){if(m.cap||!m.u)continue;try{const r=await ai([{role:'user',content:[{type:'text',text:m.k=='stk'?'这是聊天里的一个表情包（可能是 GIF/PNG 的第一帧），用一句话说明画面里是什么、表达什么情绪或意思（不超过40字，只输出描述）':'用一两句话客观描述这张图片的内容（不超过60字，只输出描述）'},{type:'image_url',image_url:{url:m.u}}]}],'你是图片描述助手。',null);m.cap=String(r).trim().slice(0,120);save()}catch(e){break}}}finally{visBusy=false}}
+let visBusy=false;async function visCapAll(id){if(visBusy||!S.vis.on||!S.vis.cap||!S.main.key)return;const L=S.ch[id]||[];visBusy=true;try{for(const m of visPick(L)){if(m.cap||!m.u)continue;try{if(window.frPrep)await frPrep(m.u);const r=await ai([{role:'user',content:[{type:'text',text:m.k=='stk'?'这是聊天里的一个表情包（动图会给出多张关键帧），用一句话说明画面里是什么、表达什么情绪或意思（不超过40字，只输出描述）':'用一两句话客观描述这张图片的内容（不超过60字，只输出描述）'},...(window.frParts?frParts(m.u):[{type:'image_url',image_url:{url:m.u}}])]}],'你是图片描述助手。',null);m.cap=String(r).trim().slice(0,120);save()}catch(e){break}}}finally{visBusy=false}}
 var _gV=gen;gen=async function(id,at){try{return await _gV(id,at)}finally{S.vis.on&&S.vis.cap&&setTimeout(()=>visCapAll(id),4000)}};
 /* ---- 图片与视觉设置页 ---- */
 function imgPage(id){const c=TG(id),g=S.img,v=S.vis,tg=(o,k,l)=>`<label class="cr t"><span>${l}</span><input type="checkbox" ${S[o][k]?'checked':''} onchange="S.${o}.${k}=this.checked;save();${k=='on'&&o=='img'?`imgPage('${id}')`:''}"></label>`,tx=(l,k,ph,t)=>`<div class="cr"><span style="width:74px">${l}</span><input class="cri" type="${t||'text'}" value="${esc(g[k])}" placeholder="${ph}" onchange="S.img.${k}=this.value.trim();save()"></div>`;
 view(hd('图片与视觉','','csM()')+`<div class="body cpage"><div class="chead"><div style="font-size:19px;font-weight:500">${esc(c.remark||c.name)}</div><small class="mut">角色发图片、以及看懂你发的图</small></div>
 <div class="lbl2">角色发图片</div><div class="grp">${tg('img','dsc','允许角色发文字描述图（长按图片卡片可生成图片）')}${tg('img','on','角色发图时自动生成（需配置下面的图片接口）')}${`<div class="cr t"><span>图片接口</span><select class="cri" style="flex:none;direction:rtl" onchange="S.img.prov=this.value;S.img.model=this.value=='minimax'?'image-01':'gpt-image-1';save();imgPage('${id}')"><option value="openai" ${g.prov=='openai'?'selected':''}>OpenAI 兼容</option><option value="minimax" ${g.prov=='minimax'?'selected':''}>MiniMax</option></select></div>${tx('接口地址','host','留空则用'+(g.prov=='minimax'?'语音处填的 MiniMax 地址':'主接口'))}${tx('密钥','key','留空则复用'+(g.prov=='minimax'?'MiniMax 语音密钥':'主接口密钥'),'password')}${tx('模型','model',g.prov=='minimax'?'image-01':'gpt-image-1')}${g.prov=='minimax'?'':`<div class="cr t"><span>尺寸</span><select class="cri" style="flex:none;direction:rtl" onchange="S.img.size=this.value;save()">${['1024x1024','1024x1536','1536x1024','1792x1024','1024x1792','2048x2048','512x512'].map(x=>`<option ${g.size==x?'selected':''}>${x}</option>`).join('')}</select></div>`}${imgQSel(g)}${tx('画风前缀','style','如：手机拍摄的真实照片')}<div class="cell" onclick="imgTest()">${ic('img',20)}<span>生成测试图</span></div>`}</div>
 <div class="lbl2">${esc(c.remark||c.name)} 的外貌</div><div class="grp"><textarea class="cri ct" rows="3" placeholder="用于生成自拍：发型、五官、穿衣风格、气质……" onchange="S.img.c['${id}']=Object.assign(S.img.c['${id}']||{},{look:this.value.trim()});save()">${esc((S.img.c[id]||{}).look||'')}</textarea></div>
-<div class="lbl2">看图（多模态）</div><div class="grp">${tg('vis','on','让模型看到聊天里的图片')}<div class="cr t"><span>精度</span><select class="cri" style="flex:none;direction:rtl" onchange="S.vis.detail=this.value;save()">${[['low','低（省流量，看大意）'],['auto','自动'],['high','高（看细节，较贵）']].map(([a,b])=>`<option value="${a}" ${v.detail==a?'selected':''}>${b}</option>`).join('')}</select></div><div class="cr t"><span>同时看最近几张</span><input class="cri" type="number" min="1" value="${v.n}" style="flex:none;width:72px" onchange="S.vis.n=Math.max(1,+this.value||1);save()"></div>${tg('vis','cap','记住每张图的内容（更早的图靠文字描述回忆）')}</div>
+<div class="lbl2">看图（多模态）</div><div class="grp">${tg('vis','on','让模型看到聊天里的图片')}<div class="cr t"><span>精度</span><select class="cri" style="flex:none;direction:rtl" onchange="S.vis.detail=this.value;save()">${[['low','低（省流量，看大意）'],['auto','自动'],['high','高（看细节，较贵）']].map(([a,b])=>`<option value="${a}" ${v.detail==a?'selected':''}>${b}</option>`).join('')}</select></div><div class="cr t"><span>同时看最近几张</span><input class="cri" type="number" min="1" value="${v.n}" style="flex:none;width:72px" onchange="S.vis.n=Math.max(1,+this.value||1);save()"></div><div class="cr t"><span>动图（GIF/表情包）取帧</span><select class="cri" style="flex:none;direction:rtl" onchange="S.vis.fr=+this.value;save()">${[[1,'仅首帧'],[4,'4 帧'],[8,'8 帧（推荐）'],[12,'12 帧'],[16,'16 帧（最细）']].map(([a,b])=>`<option value="${a}" ${(v.fr||8)==a?'selected':''}>${b}</option>`).join('')}</select></div>${tg('vis','cap','记住每张图的内容（更早的图靠文字描述回忆）')}</div>
 <p class="mut" style="margin:6px 6px 0;font-size:12px">角色想发图时会在回复里写出画面描述：没开自动生成（或没配接口）时，聊天里是一张文字描述卡片，长按它选“生成图片”即可出图，已生成的也能“重新生成”；开启自动生成后会直接出图，失败的点一下可重试。看图精度影响上传前的压缩尺寸：低 512px、自动 1024px、高 2048px。</p></div>`)}
 function imgTest(){toast('生成中…');imgGen('一只趴在窗台上的橘猫，'+S.img.style).then(u=>modal(`<div class="h1" style="font-size:19px">测试图</div><img src="${u}" style="width:100%;border-radius:16px;margin:8px 0 14px"><div class="fl"><button class="btn" onclick="closeM()">好的</button></div>`)).catch(e=>toast('失败：'+String(e.message||e).slice(0,80)))}
 /* ================= 情绪与状态机 ================= */
@@ -1557,7 +1557,7 @@ const defSched=()=>[{f:'23:30',t:'07:30',st:'sleep'},{f:'07:30',t:'08:30',st:'fr
 const stGet=id=>S.st[id]||(S.st[id]={fav:30,trust:30,mood:'calm',mi:40,mt:Date.now(),sched:null,ov:null,log:[],rd:0,init:0}),hm2m=t=>{const p=String(t).split(':').map(Number);return(p[0]||0)*60+(p[1]||0)};
 function stNow(id){const s=stGet(id),now=Date.now(),dh=(now-s.mt)/36e5;if(dh>.25&&s.mood!='calm'){s.mi=Math.max(0,s.mi-dh*12);s.mt=now;if(s.mi<=15)s.mood='calm'}
 if(s.ov&&s.ov.until>now)return{st:s.ov.st,until:s.ov.until,label:STL[s.ov.st],ov:1};if(s.ov)s.ov=null;
-const d=new Date(),cm=d.getHours()*60+d.getMinutes();let hit=null,end=0;for(const b of(s.sched||defSched())){const f=hm2m(b.f),t=hm2m(b.t);if(f<=t?(cm>=f&&cm<t):(cm>=f||cm<t)){hit=b;end=t;break}}hit=hit||{st:'free'};const b0=new Date();b0.setHours(0,0,0,0);let until=b0.getTime()+end*60000;if(until<=now)until+=864e5;return{st:hit.st,until,label:hit.label||STL[hit.st]||'空闲'}}
+const d=new Date(),cm=d.getHours()*60+d.getMinutes();let hit=null,end=0;for(const b of stEff(id)){const f=hm2m(b.f),t=hm2m(b.t);if(f<=t?(cm>=f&&cm<t):(cm>=f||cm<t)){hit=b;end=t;break}}hit=hit||{st:'free'};const b0=new Date();b0.setHours(0,0,0,0);let until=b0.getTime()+end*60000;if(until<=now)until+=864e5;return{st:hit.st,until,label:hit.label||STL[hit.st]||'空闲'}}
 const stHint={};
 function stPrompt(id,ch){if(!S.stg.on)return'';const c=S.ct.find(x=>x.id==id);if(!c)return'';const s=stGet(id),n=stNow(id),tm=new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false}),
 R={sleep:'在睡觉（如果被消息吵醒：迷糊、很短、可能有错别字）',work:'在忙工作，只能偷空回，很简短，可能说“等下”',study:'在上课/学习，偷空回，很简短',commute:'在路上，单手打字，简短',meal:'在吃饭，随口回',out:'在外面，不太方便打字',free:'有空'},
@@ -3673,9 +3673,9 @@ function stTlHtml(sc){var segs=[];sc.forEach(function(b){var f=hm2m(b.f),t=hm2m(
 function stBarSet(id,k,ev){var r=ev.currentTarget.getBoundingClientRect(),v=Math.round(Math.max(0,Math.min(1,(ev.clientX-r.left)/r.width))*100);stGet(id)[k]=v;save();stPage(id)}
 function stStep(id,k,d){var s=stGet(id);s[k]=Math.max(0,Math.min(100,(s[k]|0)+d));save();stPage(id)}
 function stMood(id,m){var x=stGet(id);x.mood=m;x.mi=m=='calm'?0:60;x.mt=Date.now();save();stHdr();stPage(id)}
-function stOv(id,v){var x=stGet(id);x.ov=v?{st:v,until:Date.now()+36e5}:null;save();stHdr();stPage(id)}
+function stOv(id,v){var x=stGet(id);x.ov=v?{st:v,until:Date.now()+(S.stg.ovd||60)*6e4}:null;save();stHdr();stPage(id)}
 function stTog(k,v){S.stg[k]=v;save();stHdr()}
-stPage=function(id){var c=TG(id),s=stGet(id),n=stNow(id),sc=s.sched||defSched(),av=c.av||'';
+stPage=function(id){var c=TG(id),s=stGet(id),n=stNow(id),sc0=s.sched||defSched(),sc=stEff(id),av=c.av||'';
  var opt=function(o,cur){return Object.keys(o).map(function(k){return '<option value="'+k+'" '+(cur==k?'selected':'')+'>'+o[k]+'</option>'}).join('')};
  var meter=function(k,l){var v=s[k]|0;return '<div class="st3m cr" style="display:block"><div class="t"><span>'+l+'</span><small>'+v+' · '+stage(v)+'</small></div><div class="bar" onclick="stBarSet(\''+id+'\',\''+k+'\',event)"><i style="width:'+v+'%"></i></div><div class="ad"><button onclick="stStep(\''+id+'\',\''+k+'\',-5)">−5</button><button onclick="stStep(\''+id+'\',\''+k+'\',5)">＋5</button></div></div>'};
  var tgl=function(k,l,sub,def){var on=S.stg[k]===undefined?def:!!S.stg[k];return '<label class="cr t"><span>'+l+(sub?'<br><small class="mut" style="font-size:11.5px">'+sub+'</small>':'')+'</span><input type="checkbox" '+(on?'checked':'')+' onchange="stTog(\''+k+'\',this.checked)"></label>'};
@@ -3683,16 +3683,150 @@ stPage=function(id){var c=TG(id),s=stGet(id),n=stNow(id),sc=s.sched||defSched(),
  var ovOn=s.ov&&s.ov.until>Date.now()?s.ov.st:'';
  view(hd('状态与关系','','csM()')+'<div class="body cpage">'
  +'<div class="st3h"><div class="av" style="background-image:url(\''+esc(av)+'\')">'+(av?'':esc((c.name||'?')[0]))+'</div><div><b>'+esc(c.remark||c.name)+'</b><span class="st3p"><i style="background:'+(STC[n.st]||'#8fb996')+'"></i>'+(n.label||STL[n.st])+(n.until&&n.st!='free'?' · 到'+stHm(n.until):'')+'</span>'+(s.mood!='calm'?'<span class="st3p">'+MOOD[s.mood]+'</span>':'')+'</div></div>'
- +stTlHtml(sc)+'<div class="st3l">'+Object.keys(used).map(function(k){return '<span><i style="background:'+(STC[k]||'#ccc')+'"></i>'+STL[k]+'</span>'}).join('')+'</div>'
+ +stTlHtml(sc)+(stIsWk()?'<div class="mut" style="font-size:11.5px;margin:6px 2px 0">今天是周末，按周末作息显示</div>':'')+'<div class="st3l">'+Object.keys(used).map(function(k){return '<span><i style="background:'+(STC[k]||'#ccc')+'"></i>'+STL[k]+'</span>'}).join('')+'</div>'
  +'<div class="lbl2">关系</div><div class="grp">'+meter('fav','好感')+meter('trust','信任')+'</div>'
  +'<div class="lbl2">心情</div><div class="grp"><div class="st3c">'+Object.keys(MOOD).map(function(k){return '<button class="'+(s.mood==k?'on':'')+'" onclick="stMood(\''+id+'\',\''+k+'\')">'+MOOD[k]+'</button>'}).join('')+'</div></div>'
- +'<div class="lbl2">此刻在做什么</div><div class="grp"><div class="st3c"><button class="'+(ovOn?'':'on')+'" onclick="stOv(\''+id+'\',\'\')">按作息</button>'+Object.keys(STL).map(function(k){return '<button class="'+(ovOn==k?'on':'')+'" onclick="stOv(\''+id+'\',\''+k+'\')">'+STL[k].replace('中','')+'</button>'}).join('')+'</div><div class="cell" onclick="stWake(\''+id+'\')">'+ic('tel',20)+'<span>叫醒 / 立即让 TA 回复</span></div></div>'
+ +'<div class="lbl2">此刻在做什么</div><div class="grp"><div class="st3c"><button class="'+(ovOn?'':'on')+'" onclick="stOv(\''+id+'\',\'\')">按作息</button>'+Object.keys(STL).map(function(k){return '<button class="'+(ovOn==k?'on':'')+'" onclick="stOv(\''+id+'\',\''+k+'\')">'+STL[k].replace('中','')+'</button>'}).join('')+'</div><div class="st3c" style="padding-top:0"><span style="font-size:12px;color:#8e8e93;line-height:30px">持续</span>'+[[30,'30分钟'],[60,'1小时'],[180,'3小时'],[720,'12小时']].map(function(d){return '<button class="'+((S.stg.ovd||60)==d[0]?'on':'')+'" onclick="S.stg.ovd='+d[0]+';save();stPage(\''+id+'\')">'+d[1]+'</button>'}).join('')+'</div><div class="cell" onclick="stWake(\''+id+'\')">'+ic('tel',20)+'<span>叫醒 / 立即让 TA 回复</span></div></div>'
  +'<div class="lbl2">显示</div><div class="grp">'+tgl('show','聊天顶部显示状态','',true)+tgl('ht','显示持续到几点','例如“忙碌中 · 到12:00”',true)+tgl('hm','显示心情','心情不平静时才显示',true)+tgl('hr','显示关系阶段','生疏 / 普通 / 亲近 / 亲密',false)+'</div>'
- +'<div class="lbl2">影响</div><div class="grp">'+tgl('on','状态影响回复','速度、字数、语气、已读不回',true)+tgl('auto','首次聊天时按人设生成作息','',true)+'</div>'
- +'<details class="wbd" style="margin-top:14px"><summary>编辑作息</summary><div class="grp" style="margin-top:6px">'+sc.map(function(b,i){return '<div class="cr" style="gap:6px;padding:10px 14px"><input type="time" class="cri" style="text-align:left;flex:none;width:92px" value="'+b.f+'" onchange="stSch(\''+id+'\','+i+',\'f\',this.value)"><span style="width:auto;flex:none">–</span><input type="time" class="cri" style="text-align:left;flex:none;width:92px" value="'+b.t+'" onchange="stSch(\''+id+'\','+i+',\'t\',this.value)"><select class="cri" style="flex:1;direction:rtl" onchange="stSch(\''+id+'\','+i+',\'st\',this.value)">'+opt(STL,b.st)+'</select><button class="ib" style="width:24px;height:24px;flex:none" onclick="stSchDel(\''+id+'\','+i+')">'+ic('x',14)+'</button></div>'}).join('')+'</div><div class="fl" style="margin:10px 0 4px"><button class="btn g" onclick="stSchAdd(\''+id+'\')">添加时段</button><button class="btn" onclick="stInit(\''+id+'\',1)">按人设生成</button><button class="btn g" onclick="stGet(\''+id+'\').sched=null;save();stPage(\''+id+'\')">恢复默认</button></div></details>'
+ +'<div class="lbl2">影响</div><div class="grp">'+tgl('on','状态影响回复','速度、字数、语气、已读不回',true)+tgl('auto','首次聊天时按人设生成作息','',true)+tgl('wk','周末按周末作息','上班/上课时段变成空闲，起床晚一些',true)+'</div>'
+ +'<details class="wbd" style="margin-top:14px"><summary>编辑作息</summary><div class="grp" style="margin-top:6px">'+sc0.map(function(b,i){return '<div class="cr" style="gap:6px;padding:10px 14px"><input type="time" class="cri" style="text-align:left;flex:none;width:92px" value="'+b.f+'" onchange="stSch(\''+id+'\','+i+',\'f\',this.value)"><span style="width:auto;flex:none">–</span><input type="time" class="cri" style="text-align:left;flex:none;width:92px" value="'+b.t+'" onchange="stSch(\''+id+'\','+i+',\'t\',this.value)"><select class="cri" style="flex:1;direction:rtl" onchange="stSch(\''+id+'\','+i+',\'st\',this.value)">'+opt(STL,b.st)+'</select><button class="ib" style="width:24px;height:24px;flex:none" onclick="stSchDel(\''+id+'\','+i+')">'+ic('x',14)+'</button></div>'}).join('')+'</div><div class="fl" style="margin:10px 0 4px"><button class="btn g" onclick="stSchAdd(\''+id+'\')">添加时段</button><button class="btn" onclick="stInit(\''+id+'\',1)">按人设生成</button><button class="btn g" onclick="stGet(\''+id+'\').sched=null;save();stPage(\''+id+'\')">恢复默认</button></div></details>'
  +(s.log&&s.log.length?'<div class="lbl2">最近变化</div><div class="grp">'+s.log.slice(-8).reverse().map(function(x){return '<div class="cr t"><span>'+esc(x.t)+'</span><small class="mut">'+xAgo(x.ts)+'</small></div>'}).join('')+'</div>':'')
  +'</div>')};
 setInterval(function(){try{if(cur=='wx'&&document.querySelector('.imc .imst'))stHdr()}catch(e){}},30000);
+</script>
+<script type="text/x-app">
+/* ===== GIF / animated image frames ===== */
+var frMem={},frPr={};
+function frKey(u,K){return u.length+'|'+u.slice(-64)+'|'+K}
+function frK(){var k=+(S.vis&&S.vis.fr);return k>=1?k:8}
+function frB64(u){var b=atob(u.slice(u.indexOf(',')+1)),a=new Uint8Array(b.length);for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a}
+function frCv(src){var W=src.width,H=src.height,s=Math.min(1,448/Math.max(W,H)),o=document.createElement('canvas');o.width=Math.max(1,Math.round(W*s));o.height=Math.max(1,Math.round(H*s));var x=o.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,o.width,o.height);x.drawImage(src,0,0,o.width,o.height);return o.toDataURL('image/jpeg',.8)}
+function frLzw(mc,data,np){var clear=1<<mc,eoi=clear+1,next=eoi+1,size=mc+1,mask=(1<<size)-1,prefix=new Uint16Array(4096),suffix=new Uint8Array(4096),stack=new Uint8Array(4097),out=new Uint8Array(np),op=0,old=-1,first=0,bits=0,acc=0,sp=0,p=0,i;
+ for(i=0;i<clear;i++)suffix[i]=i;
+ while(op<np){while(bits<size&&p<data.length){acc|=data[p++]<<bits;bits+=8}if(bits<size)break;var code=acc&mask;acc>>=size;bits-=size;
+  if(code==clear){size=mc+1;mask=(1<<size)-1;next=eoi+1;old=-1;continue}
+  if(code==eoi)break;
+  if(old==-1){out[op++]=suffix[code];old=code;first=code;continue}
+  var inC=code;if(code>=next){stack[sp++]=first;code=old}
+  while(code>=clear){stack[sp++]=suffix[code];code=prefix[code]}
+  first=suffix[code];stack[sp++]=first;
+  if(next<4096){prefix[next]=old;suffix[next]=first;next++;if((next&mask)==0&&next<4096){size++;mask=(1<<size)-1}}
+  old=inC;while(sp>0&&op<np)out[op++]=stack[--sp]}
+ return out}
+function frGif(u,K){var d=frB64(u),p=13;if(d[0]!=71||d[1]!=73||d[2]!=70)return null;
+ var W=d[6]|d[7]<<8,H=d[8]|d[9]<<8,fl=d[10],gct=null,fr=[],gce=null;if(!W||!H)return null;
+ if(fl&128){var n=3*(2<<(fl&7));gct=d.subarray(p,p+n);p+=n}
+ while(p<d.length){var b=d[p++];if(b==0x3B)break;
+  if(b==0x21){var lab=d[p++];if(lab==0xF9){var pk=d[p+1];gce={dis:(pk>>2)&7,tr:(pk&1)?d[p+4]:-1}}while(p<d.length){var sz=d[p++];if(!sz)break;p+=sz}}
+  else if(b==0x2C){var fx=d[p]|d[p+1]<<8,fy=d[p+2]|d[p+3]<<8,fw=d[p+4]|d[p+5]<<8,fh=d[p+6]|d[p+7]<<8,pk2=d[p+8];p+=9;var ct=gct;if(pk2&128){var n2=3*(2<<(pk2&7));ct=d.subarray(p,p+n2);p+=n2}
+   var mc=d[p++],ch=[],tot=0;while(p<d.length){var s2=d[p++];if(!s2)break;ch.push(d.subarray(p,p+s2));tot+=s2;p+=s2}
+   fr.push({x:fx,y:fy,w:fw,h:fh,il:!!(pk2&64),ct:ct,mc:mc,ch:ch,tot:tot,g:gce});gce=null}
+  else if(b==0)continue;else break}
+ var N=fr.length;if(N<2)return null;
+ var m=Math.min(N,K),tg={},i;for(i=0;i<m;i++)tg[m==1?0:Math.round(i*(N-1)/(m-1))]=1;
+ var cv=new Uint8ClampedArray(W*H*4),prev=null,out=[],cc=document.createElement('canvas');cc.width=W;cc.height=H;var cx=cc.getContext('2d');
+ for(i=0;i<N;i++){var f=fr[i],g=f.g||{dis:0,tr:-1};if(!f.ct)continue;
+  var data=new Uint8Array(f.tot),o=0;f.ch.forEach(function(c){data.set(c,o);o+=c.length});
+  var idx=frLzw(f.mc,data,f.w*f.h);if(g.dis==3)prev=cv.slice();
+  var rows=null;if(f.il){rows=[];[[0,8],[4,8],[2,4],[1,2]].forEach(function(a){for(var r=a[0];r<f.h;r+=a[1])rows.push(r)})}
+  for(var y=0;y<f.h;y++){var dy=f.y+(rows?rows[y]:y);if(dy>=H)continue;for(var x=0;x<f.w;x++){var dx=f.x+x;if(dx>=W)continue;var ci=idx[y*f.w+x];if(ci===g.tr)continue;var q=(dy*W+dx)*4,c3=ci*3;cv[q]=f.ct[c3];cv[q+1]=f.ct[c3+1];cv[q+2]=f.ct[c3+2];cv[q+3]=255}}
+  if(tg[i]){cx.putImageData(new ImageData(new Uint8ClampedArray(cv),W,H),0,0);out.push(frCv(cc))}
+  if(g.dis==2){for(var y2=f.y;y2<Math.min(H,f.y+f.h);y2++)for(var x2=f.x;x2<Math.min(W,f.x+f.w);x2++){var q2=(y2*W+x2)*4;cv[q2]=cv[q2+1]=cv[q2+2]=cv[q2+3]=0}}
+  else if(g.dis==3&&prev)cv.set(prev)}
+ out.n=N;return out}
+async function frDec(u,K){if(typeof ImageDecoder=='undefined')return null;var mime=(u.match(/^data:([^;,]+)/)||[])[1];try{if(!(await ImageDecoder.isTypeSupported(mime)))return null;var dec=new ImageDecoder({data:frB64(u),type:mime});await dec.tracks.ready;var N=dec.tracks.selectedTrack.frameCount;if(!(N>1)){dec.close&&dec.close();return null}
+ var m=Math.min(N,K),out=[];for(var i=0;i<m;i++){var r=await dec.decode({frameIndex:m==1?0:Math.round(i*(N-1)/(m-1))}),im=r.image,c=document.createElement('canvas');c.width=im.displayWidth;c.height=im.displayHeight;c.getContext('2d').drawImage(im,0,0);im.close();out.push(frCv(c))}
+ dec.close&&dec.close();out.n=N;return out}catch(e){return null}}
+async function frPrep(u){if(!u||typeof u!='string'||u.indexOf('data:image/')!=0)return;var K=frK();if(K<2)return;var k=frKey(u,K);if(k in frMem)return;if(frPr[k])return frPr[k];
+ frPr[k]=(async function(){var r=null;try{if(/^data:image\/gif/i.test(u))r=frGif(u,K);else if(/^data:image\/(webp|png|apng)/i.test(u))r=await frDec(u,K)}catch(e){r=null}frMem[k]=r&&r.length>1?r:null;delete frPr[k]})();return frPr[k]}
+function frGet(u){if(!u||typeof u!='string')return null;var K=frK();return frMem[frKey(u,K)]||null}
+function frParts(u){var a=frGet(u);return a&&a.length>1?a.map(function(x){return{type:'image_url',image_url:{url:x}}}):[{type:'image_url',image_url:{url:u}}]}
+
+/* ===== one reply at a time per character + stop button ===== */
+var genRuns={};
+function gCnt(L){var n=0;(L||[]).forEach(function(m){if(!m.ph)n++});return n}
+function gClean(id){if(genRuns[id]&&genRuns[id].length)return;var L=S.ch[id];if(!L)return;var ch=0;for(var i=L.length-1;i>=0;i--)if(L[i]&&L[i].ph){L.splice(i,1);ch=1}return ch}
+function gCleanAll(){var ch=0;Object.keys(S.ch||{}).forEach(function(id){if(gClean(id))ch=1});Object.keys(S.sm||{}).forEach(function(k){var L=S.sm[k];if(!L)return;for(var i=L.length-1;i>=0;i--)if(L[i]&&L[i].ph){L.splice(i,1);ch=1}});if(ch)save()}
+function gUi(){var cin=document.querySelector('.mf')||document.querySelector('.cin'),old=document.getElementById('gstop'),rs=typeof cid!='undefined'&&cid&&genRuns[cid];var on=cur=='wx'&&cin&&rs&&rs.length;if(!on){old&&old.remove();return}
+ if(old)return;var b=document.createElement('button');b.id='gstop';b.title='停止生成';b.innerHTML='<i></i>';b.onclick=function(){gStop(cid)};cin.appendChild(b)}
+function gSleep(id,ms){var r=genRuns[id]&&genRuns[id][0];if(!r)return sleep(ms);return new Promise(function(res,rej){var t=setTimeout(res,ms);r.k=function(){clearTimeout(t);rej(Error('stopped'))}})}
+function gStop(id,quiet){var rs=genRuns[id]||[];if(!rs.length)return;rs.slice().forEach(function(r){r.stopped=true;r.k&&r.k();try{r.ac.abort()}catch(e){}r.res&&r.res()});genRuns[id]=[];var L=S.ch[id]||[];for(var i=L.length-1;i>=0;i--)if(L[i]&&L[i].ph)L.splice(i,1);save();if(cid==id&&document.getElementById('cm'))rc();gUi();if(!quiet)toast('已停止生成')}
+var _gfetch=window.fetch;window.fetch=function(u,o){try{if((!o||!o.signal)&&typeof xKey!='undefined'&&xKey&&genRuns[xKey.id]&&genRuns[xKey.id][0]){o=Object.assign({},o||{},{signal:genRuns[xKey.id][0].ac.signal})}}catch(e){}return _gfetch.call(this,u,o)};
+var _genO=gen;gen=async function(id,at){var c=TG(id);if(!c)return _genO(id,at);var L=S.ch[id]=S.ch[id]||[],grp=!!c.m;
+ if(!grp&&genRuns[id]&&genRuns[id].length){if(at===undefined&&gCnt(L)>genRuns[id][0].n0){gStop(id,true)}else{if(at!==undefined)toast('正在回复中，请稍候');return}}
+ var run={ac:new AbortController(),stopped:false,n0:gCnt(L),res:null};(genRuns[id]=genRuns[id]||[]).push(run);gUi();
+ var stopP=new Promise(function(r){run.res=r});
+ var inner=(async function(){try{if(S.vis&&S.vis.on&&frK()>1){var vs=visPick(L),ps=[];L.forEach(function(m){if(vs.has(m)&&m.u&&/^data:image\/(gif|webp|png)/i.test(m.u))ps.push(frPrep(m.u))});if(ps.length)await Promise.all(ps)}}catch(e){}
+  if(run.stopped)return;return _genO(id,at)})().catch(function(e){if(!run.stopped)throw e});
+ try{return await Promise.race([inner,stopP])}finally{var a=genRuns[id]||[],i=a.indexOf(run);if(i>=0)a.splice(i,1);if(!a.length){gClean(id);if(!run.stopped)save()}gUi();if(cid==id&&document.getElementById('cm')&&!run.stopped)rc()}};
+var _chG=chat;chat=function(id){var c=TG(id);if(c&&!c.m)gClean(id);var r=_chG.apply(this,arguments);try{gUi()}catch(e){}return r};
+(function(){var st=document.createElement('style');st.textContent='#gstop{width:28px;height:28px;flex:none;border-radius:50%;border:0;background:var(--acc,#0a84ff);display:flex;align-items:center;justify-content:center;margin:0 0 0 4px;padding:0;cursor:pointer}#gstop i{display:block;width:9px;height:9px;border-radius:2px;background:#fff}';document.body.appendChild(st)})();
+setTimeout(gCleanAll,0);
+
+/* ===== delete moments completely ===== */
+function moDelP(id){cf('彻底删除这条动态？图片、点赞和评论都会一并删除（聊天里已经提到过的内容不受影响）。',function(){var p=S.mo.find(function(x){return x.id==id});if(!p)return;S.mo=S.mo.filter(function(x){return x.id!=id});
+ if(p.by!='me'&&S.pa&&S.pa.log&&S.pa.log[p.by]){S.pa.log[p.by]=S.pa.log[p.by].filter(function(e){return!(e.act=='moment'&&String(p.t||'').slice(0,120)==e.t)})}
+ save();if(typeof moP=='function'&&document.querySelector('.moimg,.body'))moP();toast('已删除')})}
+function moDelC(id,i){var p=S.mo.find(function(x){return x.id==id});if(!p||!p.cm)return;p.cm.splice(i,1);save();moP()}
+var _moHd=moH;moH=function(p){var h=_moHd(p);if(!p)return h;var k=0;h=h.replace(/<div><b style="font-weight:500">/g,function(m){return '<div><span class="mocd" onclick="moDelC(\''+p.id+'\','+(k++)+')">×</span><b style="font-weight:500">'});
+ h=h.replace(/(onclick="moCm\('[^']*'\)">评论<\/button>)/,'$1<button class="btn g" onclick="moDelP(\''+p.id+'\')">删除</button>');return h};
+(function(){var st=document.createElement('style');st.textContent='.mocd{float:right;color:#b0b0b5;padding:0 4px 0 10px;font-size:15px;line-height:1.3;cursor:pointer}';document.body.appendChild(st)})();
+
+/* ===== status logic: weekend schedule, daily drift ===== */
+function stIsWk(){var d=new Date().getDay();return S.stg.wk!==false&&(d==0||d==6)}
+function stM2h(m){m=((m%1440)+1440)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')}
+function stWkOf(sc){var out=[],tO=null,tN=null;sc.forEach(function(b){if(b.st=='sleep'&&hm2m(b.t)<=720&&hm2m(b.f)>hm2m(b.t)){tO=hm2m(b.t);tN=Math.min(tO+90,660)}});
+ sc.forEach(function(b){var o=Object.assign({},b),f=hm2m(b.f),t=hm2m(b.t);
+  if(b.st=='sleep'&&tO!=null&&t==tO&&f>t){o.t=stM2h(tN)}
+  else if(tO!=null&&b.st!='sleep'&&f<=t){if(f>=tO&&t<=tN)return;if(f>=tO&&f<tN)o.f=stM2h(tN)}
+  if(b.st=='work'||b.st=='study'||b.st=='commute'){o.st='free';o.label='休息'}
+  out.push(o)});return out}
+function stEff(id){var sc=stGet(id).sched||defSched();return stIsWk()?stWkOf(sc):sc}
+function stDrift(){if(!S.stg||!S.stg.on||S.stg.drift===false)return;var now=Date.now(),day=new Date().toDateString(),b0=new Date();b0.setHours(0,0,0,0);var t0=b0.getTime(),ch=0;
+ (S.ct||[]).forEach(function(c){if(c.m)return;var s=stGet(c.id);if(s.dd==day)return;var L=(S.ch[c.id]||[]).filter(function(m){return m.ts&&!m.ph&&m.k!='pat'});if(!L.length){s.dd=day;ch=1;return}
+  var last=L[L.length-1].ts,idle=Math.floor((now-last)/864e5),yu=L.filter(function(m){return m.r=='u'&&m.ts>=t0-864e5&&m.ts<t0}).length;s.dd=day;ch=1;s.log=s.log||[];
+  if(yu>=10&&s.fav<100){s.fav=Math.min(100,s.fav+1);s.log.push({t:'昨天聊了不少，好感 +1',ts:now})}
+  if(idle>=3&&s.fav>10){s.fav=Math.max(10,s.fav-1);s.log.push({t:'已经 '+idle+' 天没怎么联系，好感 −1',ts:now})}
+  if(idle>=14&&s.trust>10){s.trust=Math.max(10,s.trust-1);s.log.push({t:'很久没有联系，信任 −1',ts:now})}
+  if(s.log.length>40)s.log.splice(0,s.log.length-40)});if(ch)save()}
+setTimeout(stDrift,4000);setInterval(stDrift,600000);
+</script>
+<script type="text/x-app">
+/* ===== 世界书：读取增强 ===== */
+S.wbc=Object.assign({scan:8,persona:true,budget:0},S.wbc||{});
+function wbMsgT(m){var c=m&&m.content;if(Array.isArray(c))return c.map(function(p){return p&&p.text||''}).join(' ');return String(c==null?'':c)}
+wbIdOf=function(){if(typeof xKey!='undefined'&&xKey&&xKey.id)return xKey.id;
+ if(typeof cl!='undefined'&&cl&&cl.c&&cl.c.id)return cl.c.id;
+ if(typeof smCtxK!='undefined'&&smCtxK){var k=String(smCtxK);if(k.indexOf('c:')==0)return k.slice(2);if(k.indexOf('n:')==0&&typeof dlByNum=='function'){var d=dlByNum(k.slice(2));if(d&&d.c)return d.c.id}}
+ return cid};
+_wbBn=function(msgs,sys){var C=S.wbc,sysL=sys.replace('⁣WB⁣','').toLowerCase(),head=sysL.slice(0,1500);
+ var E=S.wb.filter(function(e){return e.on&&String(e.content).trim()&&(!e.chars||kl(e.chars).some(function(c){return head.indexOf(c)>=0}))});
+ var hit=function(e,t){if(!kl(e.keys).some(function(k){return t.indexOf(k)>=0}))return false;var k2=kl(e.keys2);if(!k2.length)return true;var h=k2.map(function(k){return t.indexOf(k)>=0});return e.logic=='all'?h.every(Boolean):e.logic=='notany'?!h.some(Boolean):e.logic=='notall'?!h.every(Boolean):h.some(Boolean)};
+ var on=new Set(),pers=C.persona!==false?sysL.slice(0,3000):'',
+  chat=function(n){var a=msgs.slice(-n).map(wbMsgT).join('\n').toLowerCase();var last=msgs.length?wbMsgT(msgs[msgs.length-1]).toLowerCase():'';return a+'\n'+last+(pers?'\n'+pers:'')};
+ var pass=function(rec){var ch=0;E.forEach(function(e){if(on.has(e)||(rec&&e.nonrec))return;var n=C.own?(+e.scan||4):(C.scan===0?0:Math.max(+e.scan||0,+C.scan||8));var t=chat(n>0?n:msgs.length);if(rec)t+='\n'+Array.from(on).map(function(x){return String(x.content).toLowerCase()}).join('\n');if((e.constant||hit(e,t))&&Math.random()*100<(e.prob==null?100:e.prob)){on.add(e);ch=1}});return ch};
+ pass(0);for(var i=0;i<3&&pass(1););
+ var g={},L=Array.from(on).sort(function(a,b){return(a.constant?0:1)-(b.constant?0:1)||a.order-b.order}).filter(function(e){if(!e.group)return true;if(g[e.group])return false;return g[e.group]=1});
+ if(+C.budget>0){var used=0;L=L.filter(function(e){var t=Math.ceil(String(e.content).length/1.5);if(e.constant||used+t<=C.budget){used+=t;return true}return false})}
+ L.sort(function(a,b){return a.order-b.order});
+ window.wbLast={t:Date.now(),titles:L.map(function(e){return e.title||'未命名'}),n:L.length,chars:L.reduce(function(s,e){return s+String(e.content).length},0)};
+ var f=function(p){return L.filter(function(e){return e.pos==p})},j=function(l){return l.map(function(e){return e.content}).join('\n')};
+ return{before:f('before').length?'【世界设定】\n'+j(f('before'))+'\n\n':'',after:f('after').length?'\n【世界设定】\n'+j(f('after')):'',depth:f('depth')}};
+var _bkW=A.book;A.book=function(){_bkW.apply(this,arguments);var h=document.querySelector('.body .h1');if(!h||document.getElementById('wbc'))return;var C=S.wbc,l=window.wbLast;
+ h.insertAdjacentHTML('afterend','<div class="grp" id="wbc" style="margin:10px 0"><label class="cr t"><span>扫描最近消息条数<small class="mut" style="display:block;font-size:11.5px">随意填；0 = 扫描全部上下文；条目自己更大时按条目的</small></span><input class="cri" type="number" min="0" max="9999" style="width:64px;flex:none;text-align:right" value="'+C.scan+'" onchange="S.wbc.scan=Math.max(0,this.value===''?8:+this.value);save()"></label><label class="cr t"><span>各条目用自己的扫描条数<small class="mut" style="display:block;font-size:11.5px">开启后忽略上面的全局数值，以每个条目编辑页里的为准</small></span><input type="checkbox" '+(C.own?'checked':'')+' onchange="S.wbc.own=this.checked;save()"></label>'
+ +'<label class="cr t"><span>人设里的关键词也触发<small class="mut" style="display:block;font-size:11.5px">角色人设、提示词里出现关键词时同样读取</small></span><input type="checkbox" '+(C.persona!==false?'checked':'')+' onchange="S.wbc.persona=this.checked;save()"></label>'
+ +'<label class="cr t"><span>触发条目 token 上限<small class="mut" style="display:block;font-size:11.5px">0 = 不限制；常驻条目永远会读取</small></span><input class="cri" type="number" min="0" style="width:84px;flex:none;text-align:right" value="'+C.budget+'" onchange="S.wbc.budget=Math.max(0,+this.value||0);save()"></label>'
+ +'<div class="cr t" style="display:block"><small class="mut" style="font-size:11.5px;line-height:1.6">'+(l?'最近一次读取（'+stHm(l.t)+'）：'+l.n+' 条，约 '+Math.round(l.chars/1.5)+' token'+(l.n?'<br>'+l.titles.map(esc).join('、'):''):'还没有发生过读取，聊一句后这里会显示实际读取了哪些条目')+'</small></div></div>')};
+
+/* ===== 底部小横条 / 点击大标题退出 ===== */
+function barApply(){document.body.classList.toggle('nobar',!!(S.ui&&S.ui.nobar))}
+(function(){var st=document.createElement('style');st.textContent='body.nobar #bar{display:none!important}';document.body.appendChild(st);barApply()})();
+document.addEventListener('click',function(e){if(S.ui&&S.ui.tt===false)return;var t=e.target;if(!t||!t.closest)return;var h=t.closest('#app .h1');if(!h||h.closest('#mb,#md,.pop'))return;if(typeof msel!='undefined'&&msel)return;
+ var hd=document.querySelector('#app .hd');if(hd){var b=hd.querySelector('.ib');if(!b||String(b.getAttribute('onclick')||'').indexOf('home()')<0)return}
+ if(document.getElementById('md')&&document.getElementById('md').classList.contains('on'))return;home()});
+var _thB=A.theme;A.theme=function(){_thB.apply(this,arguments);var b=document.querySelector('.body');if(!b||b.querySelector('#barw'))return;var h=b.querySelector('.h1');if(!h||h.textContent!='Theme')return;
+ var w=document.createElement('div');w.id='barw';w.className='grp';w.style.margin='14px 0';w.innerHTML='<label class="cr t"><span>显示底部小横条<small class="mut" style="display:block;font-size:11.5px">关闭后只能用返回键或点击大标题回桌面</small></span><input type="checkbox" '+(S.ui.nobar?'':'checked')+' onchange="S.ui.nobar=!this.checked;barApply();save()"></label><label class="cr t"><span>点击应用大标题返回桌面</span><input type="checkbox" '+(S.ui.tt===false?'':'checked')+' onchange="S.ui.tt=this.checked;save()"></label>';
+ var f=b.querySelector('#fzb');if(f)f.insertAdjacentElement('afterend',w);else h.insertAdjacentElement('afterend',w)};
 </script>
 <script>
 (function(){var DB='aiphone-db',ST='kv',KEY='aiphone',db=null,ok=false,tmr=0,dirty=false,dead=false,inflight=false,pend=null,warnT=0,LSL=4400000;
