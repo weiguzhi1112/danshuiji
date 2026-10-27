@@ -4353,6 +4353,235 @@ var _csFa=csM;csM=function(){var r=_csFa.apply(this,arguments);try{var b=documen
  var ex=[].slice.call(b.children).filter(function(n){return n.classList&&n.classList.contains('grp')}).pop();if(ex)ex.insertAdjacentHTML('beforebegin',h)}}catch(e){}return r};
 function pmClr(){cf('取消本聊天的全部置顶消息？',function(){(S.cs[cid]||{}).pms=[];save();pmShow();csM()})}
 </script>
+<script type="text/x-app">
+/* ================= 功能包 B：日程/纪念日 · 备忘录 · 纪念日祝福 · 搜索增强 · 控制中心 ================= */
+Object.assign(P,{cal:'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4M8 14h2M12 14h2M8 17h2',note:'M6 3h12v18H6zM9 8h6M9 12h6M9 16h3',plane:'M3 13l18-8-6 15-3-6-9-1zM12 14l9-9',moon:'M20 14A8 8 0 1110 4a6.5 6.5 0 0010 10z',bolt:'M13 3L5 14h6l-1 7 8-11h-6z',sun:'M12 8a4 4 0 100 8 4 4 0 000-8zM12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M5 19l1.5-1.5M17.5 6.5L19 5'});
+S.cal=S.cal||[];S.nt=S.nt||[];S.air=!!S.air;
+ICL.push(['cal','日程'],['note','备忘录']);LB.cal=['日程','Calendar'];LB.note=['备忘录','Notes'];
+(function(){var st=document.createElement('style');st.textContent=`
+.fb-g{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center}
+.fb-w{font-size:11px;color:#999;padding:4px 0}
+.fb-d{height:44px;border-radius:13px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:14px;cursor:pointer;position:relative}
+.fb-d.o{color:#c4c4c4}.fb-d.td{box-shadow:inset 0 0 0 1px var(--ink,#111)}.fb-d.on{background:var(--ink,#111);color:#fff}
+.fb-d i{width:5px;height:5px;border-radius:50%;background:#d4768b;margin-top:2px}.fb-d.on i{background:#fff}.fb-d.e i{display:none}
+.fb-mh{display:flex;align-items:center;justify-content:space-between;margin:2px 2px 10px}.fb-mh b{font-size:19px;font-weight:500}
+.fb-mh button{height:32px;padding:0 12px;border-radius:16px;background:var(--cd,#f0f0ee);font-size:12.5px}body.dark .fb-mh button{background:#2c2c2e}
+.fb-ev{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:.5px solid rgba(0,0,0,.07);cursor:pointer}.fb-ev:last-child{border:0}
+.fb-ev .tt{flex:1;min-width:0}.fb-ev .tt div{font-size:15px}.fb-ev .tt small{color:#999;font-size:11.5px}
+.fb-ev em{font-style:normal;font-size:12px;color:#999;flex:none}.fb-ev em.t{color:#d4768b;font-weight:500}
+.fb-ty{width:34px;height:34px;border-radius:11px;background:var(--cd,#f0f0ee);display:grid;place-items:center;flex:none}body.dark .fb-ty{background:#2c2c2e}
+.fb-nt{background:var(--cd,#f4f4f2);border-radius:18px;padding:13px 14px;margin:0 0 10px;cursor:pointer}body.dark .fb-nt{background:#2c2c2e}
+.fb-nt b{display:block;font-size:15px;font-weight:500;margin-bottom:4px}.fb-nt p{margin:0;font-size:13px;color:#888;line-height:1.5;max-height:3em;overflow:hidden}.fb-nt small{display:block;margin-top:6px;font-size:11px;color:#aaa}
+.fb-ti{width:100%;border:0;background:none;font-size:22px;font-weight:500;padding:4px 0;outline:0;color:inherit}
+.fb-ta{width:100%;border:0;background:none;font-size:16px;line-height:1.7;min-height:52vh;resize:none;outline:0;color:inherit;font-family:inherit}
+#fbcc{position:absolute;inset:0;z-index:90;background:rgba(0,0,0,.35);display:none}
+#fbcc.on{display:block}
+#fbcc .sh{position:absolute;left:12px;right:12px;top:calc(var(--sat,0px) + 44px);background:#fff;border-radius:28px;padding:18px 16px 16px;box-shadow:0 20px 50px rgba(0,0,0,.25);animation:fbIn .22s ease both}
+body.dark #fbcc .sh{background:#232325;color:#eee}
+@keyframes fbIn{from{transform:translateY(-16px);opacity:0}}
+#fbcc .tl{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 8px}
+#fbcc .tl button{display:flex;flex-direction:column;align-items:center;gap:7px;font-size:11px;color:#666}body.dark #fbcc .tl button{color:#bbb}
+#fbcc .tl i{width:58px;height:58px;border-radius:20px;background:#efefed;display:grid;place-items:center;color:#222}body.dark #fbcc .tl i{background:#38383a;color:#eee}
+#fbcc .tl .on i{background:var(--ink,#111);color:#fff}body.dark #fbcc .tl .on i{background:#f2f2f2;color:#111}
+#fbcc .br{display:flex;align-items:center;gap:10px;margin-top:18px;padding:0 4px}#fbcc .br input{flex:1}
+body.air #ck::after{content:' ✈';font-size:11px}
+.fb-mk{background:#ffe38a;color:#111;border-radius:3px;padding:0 1px}
+`;document.body.appendChild(st)})();
+/* ---------- 日期工具 ---------- */
+function fbD(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function fbP(s){var a=String(s||'').split('-');return new Date(+a[0],a[1]-1,+a[2])}
+function fbToday(){var d=new Date();d.setHours(0,0,0,0);return d}
+function calOn(e,day){var d=fbP(e.d);if(isNaN(d))return false;if(day<d)return false;if(e.rep=='year')return d.getMonth()==day.getMonth()&&d.getDate()==day.getDate();if(e.rep=='month')return d.getDate()==day.getDate();if(e.rep=='week')return d.getDay()==day.getDay();return fbD(d)==fbD(day)}
+function calNext(e,from){from=from||fbToday();var d=fbP(e.d);if(isNaN(d))return null;if(e.rep=='year'){var c=new Date(from.getFullYear(),d.getMonth(),d.getDate());if(c<from)c=new Date(from.getFullYear()+1,d.getMonth(),d.getDate());return c<d?d:c}
+ if(e.rep=='month'){var c2=new Date(from.getFullYear(),from.getMonth(),d.getDate());if(c2<from)c2=new Date(from.getFullYear(),from.getMonth()+1,d.getDate());return c2<d?d:c2}
+ if(e.rep=='week'){var c3=new Date(from.getFullYear(),from.getMonth(),from.getDate()+(d.getDay()-from.getDay()+7)%7);return c3<d?d:c3}return d}
+function calDiff(dt){return Math.round((dt-fbToday())/864e5)}
+function calTodayList(){var t=fbToday();return S.cal.filter(function(e){return calOn(e,t)})}
+function calYrs(e,day){return day.getFullYear()-fbP(e.d).getFullYear()}
+var CALT={ev:'日程',an:'纪念日',cd:'倒数日'},CALR={none:'不重复',year:'每年',month:'每月',week:'每周'};
+function calWho(e){if(!e.cid)return'';if(e.cid=='*')return'所有角色知道';var c=S.ct.find(function(x){return x.id==e.cid});return c?(c.remark||c.name)+' 知道':''}
+/* ---------- 日程 app ---------- */
+var calV={m:null,sel:fbD(new Date())};
+A.cal=function(){cur='cal';if(!calV.m){var n=new Date();calV.m=new Date(n.getFullYear(),n.getMonth(),1)}calR()};
+function calEvRow(e,day){var nx=day||calNext(e),df=nx?calDiff(nx):null,lab=df===null?'':(df==0?'今天':df>0?df+' 天后':'已过 '+(-df)+' 天'),yr=(e.t0!='x'&&e.ty=='an'&&e.rep=='year'&&nx&&calYrs(e,nx)>0)?' · 第 '+calYrs(e,nx)+' 年':'';
+ var sub=[CALT[e.ty||'ev'],e.rep&&e.rep!='none'?CALR[e.rep]:'',calWho(e)].filter(Boolean).join(' · ')+yr;
+ return '<div class="fb-ev" onclick="calEdit(\''+e.id+'\')"><span class="fb-ty">'+ic(e.ty=='an'?'star':e.ty=='cd'?'clk':'cal',17)+'</span><div class="tt"><div>'+esc(e.t)+'</div><small>'+esc(sub)+'</small></div><em class="'+(df===0?'t':'')+'">'+lab+'</em></div>'}
+function calR(){var m=calV.m,y=m.getFullYear(),mo=m.getMonth(),first=new Date(y,mo,1).getDay(),dn=new Date(y,mo+1,0).getDate(),today=fbD(new Date()),cells='';
+ '日一二三四五六'.split('').forEach(function(w){cells+='<div class="fb-w">'+w+'</div>'});
+ for(var i=0;i<first;i++)cells+='<div></div>';
+ for(var d=1;d<=dn;d++){var dt=new Date(y,mo,d),k=fbD(dt),has=S.cal.some(function(e){return calOn(e,dt)});cells+='<div class="fb-d'+(k==today?' td':'')+(k==calV.sel?' on':'')+(has?'':' e')+'" onclick="calV.sel=\''+k+'\';calR()">'+d+'<i></i></div>'}
+ var sd=fbP(calV.sel),dayL=S.cal.filter(function(e){return calOn(e,sd)}),up=S.cal.map(function(e){return{e:e,n:calNext(e)}}).filter(function(x){return x.n&&calDiff(x.n)>=0&&calDiff(x.n)<=90&&fbD(x.n)!=calV.sel}).sort(function(a,b){return a.n-b.n}).slice(0,8);
+ view(hd('日程','<button class="ib" onclick="calEdit()">'+ic('plus',20)+'</button>','home()')+'<div class="body"><div class="fb-mh"><button onclick="calMv(-1)">‹</button><b>'+y+' 年 '+(mo+1)+' 月</b><span><button onclick="calTd()">今天</button> <button onclick="calMv(1)">›</button></span></div><div class="fb-g">'+cells+'</div>'
+ +'<div class="lbl2" style="margin-top:18px">'+(calV.sel==today?'今天':(sd.getMonth()+1)+' 月 '+sd.getDate()+' 日')+'</div><div class="grp">'+(dayL.length?dayL.map(function(e){return calEvRow(e,sd)}).join(''):'<p class="mut" style="padding:14px;margin:0;font-size:13px">这天没有安排，点右上角 + 添加</p>')+'</div>'
+ +(up.length?'<div class="lbl2">即将到来</div><div class="grp">'+up.map(function(x){return calEvRow(x.e)}).join('')+'</div>':'')+'<p class="mut" style="font-size:12px;line-height:1.7;margin:14px 4px">设置了「谁知道」的日程，对应角色聊天时会知道；指定角色的日程，当天还能让 TA 主动来祝福你。</p></div>')}
+function calMv(n){calV.m=new Date(calV.m.getFullYear(),calV.m.getMonth()+n,1);calR()}
+function calTd(){var n=new Date();calV.m=new Date(n.getFullYear(),n.getMonth(),1);calV.sel=fbD(n);calR()}
+function calEdit(id){var e=id?S.cal.find(function(x){return x.id==id}):null,o=function(v,l,cur2){return '<option value="'+v+'"'+(cur2==v?' selected':'')+'>'+l+'</option>'};
+ e=e||{t:'',d:calV.sel||fbD(new Date()),ty:'ev',rep:'none',cid:'',gr:1};
+ modal('<div class="h1" style="font-size:20px">'+(id?'编辑日程':'新日程')+'</div><label class="lb">标题</label><input class="in" id="ce-t" value="'+esc(e.t)+'" placeholder="例如：认识 100 天 / 生日 / 考试"><label class="lb">日期</label><input class="in" id="ce-d" type="date" value="'+esc(e.d)+'">'
+ +'<div class="fl" style="gap:8px"><div style="flex:1"><label class="lb">类型</label><select class="in" id="ce-y">'+Object.keys(CALT).map(function(k){return o(k,CALT[k],e.ty)}).join('')+'</select></div><div style="flex:1"><label class="lb">重复</label><select class="in" id="ce-r">'+Object.keys(CALR).map(function(k){return o(k,CALR[k],e.rep)}).join('')+'</select></div></div>'
+ +'<label class="lb">谁知道</label><select class="in" id="ce-c" onchange="document.getElementById(\'ce-gr\').style.display=this.value&&this.value!=\'*\'?\'flex\':\'none\'">'+o('','仅自己',e.cid)+o('*','所有角色',e.cid)+S.ct.map(function(c){return o(c.id,c.remark||c.name,e.cid)}).join('')+'</select>'
+ +'<label class="cr t" id="ce-gr" style="display:'+(e.cid&&e.cid!='*'?'flex':'none')+';margin-top:10px"><span>当天让 TA 主动祝福我</span><input type="checkbox" id="ce-g" '+(e.greet!==false?'checked':'')+'></label>'
+ +'<label class="lb">备注（角色也能看到）</label><input class="in" id="ce-n" value="'+esc(e.note||'')+'">'
+ +'<div class="fl acts" style="margin-top:14px">'+(id?'<button class="btn g" style="color:#ff3b30" onclick="calDel(\''+id+'\')">删除</button>':'<button class="btn g" onclick="closeM()">取消</button>')+'<button class="btn" onclick="calSave(\''+(id||'')+'\')">保存</button></div>')}
+function calSave(id){var t=document.getElementById('ce-t').value.trim(),d=document.getElementById('ce-d').value;if(!t)return toast('写个标题吧');if(!d)return toast('选个日期');
+ var o={t:t,d:d,ty:document.getElementById('ce-y').value,rep:document.getElementById('ce-r').value,cid:document.getElementById('ce-c').value,note:document.getElementById('ce-n').value.trim(),greet:document.getElementById('ce-g').checked};
+ if(id){var e=S.cal.find(function(x){return x.id==id});if(e){if(e.d!=o.d)e.gr='';Object.assign(e,o)}}else{o.id='e'+Date.now();o.gr='';S.cal.push(o)}save();closeM();calV.sel=d;var p=fbP(d);calV.m=new Date(p.getFullYear(),p.getMonth(),1);calR();toast('已保存');try{icons()}catch(x){}}
+function calDel(id){S.cal=S.cal.filter(function(x){return x.id!=id});save();closeM();calR();try{icons()}catch(x){}}
+var _hbB=hsBadge;hsBadge=function(n){if(n=='cal'){var c=calTodayList().length;return c?'<b class="bd">'+c+'</b>':''}return _hbB(n)};
+/* ---- 角色知道日程/备忘录 ---- */
+function calTxt(id){var s='',t=fbToday(),L=[];S.cal.forEach(function(e){if(e.cid!=id&&e.cid!='*')return;var n=calNext(e);if(!n)return;var df=calDiff(n);if(df<0||df>7)return;L.push({e:e,df:df,n:n})});
+ L.sort(function(a,b){return a.df-b.df}).slice(0,5).forEach(function(x){var yr=x.e.ty=='an'&&x.e.rep=='year'&&calYrs(x.e,x.n)>0?'（第 '+calYrs(x.e,x.n)+' 年）':'';s+='· '+(x.df==0?'今天':x.df+' 天后')+'是「'+x.e.t+'」'+yr+(x.e.note?'，备注：'+x.e.note:'')+'\n'});
+ return s?'\n\n【对方的日程提醒】\n'+s+'这些你是知道的，合适的时候可以自然地提起或表示期待，但不要每句话都提，也不要生硬播报。':''}
+function ntTxt(id){var L=S.nt.filter(function(n){return n.sh==id&&(n.t||n.c)}).slice(0,3);if(!L.length)return'';return'\n\n【对方分享给你看的备忘录】\n'+L.map(function(n){return'《'+(n.t||'无标题')+'》'+String(n.c||'').slice(0,300)}).join('\n')+'\n（这是对方主动给你看的，可以自然地回应，不必复述。）'}
+var _aiFb=ai;ai=function(msgs,sys,on,cfg){try{if(sys&&typeof sys=='string'&&sys.indexOf('⁣WB⁣')>=0&&sys.indexOf('【对方的日程提醒】')<0&&sys.indexOf('群聊')<0){var id=wbIdOf();if(id&&S.ct.some(function(c){return c.id==id})){sys+=calTxt(id)+ntTxt(id)}}}catch(e){}return _aiFb(msgs,sys,on,cfg)};
+/* ---- 纪念日当天，角色主动祝福 ---- */
+var calBusy=false;
+async function calTick(){if(calBusy||!S.wx||typeof paBusy!='undefined'&&paBusy||(typeof cl!='undefined'&&cl))return;var now=new Date();if(now.getHours()<(S.calHr==null?8:S.calHr))return;var t=fbToday(),k=fbD(t);
+ var e=S.cal.find(function(x){return x.cid&&x.cid!='*'&&x.greet!==false&&x.gr!=k&&calOn(x,t)&&S.ct.some(function(c){return c.id==x.cid&&!c.blk})});if(!e)return;
+ calBusy=true;e.gr=k;save();try{var yr=e.ty=='an'&&e.rep=='year'&&calYrs(e,t)>0?'（第 '+calYrs(e,t)+' 年）':'';
+  await paThink(e.cid,{force:false,hint:'今天是对方设定的「'+e.t+'」'+yr+(e.note?'，备注：'+e.note:'')+'。这是个值得记住的日子，请这次一定要主动发一条微信（act 选 wx，不要选 none），按你的性格自然地祝福或提起，不要像系统通知。'})}catch(x){}calBusy=false}
+setInterval(calTick,60000);setTimeout(calTick,6000);
+/* ---------- 备忘录 app ---------- */
+var ntQ='';
+A.note=function(){cur='note';ntList()};
+function ntSorted(){var q=ntQ.trim().toLowerCase();return S.nt.filter(function(n){return!q||((n.t||'')+(n.c||'')).toLowerCase().indexOf(q)>=0}).sort(function(a,b){return(b.pin?1:0)-(a.pin?1:0)||(b.ts||0)-(a.ts||0)})}
+function ntList(){view(hd('备忘录','<button class="ib" onclick="ntEdit()">'+ic('plus',20)+'</button>','home()')+'<div class="body"><div class="h1" style="font-size:34px;margin-bottom:10px">Notes</div><input class="in" id="nt-q" placeholder="搜索备忘录" value="'+esc(ntQ)+'" oninput="ntQ=this.value;ntR()"><div id="nt-l" style="margin-top:12px"></div></div>');ntR()}
+function ntR(){var l=document.getElementById('nt-l');if(!l)return;var A2=ntSorted();l.innerHTML=A2.length?A2.map(function(n){return '<div class="fb-nt" onclick="ntEdit(\''+n.id+'\')"><b>'+(n.pin?ic('pinm',13)+' ':'')+esc(n.t||'无标题')+'</b><p>'+esc(String(n.c||'').slice(0,120)||'没有更多文字')+'</p><small>'+new Date(n.ts).toLocaleDateString('zh-CN',{month:'numeric',day:'numeric'})+(n.sh?' · 分享给 '+esc((S.ct.find(function(c){return c.id==n.sh})||{name:'TA'}).name):'')+'</small></div>'}).join(''):'<p class="mut" style="text-align:center;margin:50px 0">'+(S.nt.length?'没有匹配的备忘录':'还没有备忘录，点右上角 + 写一条')+'</p>'}
+var ntCur=null,ntTm=0;
+function ntEdit(id){var n=id?S.nt.find(function(x){return x.id==id}):null;if(!n){n={id:'n'+Date.now(),t:'',c:'',ts:Date.now(),pin:false,sh:'',_new:1}}ntCur=n;
+ view(hd('','<button class="ib" onclick="ntMore()">'+ic('set',19)+'</button>','ntBack()')+'<div class="body" style="padding-top:2px"><input class="fb-ti" id="nt-t" placeholder="标题" value="'+esc(n.t)+'" oninput="ntIn()"><div class="mut" style="font-size:11px;margin:2px 0 8px">'+new Date(n.ts).toLocaleString('zh-CN')+'</div><textarea class="fb-ta" id="nt-c" placeholder="写点什么…" oninput="ntIn()">'+esc(n.c)+'</textarea></div>');if(!id)setTimeout(function(){var e=document.getElementById('nt-t');e&&e.focus()},100)}
+function ntIn(){var n=ntCur;if(!n)return;n.t=document.getElementById('nt-t').value;n.c=document.getElementById('nt-c').value;n.ts=Date.now();clearTimeout(ntTm);ntTm=setTimeout(ntFlush,400)}
+function ntFlush(){var n=ntCur;if(!n)return;if(!(n.t.trim()||n.c.trim())){if(!n._new)return;return}if(n._new){delete n._new;S.nt.push(n)}save()}
+function ntBack(){clearTimeout(ntTm);var n=ntCur;if(n){if(n.t.trim()||n.c.trim()){if(n._new){delete n._new;S.nt.push(n)}save()}else if(!n._new){S.nt=S.nt.filter(function(x){return x.id!=n.id});save()}}ntCur=null;ntList()}
+function ntMore(){var n=ntCur;if(!n)return;ntFlush();modal('<div class="h1" style="font-size:20px">备忘录选项</div><div class="grp"><label class="cr t"><span>置顶</span><input type="checkbox" '+(n.pin?'checked':'')+' onchange="ntCur.pin=this.checked;save()"></label></div><label class="lb">让某个角色看到这条</label><select class="in" onchange="ntCur.sh=this.value;save()"><option value="">不分享</option>'+S.ct.map(function(c){return'<option value="'+c.id+'"'+(n.sh==c.id?' selected':'')+'>'+esc(c.remark||c.name)+'</option>'}).join('')+'</select><p class="mut" style="font-size:12px;line-height:1.6">分享后，TA 聊天时会知道这条备忘录的内容。</p><div class="fl acts" style="margin-top:12px"><button class="btn g" style="color:#ff3b30" onclick="ntDel()">删除</button><button class="btn" onclick="closeM()">完成</button></div>')}
+function ntDel(){var n=ntCur;cf('删除这条备忘录？',function(){S.nt=S.nt.filter(function(x){return x.id!=n.id});save();ntCur=null;closeM();ntList()})}
+/* ---------- 搜索增强：聊天记录 / 备忘录 / 日程 / 收藏 ---------- */
+function fbJump(id,ts,t){closeM();wt=0;go('wx');chat(id);setTimeout(function(){var L=S.ch[id]||[],i=L.findIndex(function(m){return m.ts==ts&&String(m.t||'')==t});if(i<0)return;var f=function(){var el=document.querySelector('#cm .bwr[data-i="'+i+'"]');if(el){el.scrollIntoView({block:'center'});el.classList.add('fa-fl');setTimeout(function(){el.classList.remove('fa-fl')},1500);return true}return false};if(!f()){try{rcW[id]=L.length+20;rc()}catch(e){}setTimeout(f,150)}},350)}
+function fbHl(s,q){var i=s.toLowerCase().indexOf(q);if(i<0)return esc(s.slice(0,60));var a=Math.max(0,i-14),b=Math.min(s.length,i+q.length+30);return(a?'…':'')+esc(s.slice(a,i))+'<mark class="fb-mk">'+esc(s.slice(i,i+q.length))+'</mark>'+esc(s.slice(i+q.length,b))+(b<s.length?'…':'')}
+uR=function(){var q=(document.getElementById('uq')||{}).value;q=(q||'').trim().toLowerCase();var out=document.getElementById('ur');if(!out)return;if(!q){out.innerHTML='';return}
+ var h='',row=function(i,t,sub,fn){return '<div class="row" onclick="'+fn+'">'+ic(i,20)+'<div style="min-width:0">'+t+(sub?'<br><small class="mut">'+sub+'</small>':'')+'</div></div>'};
+ Object.keys(LB).filter(function(n){return LB[n].some(function(t){return t.toLowerCase().indexOf(q)>=0})}).forEach(function(n){h+=row(n,LB[n][0],'应用','closeM();go(\''+n+'\')')});
+ S.ct.filter(function(c){return c.name.toLowerCase().indexOf(q)>=0||(c.remark||'').toLowerCase().indexOf(q)>=0}).forEach(function(c){h+='<div class="row" onclick="closeM();wt=0;go(\'wx\');chat(\''+c.id+'\')">'+avt(c)+'<div>'+esc(c.remark||c.name)+'<br><small class="mut">联系人</small></div></div>'});
+ S.nt.filter(function(n){return((n.t||'')+(n.c||'')).toLowerCase().indexOf(q)>=0}).slice(0,4).forEach(function(n){h+=row('note',esc(n.t||'无标题'),'备忘录 · '+fbHl(String(n.c||''),q),'closeM();go(\'note\');ntEdit(\''+n.id+'\')')});
+ S.cal.filter(function(e){return(e.t+(e.note||'')).toLowerCase().indexOf(q)>=0}).slice(0,4).forEach(function(e){h+=row('cal',esc(e.t),'日程 · '+e.d,'closeM();go(\'cal\');calEdit(\''+e.id+'\')')});
+ S.fav.filter(function(x){return(x.t+x.who).toLowerCase().indexOf(q)>=0}).slice(0,3).forEach(function(x){h+=row('star',esc(x.t.slice(0,40)),'收藏 · '+esc(x.who),'closeM();wt=2;go(\'wx\');faQ=\''+q.replace(/[\\'"<>]/g,'')+'\';favPage()')});
+ var hits=[];Object.keys(S.ch).forEach(function(id){var c=S.ct.find(function(x){return x.id==id})||(S.gr||[]).find(function(x){return x.id==id});if(!c)return;(S.ch[id]||[]).forEach(function(m){if(m.ph||m.k||!m.t)return;var t=String(m.t);if(t.toLowerCase().indexOf(q)>=0)hits.push({id:id,c:c,m:m,t:t})})});
+ hits.sort(function(a,b){return(b.m.ts||0)-(a.m.ts||0)}).slice(0,20).forEach(function(x){h+=row('wx',fbHl(x.t,q),esc(x.c.remark||x.c.name)+' · '+new Date(x.m.ts||0).toLocaleDateString('zh-CN',{month:'numeric',day:'numeric'}),'fbJump(\''+x.id+'\','+(x.m.ts||0)+',\''+x.t.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n').replace(/"/g,'&quot;')+'\')')});
+ if(hits.length>20)h+='<p class="mut" style="text-align:center;font-size:12px">仅显示最近 20 条聊天结果</p>';out.innerHTML=h||'<p class="mut">未找到</p>'};
+/* ---------- 控制中心（含飞行模式 / 亮度） ---------- */
+function fbBr(){var ph=document.getElementById('ph');if(ph)ph.style.filter=(S.ui.br&&S.ui.br<1)?'brightness('+S.ui.br+')':''}
+function fbAir(){document.body.classList.toggle('air',!!S.air)}
+var _aiAir=ai;ai=function(){if(S.air)return Promise.reject(new Error('飞行模式已开启，无法联网（可在控制中心关闭）'));return _aiAir.apply(this,arguments)};
+var _ftAir=window.fetch;window.fetch=function(u){try{var s=typeof u=='string'?u:(u&&u.url)||'';if(S.air&&/^https?:/i.test(s)&&s.indexOf(location.origin)!=0)return Promise.reject(new TypeError('飞行模式已开启'))}catch(e){}return _ftAir.apply(this,arguments)};
+function ccTiles(){var q=S.dev&&S.dev.quiet&&S.dev.quiet.on;return[['plane','飞行模式',!!S.air,'ccT(\'air\')'],['moon','勿扰',!!q,'ccT(\'dnd\')'],['theme','深色模式',S.ui.dark=='dark','ccT(\'dark\')'],['bolt','省电',!!(S.perf&&S.perf.lowfx),'ccT(\'low\')'],['lk','锁屏',false,'ccT(\'lock\')'],['search','搜索',false,'ccT(\'srch\')'],['cal','日程',false,'ccT(\'cal\')'],['note','备忘录',false,'ccT(\'note\')']]}
+function ccOpen(){var o=document.getElementById('fbcc');if(!o){o=document.createElement('div');o.id='fbcc';o.addEventListener('click',function(e){if(e.target===o)ccClose()});document.getElementById('scr').appendChild(o)}
+ var t=ccTiles();o.innerHTML='<div class="sh"><div class="tl">'+t.map(function(x){return '<button class="'+(x[2]?'on':'')+'" onclick="'+x[3]+'"><i>'+ic(x[0],24)+'</i>'+x[1]+'</button>'}).join('')+'</div><div class="br">'+ic('sun',18)+'<input type="range" min=".5" max="1" step=".05" value="'+(S.ui.br||1)+'" oninput="S.ui.br=+this.value;fbBr();save()"></div></div>';o.classList.add('on')}
+function ccClose(){var o=document.getElementById('fbcc');if(o)o.classList.remove('on')}
+function ccT(k){if(k=='air'){S.air=!S.air;fbAir();toast(S.air?'飞行模式已开启':'飞行模式已关闭')}
+ else if(k=='dnd'){S.dev.quiet.on=!S.dev.quiet.on;toast(S.dev.quiet.on?'勿扰已开启（'+S.dev.quiet.f+' – '+S.dev.quiet.t+'）':'勿扰已关闭')}
+ else if(k=='dark'){S.ui.dark=S.ui.dark=='dark'?'':'dark';applyUI()}
+ else if(k=='low'){S.perf=S.perf||{};S.perf.lowfx=!S.perf.lowfx;perfApply()}
+ else if(k=='lock'){ccClose();save();lock();return}
+ else if(k=='srch'){ccClose();uSearch();return}
+ else if(k=='cal'){ccClose();go('cal');return}
+ else if(k=='note'){ccClose();go('note');return}
+ save();ccOpen()}
+(function(){var s=null;document.addEventListener('pointerdown',function(e){var scr=document.getElementById('scr');if(!scr||document.getElementById('fbcc')&&document.getElementById('fbcc').classList.contains('on'))return;var r=scr.getBoundingClientRect();if(e.clientY<r.top+26&&e.clientY>=r.top)s={y:e.clientY,id:e.pointerId};else s=null},true);
+ document.addEventListener('pointerup',function(e){if(!s||e.pointerId!=s.id)return;var dy=e.clientY-s.y;s=null;if(dy>34)ccOpen()},true);document.addEventListener('pointercancel',function(){s=null},true);
+ document.addEventListener('click',function(e){var sb=e.target.closest&&e.target.closest('#sb');if(sb&&!sb.querySelector('#ck').contains(e.target))ccOpen()},true);
+ document.addEventListener('keydown',function(e){if(e.key=='Escape')ccClose()})})();
+fbAir();fbBr();
+var _hmFb=home;home=function(){ccClose();return _hmFb.apply(this,arguments)};
+</script>
+<script type="text/x-app">
+/* ================= 功能包 C：时间胶囊 · 存储分析 · 隐私遮挡 · 角色卡导入导出 · 角色日记 ================= */
+Object.assign(P,{cap:'M3 7l9 6 9-6M3 7v10h18V7M3 7h18',dy:'M6 3h12v18H6zM9 8h6M9 12h6M9 16h4M3 7h3M3 12h3M3 17h3',priv:'M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z',sto:'M4 7c0-2 16-2 16 0v10c0 2-16 2-16 0zM4 12c0 2 16 2 16 0',card:P.card||'M4 6h16v12H4z'});
+S.cap=S.cap||[];S.dy=S.dy||{};S.pv=Object.assign({on:false,tap:true,key:true},S.pv||{});
+(function(){var st=document.createElement('style');st.textContent=`
+#pvc{position:absolute;inset:0;z-index:300;background:#0c0c0d;color:#fff;display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer}
+#pvc.on{display:flex}#pvc b{font:200 64px/1 Georgia,serif;letter-spacing:.02em}#pvc small{font-size:12px;letter-spacing:.3em;opacity:.55}
+.fc-bar{display:flex;height:14px;border-radius:7px;overflow:hidden;margin:6px 0 10px;background:rgba(0,0,0,.06)}.fc-bar i{display:block;height:100%}
+.fc-lg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:#888;margin-bottom:6px}.fc-lg span::before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--c);margin-right:5px}
+.fc-ch{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.fc-ch button{height:32px;padding:0 13px;border-radius:16px;background:var(--cd,#f0f0ee);font-size:12.5px}body.dark .fc-ch button{background:#2c2c2e}
+.fc-dy{white-space:pre-wrap;line-height:1.85;font-size:14.5px;font-family:Georgia,"Songti SC",serif}
+`;document.body.appendChild(st)})();
+/* ---------- 工具 ---------- */
+function fcKB(n){return n>=1048576?(n/1048576).toFixed(1)+' MB':(n/1024).toFixed(n>10240?0:1)+' KB'}
+function fcSz(v){try{return JSON.stringify(v).length}catch(e){return 0}}
+function fcDl(name,obj){var b=new Blob([JSON.stringify(obj,null,1)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},2000)}
+/* ================= 1. 时间胶囊 ================= */
+function capPage(){var W=S.cap.filter(function(x){return x.st=='wait'}).sort(function(a,b){return a.at-b.at}),D=S.cap.filter(function(x){return x.st!='wait'}).sort(function(a,b){return(b.op||0)-(a.op||0)});
+ var nm=function(x){if(!x.cid)return'未来的自己';var c=S.ct.find(function(y){return y.id==x.cid});return c?(c.remark||c.name):'已删除的联系人'},fd=function(t){return new Date(t).toLocaleString('zh-CN',{year:'numeric',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})};
+ view(hd('时间胶囊','<button class="ib" onclick="capNew()">'+ic('plus',20)+'</button>','wt=2;wxMain()')+'<div class="body"><div class="h1" style="font-size:32px;margin-bottom:4px">时间胶囊</div><small class="mut" style="display:block;margin:0 2px 14px">写一封信，到约定的时间才送出。收件人是角色，TA 会在那天读到并回应你；也可以写给未来的自己。</small>'
+ +(W.length?'<div class="lbl2">还没开启 · '+W.length+'</div>'+W.map(function(x){return '<div class="fa-card"><small>写给 '+esc(nm(x))+' · '+fd(x.at)+' 送达（'+(function(){var d=Math.ceil((x.at-Date.now())/864e5);return d<=0?'今天':d+' 天后'})()+'）</small><p>'+esc(x.t.slice(0,80))+(x.t.length>80?'…':'')+'</p><div class="fa-act"><span class="d" onclick="capDel(\''+x.id+'\')">撤销</span></div></div>'}).join(''):'')
+ +(D.length?'<div class="lbl2">已送达</div>'+D.map(function(x){return '<div class="fa-card"><small>写给 '+esc(nm(x))+' · '+fd(x.ts)+' 写下 · '+fd(x.op)+' 送达</small><p>'+esc(x.t)+'</p><div class="fa-act">'+(x.cid?'<span onclick="chat(\''+x.cid+'\')">去看 TA 的回应</span>':'')+'<span class="d" onclick="capDel(\''+x.id+'\')">删除</span></div></div>'}).join(''):'')
+ +(!W.length&&!D.length?'<p class="mut" style="text-align:center;margin:50px 0">还没有胶囊，点右上角 + 写第一封</p>':'')+'</div>')}
+function capLocal(ts){var d=new Date(ts-new Date(ts).getTimezoneOffset()*6e4);return d.toISOString().slice(0,16)}
+function capNew(){modal('<div class="h1" style="font-size:20px">写一封胶囊信</div><label class="lb">收信人</label><select class="in" id="cp-c"><option value="">未来的自己</option>'+S.ct.map(function(c){return'<option value="'+c.id+'">'+esc(c.remark||c.name)+'</option>'}).join('')+'</select><label class="lb">内容</label><textarea class="in" id="cp-t" rows="5" placeholder="写给那一天的 TA …"></textarea><label class="lb">送达时间</label><input class="in" id="cp-a" type="datetime-local" value="'+capLocal(Date.now()+864e5)+'"><div class="fc-ch">'+[['明天',1],['一周后',7],['一个月后',30],['半年后',182],['一年后',365]].map(function(x){return'<button onclick="document.getElementById(\'cp-a\').value=capLocal(Date.now()+'+x[1]+'*864e5)">'+x[0]+'</button>'}).join('')+'</div><div class="fl acts" style="margin-top:10px"><button class="btn g" onclick="closeM()">取消</button><button class="btn" onclick="capAdd()">封存</button></div>')}
+function capAdd(){var t=document.getElementById('cp-t').value.trim(),a=new Date(document.getElementById('cp-a').value).getTime(),c=document.getElementById('cp-c').value;if(!t)return toast('信还是空的');if(!(a>Date.now()))return toast('送达时间要晚于现在');S.cap.push({id:'p'+Date.now(),cid:c,t:t,ts:Date.now(),at:a,st:'wait'});save();closeM();capPage();toast('已封存')}
+function capDel(id){cf('删除这封胶囊信？',function(){S.cap=S.cap.filter(function(x){return x.id!=id});save();capPage()})}
+var capBusy=false;
+async function capTick(){if(capBusy||!S.wx)return;var now=Date.now(),x=S.cap.find(function(y){return y.st=='wait'&&y.at<=now});if(!x)return;capBusy=true;x.st='open';x.op=now;save();
+ try{if(!x.cid){notify('wx','时间胶囊','你写给自己的信到了',function(){wt=2;go('wx');capPage()})}
+  else{var c=S.ct.find(function(y){return y.id==x.cid});if(c){(S.ch[x.cid]=S.ch[x.cid]||[]).push({r:'u',k:'pat',t:'时间胶囊送达：'+x.t.slice(0,30)+(x.t.length>30?'…':''),ts:now});save();var days=Math.max(1,Math.round((now-x.ts)/864e5));
+   await paThink(x.cid,{hint:'【时间胶囊】对方在 '+days+' 天前给你写了一封信，约定今天才送到。信的内容是：\n「'+x.t+'」\n你刚刚读到了这封信，请务必现在就用微信（act 选 wx，不要选 none）回应它：按你的性格自然地回应信里的内容，可以提到“刚收到你很久以前写的信”，不要念信的原文。'})}}}catch(e){}capBusy=false}
+setInterval(capTick,60000);setTimeout(capTick,7000);
+/* ================= 2. 角色日记 ================= */
+function dyList(id){return(S.dy[id]=S.dy[id]||[])}
+function dyPage(id){id=id||cid;var c=S.ct.find(function(x){return x.id==id});if(!c)return toast('群聊暂不支持日记');var L=dyList(id).slice().sort(function(a,b){return b.ts-a.ts}),o=S.cs[id]=S.cs[id]||{};
+ view(hd('TA 的日记','',"csM()")+'<div class="body cpage"><div class="chead"><div style="font-size:19px;font-weight:500">'+esc(c.remark||c.name)+'</div><small class="mut">TA 私下写给自己的日记，偶尔也会写到你</small></div>'
+ +'<div class="grp"><label class="cr t"><span>每晚自动写日记<small>21 点后，当天聊过天才会写</small></span><input type="checkbox" '+(o.dyAuto?'checked':'')+' onchange="S.cs[\''+id+'\'].dyAuto=this.checked;save()"></label></div><div class="fl acts" style="margin:12px 0"><button class="btn" id="dy-b" onclick="dyGen(\''+id+'\',1)">让 TA 写今天的日记</button></div>'
+ +(L.length?L.map(function(e){return '<div class="fa-card"><small>'+esc(e.d)+(e.mood?' · '+esc(e.mood):'')+'</small><div class="fc-dy">'+esc(e.t)+'</div><div class="fa-act"><span onclick="dyCopy(\''+id+'\',\''+e.id+'\')">复制</span><span class="d" onclick="dyDel(\''+id+'\',\''+e.id+'\')">删除</span></div></div>'}).join(''):'<p class="mut" style="text-align:center;margin:40px 0">还没有日记</p>')+'</div>')}
+async function dyGen(id,manual){var c=S.ct.find(function(x){return x.id==id});if(!c||S.cs[id]&&S.cs[id].dyBusy)return;var cs=S.cs[id]=S.cs[id]||{};cs.dyBusy=1;var b=document.getElementById('dy-b');if(b){b.disabled=true;b.textContent='TA 正在写…'}
+ var me=(S.wx&&(S.wx.nick||S.wx.id))||'对方',L=(S.ch[id]||[]).filter(function(m){return!m.ph&&m.k!='pat'&&m.ts&&m.ts>Date.now()-36*36e5}).slice(-40),tx=L.map(function(m){return(m.r=='u'?me:c.name)+'：'+faTxt(m).slice(0,160)}).join('\n'),dk=fbD(new Date());
+ var sys='你是'+c.name+'。人设：'+(c.persona||'普通朋友')+'。\n'+wbTxt()+'\n现在是晚上，你坐下来写今天的私人日记。要求：第一人称，完全符合你的性格和说话习惯；150 到 300 字；写今天的心情、发生的事，以及对「'+me+'」真实的、没有当面说出口的感受；不要标题、日期或“日记”二字，不要解释，直接写正文。';
+ try{xKey={id:id,ch:'pa'};var r=await ai([{role:'user',content:'今天是'+new Date().toLocaleDateString('zh-CN',{month:'long',day:'numeric',weekday:'long'})+'。'+(tx?'你和「'+me+'」最近的聊天：\n'+tx:'今天你们几乎没有聊天。')}],sys,null);xKey=null;r=String(r||'').trim();
+  if(r){var a=dyList(id),k=a.findIndex(function(e){return e.d==dk});var en={id:'d'+Date.now(),d:dk,t:r,ts:Date.now()};if(k>=0)a.splice(k,1,en);else a.push(en);save();if(manual)toast('写好了')}}catch(e){xKey=null;if(manual)toast('生成失败：'+(e&&e.message||e))}
+ cs.dyBusy=0;if(document.getElementById('dy-b'))dyPage(id)}
+function dyDel(id,eid){S.dy[id]=dyList(id).filter(function(e){return e.id!=eid});save();dyPage(id)}
+function dyCopy(id,eid){var e=dyList(id).find(function(x){return x.id==eid});if(e)try{navigator.clipboard.writeText(e.t);toast('已复制')}catch(x){toast('复制失败')}}
+function dyTick(){if(!S.wx||new Date().getHours()<21||(typeof cl!='undefined'&&cl))return;var dk=fbD(new Date());for(var i=0;i<S.ct.length;i++){var c=S.ct[i],o=S.cs[c.id]||{};if(!o.dyAuto||o.dyBusy||dyList(c.id).some(function(e){return e.d==dk}))continue;if(!(S.ch[c.id]||[]).some(function(m){return m.ts&&m.ts>Date.now()-20*36e5&&!m.ph&&m.k!='pat'}))continue;dyGen(c.id,0);break}}
+setInterval(dyTick,300000);setTimeout(dyTick,9000);
+/* ================= 3. 角色卡导出 / 导入 ================= */
+function cardExp(id){id=id||cid;var c=S.ct.find(function(x){return x.id==id});if(!c)return toast('群聊暂不支持导出角色卡');var cc=Object.assign({},c);['id','pbid','blk','cid'].forEach(function(k){delete cc[k]});var o=Object.assign({},S.cs[id]||{});['draft','pms','dyBusy','pin'].forEach(function(k){delete o[k]});
+ var wb=S.wb.filter(function(w){return(w.bind||[]).indexOf(id)>=0}).map(function(w){var x=Object.assign({},w);x.bind=[];return x});
+ fcDl((c.remark||c.name)+'.角色卡.json',{dsjcard:1,v:1,exported:new Date().toISOString(),c:cc,cs:o,wb:wb,dy:dyList(id).slice(-30)});toast('已导出角色卡（含人设、聊天设置和绑定的世界书）')}
+function cardImp(inp){var f=inp.files&&inp.files[0];inp.value='';if(!f)return;var r=new FileReader();r.onload=function(){try{var j=JSON.parse(r.result),c=null,cs={},wb=[],dy=[],first='';
+  if(j.dsjcard&&j.c){c=Object.assign({},j.c);cs=j.cs||{};wb=j.wb||[];dy=j.dy||[]}
+  else{var d=j.data||j;if(!d||!d.name)throw Error('不是可识别的角色卡');c={name:d.name,persona:[d.description,d.personality&&'性格：'+d.personality,d.scenario&&'场景：'+d.scenario].filter(Boolean).join('\n')};first=d.first_mes||'';if(d.character_book&&d.character_book.entries)wb=d.character_book.entries.map(function(e){return{title:e.comment||e.name||'条目',keys:(e.keys||[]).join(','),content:e.content||'',on:e.enabled!==false}})}
+  if(!c.name)throw Error('角色卡里没有名字');var nm=c.name,n=1;while(S.ct.some(function(x){return x.name==nm||x.remark==nm}))nm=c.name+'('+(++n)+')';c.name=nm;c.id='c'+Date.now();c.remark=c.remark||'';c.av=c.av||'';S.ct.push(c);S.cs[c.id]=cs;
+  wb.forEach(function(w){var x=Object.assign({},w);x.bind=[c.id];S.wb.push(x)});if(dy.length)S.dy[c.id]=dy;if(first){(S.ch[c.id]=S.ch[c.id]||[]).push({r:'a',t:first,ts:Date.now()})}
+  save();toast('已导入「'+nm+'」'+(wb.length?'，含 '+wb.length+' 条世界书':''));wt=1;wxMain()}catch(e){toast('导入失败：'+(e&&e.message||e))}};r.readAsText(f)}
+/* ================= 4. 隐私遮挡 ================= */
+function pvEl(){var o=document.getElementById('pvc');if(!o){o=document.createElement('div');o.id='pvc';o.innerHTML='<b></b><small>轻点继续</small>';o.addEventListener('click',pvHide);var ph=document.getElementById('ph');(ph||document.body).appendChild(o)}return o}
+function pvShow(){var o=pvEl(),d=new Date();o.querySelector('b').textContent=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');o.classList.add('on');try{ccClose()}catch(e){}}
+function pvHide(){var o=document.getElementById('pvc');if(o)o.classList.remove('on')}
+function pvOn(){var o=document.getElementById('pvc');return!!(o&&o.classList.contains('on'))}
+document.addEventListener('visibilitychange',function(){if(!S.pv.on)return;if(document.hidden)pvShow();else if(!S.pv.tap)pvHide()});
+addEventListener('blur',function(){if(S.pv.on)setTimeout(function(){if(S.pv.on&&!document.hasFocus())pvShow()},60)});
+addEventListener('focus',function(){if(S.pv.on&&!S.pv.tap)pvHide()});
+document.addEventListener('keydown',function(e){if(e.key=='`'&&S.pv.key&&!/INPUT|TEXTAREA|SELECT/.test((e.target||{}).tagName||'')){e.preventDefault();pvOn()?pvHide():pvShow()}});
+var _ccTfc=ccTiles;ccTiles=function(){var t=_ccTfc.apply(this,arguments);t.splice(4,0,['priv','隐私遮挡',false,'pvShow()']);return t};
+/* ================= 5. 存储分析与清理 ================= */
+function stoScan(){var tot=fcSz(S),r={txt:0,img:0,sms:0,mo:0,av:0,chats:[]};
+ Object.keys(S.ch).forEach(function(id){var A2=S.ch[id]||[],b=0,ib=0,n=0;A2.forEach(function(m){var s=fcSz(m);b+=s;if(m.k=='img'&&typeof m.u=='string'&&m.u.indexOf('data:')==0){ib+=m.u.length;n++}});var c=S.ct.find(function(x){return x.id==id})||(S.gr||[]).find(function(x){return x.id==id});r.txt+=b-ib;r.img+=ib;r.chats.push({id:id,name:c?(c.remark||c.name):'（已删除）',b:b,ib:ib,n:n,cnt:A2.length})});
+ r.sms=fcSz(S.sm);r.mo=fcSz(S.mo);S.ct.forEach(function(c){r.av+=(c.av&&c.av.indexOf('data:')==0)?c.av.length:0});r.tot=tot;r.other=Math.max(0,tot-r.txt-r.img-r.sms-r.mo-r.av);r.chats.sort(function(a,b){return b.b-a.b});return r}
+function stoImg(days,id){var cut=days?Date.now()-days*864e5:Infinity,n=0,freed=0;Object.keys(S.ch).forEach(function(k){if(id&&k!=id)return;(S.ch[k]||[]).forEach(function(m){if(m.k=='img'&&typeof m.u=='string'&&m.u.indexOf('data:')==0&&(m.ts||0)<cut){freed+=m.u.length;delete m.u;delete m.k;m.t='[图片已清理]';n++}})});save();toast(n?'已清理 '+n+' 张图片，释放约 '+fcKB(freed):'没有符合条件的图片');if(sp=='sto')A.set()}
+function stoAsk(days,id){cf(days?'清理 '+days+' 天前的聊天图片？文字保留，图片会换成「[图片已清理]」，无法恢复。':'清理'+(id?'该聊天':'所有聊天')+'里的全部图片？文字保留，无法恢复。',function(){stoImg(days,id)})}
+PG.sto=function(){var r=stoScan(),seg=[['聊天文字',r.txt,'#4f6d8f'],['聊天图片',r.img,'#d4768b'],['短信',r.sms,'#e0a54a'],['朋友圈',r.mo,'#6aa981'],['头像',r.av,'#8a79b8'],['其他',r.other,'#aaa']],T=r.tot||1;
+ return '<div class="grp" style="padding:14px"><div style="font-size:26px;font-weight:500">'+fcKB(r.tot)+'</div><small class="mut">全部数据（序列化后的大小，实际存储可能略有差别）</small><div class="fc-bar">'+seg.map(function(s){return'<i style="width:'+(s[1]/T*100)+'%;background:'+s[2]+'"></i>'}).join('')+'</div><div class="fc-lg">'+seg.map(function(s){return'<span style="--c:'+s[2]+'">'+s[0]+' '+fcKB(s[1])+'</span>'}).join('')+'</div></div>'
+ +'<div class="lbl2">清理聊天里的图片</div><div class="grp" style="padding:12px 14px"><small class="mut">只删图片，文字保留。当前图片共 '+fcKB(r.img)+'。</small><div class="fc-ch"><button onclick="stoAsk(30)">30 天前</button><button onclick="stoAsk(90)">90 天前</button><button onclick="stoAsk(180)">180 天前</button><button onclick="stoAsk(0)">全部图片</button></div></div>'
+ +'<div class="lbl2">按聊天</div><div class="grp">'+(r.chats.length?r.chats.slice(0,12).map(function(x){return '<div class="cell"><div style="flex:1;min-width:0"><div>'+esc(x.name)+'</div><small>'+x.cnt+' 条消息 · 图片 '+x.n+' 张（'+fcKB(x.ib)+'）</small></div><small class="mut" style="margin-right:8px">'+fcKB(x.b)+'</small>'+(x.n?'<button class="btn g" style="height:30px;padding:0 12px;font-size:12px" onclick="stoAsk(0,\''+x.id+'\')">清图片</button>':'')+'</div>'}).join(''):'<p class="mut" style="padding:14px;margin:0">还没有聊天</p>')+'</div>'}
+PG.priv=function(){var p=S.pv,tg=function(k,l,s,fn){return'<label class="cr t"><span>'+l+'<small>'+s+'</small></span><input type="checkbox" '+(p[k]?'checked':'')+' onchange="S.pv.'+k+'=this.checked;save();'+(fn||'')+'"></label>'};
+ return '<div class="grp">'+tg('on','切走时自动遮挡','切到别的标签页、应用或窗口失焦时，桌面立刻盖住，别人看不到内容')+tg('tap','回来后需要轻点才显示','关闭则回到页面立即恢复')+tg('key','按 ` 键一键遮挡','电脑上再按一次取消；输入框里不会触发')+'</div><div class="fl acts" style="margin-top:14px"><button class="btn g" onclick="pvShow()">现在遮挡一下试试</button></div><p class="mut" style="font-size:12px;line-height:1.7;margin:12px 4px">手机上也可以从控制中心点「隐私遮挡」。遮挡只是挡住画面，不是密码；想加密请配合「锁屏」使用。</p>'};
+CATS.push(['priv','隐私与遮挡','切后台自动遮挡'],['sto','存储分析','查看占用、清理旧图片']);
+/* ---------- 入口 ---------- */
+var _aSetC=A.set;A.set=function(){var r=_aSetC.apply(this,arguments);try{if(sp)return r;var h=document.getElementById('setadv');if(!h)return r;var g=h.nextElementSibling;if(g&&g.classList.contains('grp')&&!g.querySelector('#fc-set')){var go2=function(k){return"sp='"+k+"';A.set()"};g.insertAdjacentHTML('beforeend','<span id="fc-set" style="display:none"></span>'+SCELL('priv','隐私与遮挡',go2('priv'),S.pv.on?'已开启':'','切后台自动遮挡、一键遮挡')+SCELL('sto','存储分析与清理',go2('sto'),'','看看什么占空间，清理旧图片'))}}catch(e){}return r};
+var _wmFc=wxMain;wxMain=function(){_wmFc.apply(this,arguments);try{if(wt==2){var g=document.querySelector('#fa-ent');if(g&&!g.querySelector('#fc-cap'))g.insertAdjacentHTML('beforeend','<div class="cell" id="fc-cap" onclick="capPage()">'+ic('cap',20)+'<span>时间胶囊</span><small class="mut" style="margin-left:auto">'+S.cap.filter(function(x){return x.st=='wait'}).length+' 封待送达</small><span class="chev">'+ic('back',14)+'</span></div>')}
+ if(wt==1&&S.wx){var gp=document.querySelector('#app .body .grp');if(gp&&!document.getElementById('fc-imp'))gp.insertAdjacentHTML('afterend','<div class="grp" id="fc-imp"><label class="cell" style="cursor:pointer">'+ic('card',20)+'<span>导入角色卡</span><small class="mut" style="margin-left:auto">.json</small><input type="file" accept=".json,application/json" style="display:none" onchange="cardImp(this)"></label></div>')}}catch(e){}};
+var _csFc=csM;csM=function(){var r=_csFc.apply(this,arguments);try{var g=document.querySelector('#fa-rv .grp');if(g&&!g.querySelector('#fc-dy')&&!(TG(cid)||{}).m){var n=dyList(cid).length;g.insertAdjacentHTML('beforeend','<div class="cell" id="fc-dy" onclick="dyPage(\''+cid+'\')">'+ic('dy',20)+'<span>TA 的日记</span><small class="mut" style="margin-left:auto">'+(n?n+' 篇':'')+'</small><span class="chev">'+ic('back',14)+'</span></div><div class="cell" onclick="cardExp(\''+cid+'\')">'+ic('send',20)+'<span>导出角色卡</span><small class="mut" style="margin-left:auto">人设 + 设置 + 世界书</small><span class="chev">'+ic('back',14)+'</span></div>')}}catch(e){}return r};
+</script>
 <script>
 (function(){var DB='aiphone-db',ST='kv',KEY='aiphone',db=null,ok=false,tmr=0,dirty=false,dead=false,inflight=false,pend=null,warnT=0,LSL=4400000;
 window.__info={engine:'',last:0,size:0,err:''};
