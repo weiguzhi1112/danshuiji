@@ -4612,17 +4612,21 @@ var ihRe=/[【\[]心声[:：]([\s\S]*?)(?:[】\]]|$)/g;
 function ihTail(id){if(!ihOn(id))return;var L=S.ch[id]||[],E=S.ih[id]=S.ih[id]||[],ch=0;
  for(var i=Math.max(0,L.length-8);i<L.length;i++){var m=L[i];if(!m||m.r!='a'||m.k||m.ph||typeof m.t!='string'||m.t.indexOf('心声')<0)continue;var got=[],t=m.t.replace(ihRe,function(a,b){b=String(b).trim();if(b)got.push(b);return''});if(!got.length)continue;
   var tag=(m.t.match(/[【\[]状态[:：]([^】\]\n]*)[】\]]/)||[])[1]||'',num=function(re){var x=tag.match(re);return x?Math.max(-5,Math.min(5,+String(x[1]).replace('＋','+').replace('－','-')||0)):0},md=(tag.match(/心情[=＝:：]?(\S+?)(?:[;；,，\s]|$)/)||[])[1]||'';
-  E.push({id:'h'+Date.now()+i,ts0:(m.ts||Date.now())-1,at:Date.now(),t:got.join(' '),df:num(/好感\s*([+\-＋－]?\d+)/),dt:num(/信任\s*([+\-＋－]?\d+)/),md:md});
+  if(E.some(function(x){return x.mts&&x.mts==m.ts&&x.t==got.join(' ')})){m.t=t.replace(/\n{3,}/g,'\n\n').trim();if(!m.t){L.splice(i,1);i--}ch=1;continue}
+  E.push({id:'h'+Date.now()+i,mts:m.ts||0,ts0:(m.ts||Date.now())-1,at:Date.now(),t:got.join(' '),df:num(/好感\s*([+\-＋－]?\d+)/),dt:num(/信任\s*([+\-＋－]?\d+)/),md:md});
   t=t.replace(/\n{3,}/g,'\n\n').trim();m.t=t;if(!t){L.splice(i,1);i--}ch=1}
  if(ch){while(E.length>200)E.shift();save()}}
 var _spIh=splitMsgs;splitMsgs=function(id){try{ihTail(id)}catch(e){}return _spIh(id)};
 /* ---- 在气泡下方显示（默认折叠） ---- */
 var _ihO=window._ihO={};
 function ihApply(){if(cur!='wx')return;var id=cid,E=S.ih[id];[].forEach.call(document.querySelectorAll('#cm .ihb'),function(x){x.remove()});if(!E||!E.length||!document.getElementById('cm'))return;var L=S.ch[id]||[];
- E.slice(-60).forEach(function(e,k,A){var nx=A[k+1],st=-1;for(var j=L.length-1;j>=0;j--){var m=L[j];if(m.r=='a'&&!m.ph&&m.k!='pat'&&(m.ts||0)>=e.ts0)st=j;else if(st>=0&&(m.ts||0)<e.ts0)break}if(st<0)return;var en=st;for(var q=st;q<L.length;q++){var mm=L[q];if(mm.r=='u'||mm.ph)break;if(nx&&(mm.ts||0)>=nx.ts0)break;if(mm.k=='pat')continue;en=q}
+ var okE=function(e){return!e.mts||L.some(function(m){return m.r=='a'&&!m.ph&&m.k!='pat'&&(m.ts||0)>=e.mts&&(m.ts||0)<=e.mts+80})};
+ var dead=E.filter(function(e){return e.mts&&Date.now()-(e.at||0)>3e4&&!okE(e)});if(dead.length){S.ih[id]=E=E.filter(function(e){return dead.indexOf(e)<0});save()}
+ var used={};E.slice(-60).filter(okE).reverse().forEach(function(e){void 0});
+ E.slice(-60).filter(okE).forEach(function(e,k,A){var nx=A[k+1],st=-1;for(var j=L.length-1;j>=0;j--){var m=L[j];if(m.r=='a'&&!m.ph&&m.k!='pat'&&(m.ts||0)>=e.ts0)st=j;else if(st>=0&&(m.ts||0)<e.ts0)break}if(st<0)return;var en=st;for(var q=st;q<L.length;q++){var mm=L[q];if(mm.r=='u'||mm.ph)break;if(nx&&(mm.ts||0)>=nx.ts0)break;if(mm.k=='pat')continue;en=q}
   var col=document.querySelector('#cm .bwr[data-i="'+en+'"] .bcol');if(!col)return;var neg=e.df<0||e.dt<0||/难过|低落|生气|烦|伤心|愤|焦虑/.test(e.md||'');
   var meta=[e.df?'好感 '+(e.df>0?'+':'−')+Math.abs(e.df):'',e.dt?'信任 '+(e.dt>0?'+':'−')+Math.abs(e.dt):'',e.md?'心情 '+esc(e.md):''].filter(Boolean).join(' · ');
-  var d=document.createElement('div');d.className='ihb'+(neg?' neg':'')+(_ihO[e.id]?' on':'');d.setAttribute('data-e',e.id);d.innerHTML='<span class="ihs" onclick="ihTg(this)">心声</span><div class="iht">'+esc(e.t)+(meta?'<small>'+meta+'</small>':'')+'<small><u onclick="ihQuote(\''+e.id+'\')" style="margin:0">引用给 TA</u></small></div>';col.appendChild(d)})}
+  var d=document.createElement('div');d.className='ihb'+(neg?' neg':'')+(_ihO[e.id]?' on':'');d.setAttribute('data-e',e.id);d.innerHTML='<span class="ihs" onclick="ihTg(this)">心声</span><div class="iht">'+esc(e.t)+(meta?'<small>'+meta+'</small>':'')+'<small><u onclick="ihQuote(\''+e.id+'\')" style="margin:0">引用给 TA</u> <u onclick="ihDel(cid,\''+e.id+'\')" style="margin:0 0 0 12px;color:#ff3b30">删除</u></small></div>';if(used[en])return;used[en]=1;col.appendChild(d)})}
 function ihTg(el){var b=el.parentNode;b.classList.toggle('on');_ihO[b.getAttribute('data-e')]=b.classList.contains('on')}
 function ihQuote(eid){var id=cid,E=S.ih[id]||[],e=E.find(function(x){return x.id==eid});if(!e)return;var c=TG(id);qt={n:(c.remark||c.name)+'的心声',t:e.t.slice(0,40)};qbShow();toast('已引用，TA 会知道你看到了这句心声')}
 var _rcIh=rc;rc=function(){var r=_rcIh.apply(this,arguments);try{ihApply()}catch(e){}return r};
@@ -4636,7 +4640,7 @@ function ihPage(id){id=id||cid;var c=TG(id);if(!c||c.m)return toast('群聊暂�
 function ihList(id){var l=document.getElementById('ih-l');if(!l)return;var q=ihQ.trim().toLowerCase(),E=(S.ih[id]||[]).slice().reverse().filter(function(e){return!q||e.t.toLowerCase().indexOf(q)>=0}).slice(0,50);
  l.innerHTML=E.length?E.map(function(e){var neg=e.df<0||e.dt<0||/难过|低落|生气|烦|伤心|愤|焦虑/.test(e.md||''),meta=[e.df?'好感 '+(e.df>0?'+':'−')+Math.abs(e.df):'',e.dt?'信任 '+(e.dt>0?'+':'−')+Math.abs(e.dt):'',e.md?'心情 '+esc(e.md):''].filter(Boolean).join(' · ');
   return '<div class="ih-row'+(neg?' neg':'')+'"><small>'+new Date(e.at).toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})+(meta?' · '+meta:'')+'</small><p>'+esc(e.t)+'</p><div class="fa-act"><span onclick="navigator.clipboard&&navigator.clipboard.writeText(S.ih[\''+id+'\'].find(function(x){return x.id==\''+e.id+'\'}).t);toast(\'已复制\')">复制</span><span class="d" onclick="ihDel(\''+id+'\',\''+e.id+'\')">删除</span></div></div>'}).join(''):'<p class="mut" style="text-align:center;margin:36px 0">'+(q?'没有匹配的心声':'还没有心声，开启后 TA 下次回复就会有')+'</p>'}
-function ihDel(id,eid){S.ih[id]=(S.ih[id]||[]).filter(function(e){return e.id!=eid});save();ihList(id)}
+function ihDel(id,eid){S.ih[id]=(S.ih[id]||[]).filter(function(e){return e.id!=eid});save();ihList(id);try{ihApply()}catch(e){}}
 function ihClr(id){cf('清空这个角色的全部心声？',function(){S.ih[id]=[];save();ihPage(id)})}
 var _csIh=csM;csM=function(){var r=_csIh.apply(this,arguments);try{var g=document.querySelector('#fa-rv .grp');if(g&&!g.querySelector('#ih-ent')&&!(TG(cid)||{}).m)g.insertAdjacentHTML('afterbegin','<div class="cell" id="ih-ent" onclick="ihQ=\'\';ihPage(\''+cid+'\')">'+ic('ih',20)+'<span>心声</span><small class="mut" style="margin-left:auto">'+((S.cs[cid]||{}).ih?'已开启 · '+(S.ih[cid]||[]).length+' 条':'未开启')+'</small><span class="chev">'+ic('back',14)+'</span></div>')}catch(e){}return r};
 </script>
@@ -4749,6 +4753,167 @@ var _aiPk2=ai;ai=function(msgs,sys,on,cfg){try{if(!PK&&sys&&typeof sys=='string'
 /* ---------- 入口：聊天信息、关联账号 ---------- */
 var _csPk=csM;csM=function(){var r=_csPk.apply(this,arguments);try{if(PK)return r;var g=document.querySelector('#fa-rv .grp');if(g&&!g.querySelector('#pk-ent')&&!(TG(cid)||{}).m){var rec=pkRec(cid),n=rec&&rec.sess?rec.sess.length:0;g.insertAdjacentHTML('beforeend','<div class="cell" id="pk-ent" onclick="pkAsk(\''+cid+'\')">'+ic('user',20)+'<span>顶号登录 TA 的微信</span><small class="mut" style="margin-left:auto">只读查看</small><span class="chev">'+ic('back',14)+'</span></div><div class="cell" onclick="pkLog(\''+cid+'\')">'+ic('scan',20)+'<span>查岗记录</span><small class="mut" style="margin-left:auto">'+(n?n+' 次':'')+'</small><span class="chev">'+ic('back',14)+'</span></div>')}}catch(e){}return r};
 var _lkPk=linkM;linkM=function(){var r=_lkPk.apply(this,arguments);try{var mb=document.getElementById('mb');if(mb&&!PK&&S.ct.length&&!mb.querySelector('#pk-lk'))mb.insertAdjacentHTML('beforeend','<div id="pk-lk"><div class="lbl2" style="margin-top:16px">顶号登录 TA 的微信</div><p class="mut" style="font-size:12px;margin:0 0 6px">只读查看角色的微信、短信、电话，TA 可能会发现</p>'+S.ct.slice(0,12).map(function(c){return'<div class="icl" onclick="pkAsk(\''+c.id+'\')"><span style="flex:1">'+esc(c.remark||c.name)+'</span><small class="mut">登录</small></div>'}).join('')+'</div>')}catch(e){}return r};
+</script>
+<script type="text/x-app">
+/* ===== v29：反查岗 / 权限开关 / 关联账号 ===== */
+S.rk=S.rk||{chars:{}};S.rk.chars=S.rk.chars||{};S.lk=S.lk||{chars:{}};S.lk.chars=S.lk.chars||{};
+var RK=null;
+(function(){var st=document.createElement('style');st.textContent=`
+#rkoff{position:absolute;inset:0;z-index:280;background:#0c0c0d;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:0 36px;animation:pkIn .3s ease both}
+#rkoff b{font-size:19px;font-weight:500;letter-spacing:.08em}#rkoff p{margin:0;font-size:13.5px;line-height:1.8;opacity:.72}
+#rkq{position:absolute;inset:0;z-index:290;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;animation:pkIn .25s ease both}
+#rkq .cd{width:88%;max-height:82%;overflow:auto;background:#fff;color:#111;border-radius:26px;padding:18px 16px 16px;box-shadow:0 24px 60px rgba(0,0,0,.4)}
+body.dark #rkq .cd{background:#232325;color:#eee}
+#rkq .hh{display:flex;align-items:center;gap:10px;margin-bottom:10px}#rkq .hh b{font-weight:500;font-size:15px}#rkq .hh small{display:block;color:#ff453a;font-size:11px;letter-spacing:.06em}
+#rkq .stp{background:#f4f4f2;border-radius:14px;padding:10px 12px;margin-bottom:10px;font-size:13px;line-height:1.9}body.dark #rkq .stp{background:#2c2c2e}
+#rkq .stp div.dn{opacity:.5}#rkq .stp small{display:block;color:#999;font-size:11.5px;margin-left:16px;line-height:1.5}
+#rkq .bu{max-width:88%;padding:9px 13px;border-radius:18px;font-size:14px;line-height:1.6;margin:0 0 8px;background:#efefed;word-break:break-all}body.dark #rkq .bu{background:#38383a}
+#rkq .bu.me{margin-left:auto;background:var(--bmc,#d4768b);color:#fff}
+#rkq .rw{display:flex;gap:8px;margin-top:10px}#rkq .rw input{flex:1;border:1px solid rgba(0,0,0,.14);border-radius:18px;padding:0 14px;height:38px;font-size:14px;background:none;color:inherit}
+#rkq .rw button{height:38px;padding:0 16px;border-radius:19px;background:#111;color:#fff;font-size:13px}body.dark #rkq .rw button{background:#f2f2f2;color:#111}
+#rkq .rw button.g{background:#efefed;color:#555}body.dark #rkq .rw button.g{background:#38383a;color:#bbb}
+.lkb{max-width:78%;padding:9px 13px;border-radius:18px;font-size:14.5px;line-height:1.6;margin:0 0 8px;background:#efefed;word-break:break-all;color:#111}
+body.dark .lkb{background:#38383a;color:#eee}.lkb.me{margin-left:auto;background:var(--bmc,#d4768b);color:#fff}
+.lkbn{font-size:11.5px;text-align:center;color:#999;margin:8px 0 14px;letter-spacing:.04em}
+.lkrow small i{font-style:normal;color:#999}.lkdot{display:inline-block;min-width:8px;height:8px;border-radius:4px;background:#ff453a;margin-left:6px}
+`;document.body.appendChild(st)})();
+/* ---------- 权限 ---------- */
+var RK_PM={kick:true,kq:true,pop:true,kc:false,pk:true,link:false};
+function rkPm(id){var c=S.cs&&S.cs[id];return Object.assign({},RK_PM,(c&&c.pm)||{})}
+function rkSet(k,v){var c=S.cs[cid]=S.cs[cid]||{};c.pm=Object.assign({},c.pm||{});c.pm[k]=!!v;save();if(k=='link'&&v)lkInit(cid);if(k=='link'||k=='kick')csM()}
+var _itPk=imgTail;imgTail=function(id){if(!rkPm(id).pk)return;return _itPk.apply(this,arguments)};
+var _pkQs=pkQuestion;pkQuestion=function(){if(PK&&!rkPm(PK.cid).pop)return;return _pkQs.apply(this,arguments)};
+/* ---------- 反查岗 ---------- */
+function rkRec(id){return S.rk.chars[id]=S.rk.chars[id]||{sess:[],mem:[]}}
+var _paRing0=paRing;
+paRing=function(id,text){var p=rkPm(id);if(PK||RK||(typeof cl!='undefined'&&cl)||!p.kick||!p.kc)return _paRing0(id,text);return rkStart(id,text)};
+function rkStart(id,text){var c=S.ct.find(function(x){return x.id==id});if(!c)return _paRing0(id,text);var p=rkPm(id);
+ RK={id:id,text:text,steps:[],dlg:[],t0:Date.now(),busy:0,i:0,plan:null,done:false,sess:{ts:Date.now(),steps:[],dlg:[],end:''}};
+ if(p.kq){modal('<div class="h1" style="font-size:19px">账号被顶号提醒</div><p class="mut" style="font-size:13px;line-height:1.8;margin:8px 0 4px"><b>'+esc(c.remark||c.name)+'</b> 想在另一台设备登录你的微信账号，并在打电话给你之前先看看。允许吗？</p><div class="fl acts" style="margin-top:14px"><button class="btn g" onclick="rkDeny()">拒绝</button><button class="btn" onclick="rkGo()">允许</button></div>');return}
+ rkGo()}
+function rkDeny(){var R=RK;if(!R)return;var c=S.ct.find(function(x){return x.id==R.id});closeM();RK=null;var rec=rkRec(R.id);rec.mem.unshift({ts:Date.now(),t:'你想登录对方的账号查看一下，被对方拒绝了。'});rec.mem=rec.mem.slice(0,6);rec.sess.unshift({ts:R.t0,steps:[],dlg:[],end:'denied'});rec.sess=rec.sess.slice(0,20);save();_paRing0(R.id,R.text)}
+function rkGo(){var R=RK;if(!R)return;closeM();var c=S.ct.find(function(x){return x.id==R.id}),p=rkPm(R.id),scr=document.getElementById('scr'),o=document.createElement('div');o.id='rkoff';
+ o.innerHTML='<div class="av" style="width:64px;height:64px;border-radius:50%;background-size:cover;background-image:url(\''+esc(c.av||'')+'\')">'+(c.av?'':esc((c.name||'?')[0]))+'</div><b>账号已下线</b><p>你的微信账号已在另一台设备登录<br>「'+esc(c.remark||c.name)+'」正在使用你的账号</p><p id="rkst" style="opacity:.5;font-size:12px">'+(p.pop?'':'TA 正在查看…')+'</p>';scr.appendChild(o);
+ rkPlan().then(function(pl){if(!RK)return;RK.plan=pl;if(p.pop)setTimeout(function(){rkBox()},700);rkRun()})}
+async function rkPlan(){var R=RK,c=S.ct.find(function(x){return x.id==R.id}),fr=S.ct.filter(function(x){return x.id!=R.id&&S.ch[x.id]&&S.ch[x.id].length}).map(function(x){return x.remark||x.name}).slice(0,8),acts=['chat','moments','wallet','friends','call','video','logout'];
+ var sys='你是'+c.name+'。人设：'+(c.persona||'普通朋友')+'。\n你准备给对方打电话，但先用「顶号」的方式登录了对方的微信，想先看看对方最近在做什么、和谁聊天。'+(function(){try{if(S.stg&&S.stg.on){var s=stGet(R.id);return'你对对方好感'+stage(s.fav)+'、信任'+stage(s.trust)+'，你当前心情'+MOOD[s.mood]+'。'}}catch(e){}return''})()+'\n按你的性格决定你会查哪些。只输出JSON：{"steps":[{"act":"chat","target":"好友名"},{"act":"moments"},...],"last":"call"}。act 只能是 chat（打开和某好友的聊天，target 必须是给出的好友名之一）、moments（翻朋友圈）、wallet（看钱包账单）、friends（看好友列表）。steps 2到5步；last 只能是 call（打语音）、video（打视频）、logout（看完退出登录，不打电话了）。';
+ var pl=null;try{pl=jp(await ai([{role:'user',content:'对方的好友：'+(fr.join('、')||'（还没有聊天的好友）')+'。对方'+(S.mo&&S.mo.length?'发过朋友圈':'没发过朋友圈')+'。请决定你怎么查。'}],sys,null))}catch(e){}
+ var steps=[];((pl&&pl.steps)||[]).slice(0,5).forEach(function(s){if(!s||acts.indexOf(s.act)<0||['call','video','logout'].indexOf(s.act)>=0)return;var t=null;if(s.act=='chat'){t=S.ct.find(function(x){return x.id!=R.id&&((x.remark||x.name)==s.target||x.name==s.target)})||S.ct.find(function(x){return x.id!=R.id&&S.ch[x.id]&&S.ch[x.id].length});if(!t)return;steps.push({act:'chat',tid:t.id,target:t.remark||t.name})}else steps.push({act:s.act})});
+ if(steps.length<2&&!steps.some(function(s){return s.act=='friends'}))steps.unshift({act:'friends'});if(!steps.some(function(s){return s.act!='friends'})){var t0=S.ct.find(function(x){return x.id!=R.id&&S.ch[x.id]&&S.ch[x.id].length});steps.push(t0?{act:'chat',tid:t0.id,target:t0.remark||t0.name}:{act:'moments'})}
+ var last=pl&&['call','video','logout'].indexOf(pl.last)>=0?pl.last:'call';steps.push({act:last});return steps}
+function rkLabel(s,done){var m={chat:['正在打开和「'+s.target+'」的聊天…','看了和「'+s.target+'」的聊天'],moments:['正在翻看朋友圈…','翻看了朋友圈'],wallet:['正在查看钱包账单…','查看了钱包账单'],friends:['正在查看好友列表…','查看了好友列表'],call:['准备拨打语音电话…','拨打语音电话'],video:['准备拨打视频电话…','拨打视频电话'],logout:['正在退出登录…','退出了登录']};return m[s.act][done?1:0]}
+function rkSnip(s){if(s.act=='chat'){var L=S.ch[s.tid]||[],m=L[L.length-1];return m&&typeof m.t=='string'?'最近一条：'+m.t.slice(0,18):''}if(s.act=='moments'){var m=(S.mo||[])[0];return m?'最新一条：'+String(m.t||'').slice(0,18):'还没有朋友圈'}if(s.act=='friends')return'共 '+S.ct.length+' 位好友';if(s.act=='wallet')return'';return''}
+function rkRun(){var R=RK;if(!R||R.done||R.busy)return;if(!R.plan)return;clearTimeout(R.tm);R.tm=setTimeout(function(){if(!RK||RK!==R||R.busy)return;if(R.i>=R.plan.length)return;var s=R.plan[R.i++];R.steps.push(s);var st=document.getElementById('rkst');if(st)st.textContent=rkLabel(s,false);R.sess.steps.push({act:s.act,l:rkLabel(s,true)});
+ if(s.act=='chat')try{R.sess.steps[R.sess.steps.length-1].tid=s.tid}catch(e){}
+ rkBox();if(s.act=='call'||s.act=='video'||s.act=='logout'){R.tm=setTimeout(function(){if(RK===R&&!R.busy)rkFinish(s.act)},2200);return}rkRun()},1900)}
+function rkBox(){var R=RK;if(!R)return;var p=rkPm(R.id);if(!p.pop)return;var c=S.ct.find(function(x){return x.id==R.id}),scr=document.getElementById('scr'),o=document.getElementById('rkq');if(!o){o=document.createElement('div');o.id='rkq';scr.appendChild(o)}
+ var kp=R.input;var cur=document.getElementById('rkq-i');if(cur)kp=cur.value;
+ var stp=R.steps.map(function(s,i){var last=i==R.steps.length-1&&!R.done;return'<div class="'+(last?'':'dn')+'">'+(last?'● ':'✓ ')+esc(rkLabel(s,!last))+(last&&rkSnip(s)?'<small>'+esc(rkSnip(s))+'</small>':'')+'</div>'}).join('')||'<div>● 正在登录你的账号…</div>';
+ var hist=R.dlg.map(function(m){return'<div class="bu'+(m.me?' me':'')+'">'+esc(m.t)+'</div>'}).join('')+(R.busy?'<div class="bu">…</div>':'');
+ o.innerHTML='<div class="cd"><div class="hh"><div class="av" style="width:40px;height:40px;border-radius:50%;background-size:cover;background-image:url(\''+esc(c.av||'')+'\')">'+(c.av?'':esc((c.name||'?')[0]))+'</div><div><b>'+esc(c.remark||c.name)+'</b><small>另一台设备 · 正在使用你的账号</small></div></div><div class="stp">'+stp+'</div>'+hist
+ +'<div class="rw"><input id="rkq-i" placeholder="质问 TA…" value="'+esc(kp||'')+'" onkeydown="event.key==\'Enter\'&&rkReply()"><button onclick="rkReply()">质问</button></div><div class="rw"><button class="g" style="flex:1" onclick="rkRelogin()">重新登录并接听</button></div>';
+ var cd=o.querySelector('.cd');if(cd)cd.scrollTop=cd.scrollHeight}
+async function rkReply(){var R=RK,i=document.getElementById('rkq-i'),t=i&&i.value.trim();if(!R||!t||R.busy)return;R.dlg.push({me:true,t:t});R.sess.dlg.push({me:true,t:t});R.input='';R.busy=1;clearTimeout(R.tm);rkBox();
+ var c=S.ct.find(function(x){return x.id==R.id}),seen=R.steps.map(function(s){return rkLabel(s,true)}).join('、');
+ var sys='你是'+c.name+'。人设：'+(c.persona||'普通朋友')+'。\n你正用顶号的方式登录了对方的微信偷偷查看（你本来是要给对方打电话），刚看了：'+(seen||'还没看什么')+'。现在对方发现了，在质问你。按你的性格直接对TA说话（可以心虚嘴硬、理直气壮、道歉、撒娇、反问，由你的性格决定），1到3句，不超过70字。只输出JSON：{"text":"你的话","act":"continue"}。act 只能是 continue（继续查或继续聊）、logout（你被说服或心虚，主动退出登录把账号还给对方，不打电话了）、stop（你不想再看了，直接打电话过去）。';
+ var u=(R.dlg.length?'你们刚才的对话：\n'+R.dlg.map(function(m){return(m.me?'对方':'你')+'：'+m.t}).join('\n'):'')+'\n请回应。';var r={text:'……',act:'continue'};
+ try{var j=jp(await ai([{role:'user',content:u}],sys,null));if(j&&typeof j=='object'){r.text=String(j.text||'').trim()||'……';if(['continue','logout','stop'].indexOf(j.act)>=0)r.act=j.act}}catch(e){}
+ if(RK!==R)return;R.busy=0;R.dlg.push({me:false,t:r.text});R.sess.dlg.push({me:false,t:r.text});rkBox();
+ if(r.act=='logout'){R.plan=R.plan.slice(0,R.i).concat([{act:'logout'}])}else if(r.act=='stop'){R.plan=R.plan.slice(0,R.i).concat([{act:R.plan[R.plan.length-1].act=='video'?'video':'call'}])}rkRun()}
+function rkRelogin(){var R=RK;if(!R)return;rkFinish('relogin')}
+function rkFinish(how){var R=RK;if(!R||R.done)return;R.done=true;clearTimeout(R.tm);var c=S.ct.find(function(x){return x.id==R.id}),nm=c?(c.remark||c.name):'TA';
+ ['rkoff','rkq'].forEach(function(i){var e=document.getElementById(i);if(e)e.remove()});RK=null;
+ var rec=rkRec(R.id),seen=R.sess.steps.filter(function(s){return['call','video','logout'].indexOf(s.act)<0}).map(function(s){return s.l});R.sess.end=how;R.sess.dur=Math.round((Date.now()-R.t0)/1000);rec.sess.unshift(R.sess);rec.sess=rec.sess.slice(0,20);
+ var mem='你曾偷偷顶号登录对方的微信'+(seen.length?'，'+seen.join('、'):'')+'。'+(R.dlg.length?'对方发现后质问了你。':'对方没有质问你。')+({call:'最后你直接打了电话。',video:'最后你直接打了视频。',logout:'最后你主动退出登录，把账号还给了对方。',relogin:'最后对方重新登录把你挤下线了。'}[how]||'');rec.mem.unshift({ts:Date.now(),t:mem});rec.mem=rec.mem.slice(0,6);
+ var L=S.ch[R.id]=S.ch[R.id]||[];L.push({r:'a',k:'pat',t:{logout:'「'+nm+'」退出了登录，把账号还给了你',relogin:'你重新登录，把「'+nm+'」挤下线了'}[how]||'「'+nm+'」顶号登录了你的账号'+(seen.length?'，'+seen.join('、'):''),ts:Date.now()});save();
+ if(how=='logout'){toast('「'+nm+'」退出了登录，账号已还给你');setTimeout(function(){paThink(R.id,{hint:'你刚才偷偷登录了对方的微信查看，后来自己退出了登录。想想要不要发条消息，符合你的性格。',force:true})},dlR(15,50)*1000);return}
+ _paRing0(R.id,R.text);if(how=='relogin')setTimeout(function(){try{paAnswer()}catch(e){}},400)}
+function rkTxt(id){var r=S.rk.chars[id];if(!r||!r.mem||!r.mem.length)return'';var L=r.mem.filter(function(m){return Date.now()-m.ts<14*864e5}).slice(0,2);return L.length?'\n\n【你翻看过对方手机的事】\n'+L.map(function(m){return'· '+m.t}).join('\n')+'\n（你记得这些，会影响你对对方的态度，不必反复提起。）':''}
+var _pkTxt0=pkTxt;pkTxt=function(id){return _pkTxt0(id)+rkTxt(id)};
+function rkLog(id){id=id||cid;var c=S.ct.find(function(x){return x.id==id});if(!c)return;var r=rkRec(id),END={call:'TA 直接打来电话',video:'TA 直接打来视频',logout:'TA 主动退出登录',relogin:'你重新登录挤下线并接听',denied:'你拒绝了顶号'};
+ view(hd('反查岗记录','',"csM()")+'<div class="body cpage"><div class="chead"><div style="font-size:19px;font-weight:500">'+esc(c.remark||c.name)+'</div><small class="mut">TA 顶号登录你账号的记录</small></div>'+(r.sess.length?r.sess.map(function(s){return'<div class="pk-sn"><small>'+new Date(s.ts).toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})+(s.dur?' · 停留 '+s.dur+' 秒':'')+' · '+(END[s.end]||'结束')+'</small>'+(s.steps&&s.steps.length?s.steps.map(function(x){return'<div>'+esc(x.l)+'</div>'}).join(''):'<div class="mut">没有查看任何内容</div>')+(s.dlg&&s.dlg.length?'<div style="margin-top:6px;border-top:1px solid rgba(0,0,0,.06);padding-top:6px">'+s.dlg.map(function(m){return'<div><span>'+(m.me?'我':'TA')+'</span>'+esc(m.t)+'</div>'}).join('')+'</div>':'')+'</div>'}).join(''):'<p class="mut" style="text-align:center;margin:30px 0">TA 还没有顶过你的号</p>')+(r.sess.length?'<div class="fl acts"><button class="btn g" style="color:#ff3b30" onclick="cf(\'清空反查岗记录？\',function(){S.rk.chars[\''+id+'\']={sess:[],mem:[]};save();rkLog(\''+id+'\')})">清空记录</button></div>':'')+'</div>')}
+/* ---------- 关联账号 ---------- */
+function lkRec(id){var r=S.lk.chars[id]=S.lk.chars[id]||{convs:{},cfg:{},sched:[],mute:{},next:0,gen:0};r.cfg=Object.assign({every:8,dmin:5,dmax:40,dedupe:true,max:5,noti:true,mute:false,api:null},r.cfg||{});r.convs=r.convs||{};r.sched=r.sched||[];r.mute=r.mute||{};return r}
+async function lkInit(id){var r=lkRec(id);if(Object.keys(r.convs).length)return;var pr=pkRec(id);toast('正在读取 TA 的微信好友…');try{if(!pr||!pr.d)await pkGen(id);pr=pkRec(id);var d=pr.d,now=Date.now();(d.ct||[]).forEach(function(f){var L=(d.ch[f.id]||[]).map(function(m){return{w:m.r=='u'?'c':'f',t:m.t,ts:m.ts}});if(L.length)r.convs[f.id]={name:f.remark||f.name,ch:L,un:0}});r.gen=now;save();toast('已关联：TA 的好友会话出现在你的消息列表');if(cur=='wx')wxMain()}catch(e){toast('读取失败：'+(e&&e.message||e));var c=S.cs[id];if(c&&c.pm)c.pm.link=false;save()}}
+function lkList(){var out=[];Object.keys(S.lk.chars).forEach(function(id){var c=S.ct.find(function(x){return x.id==id});if(!c||!rkPm(id).link)return;var r=lkRec(id),now=Date.now();Object.keys(r.convs).map(function(f){var v=r.convs[f],vis=v.ch.filter(function(m){return m.ts<=now});return{cid:id,fid:f,v:v,vis:vis,ts:vis.length?vis[vis.length-1].ts:0,c:c}}).filter(function(x){return x.vis.length}).sort(function(a,b){return b.ts-a.ts}).slice(0,r.cfg.max).forEach(function(x){out.push(x)})});return out.sort(function(a,b){return b.ts-a.ts})}
+var _wxLk=wxMain;wxMain=function(){var r=_wxLk.apply(this,arguments);try{if(PK||wt!=0)return r;var L=lkList();if(!L.length)return r;var b=document.querySelector('#app .body');if(!b)return r;var h=L.map(function(x){var m=x.vis[x.vis.length-1],mu=lkRec(x.cid).mute[x.fid]||lkRec(x.cid).cfg.mute;return'<div class="row lkrow" onclick="lkOpen(\''+x.cid+'\',\''+x.fid+'\')"><div class="av">'+esc((x.v.name||'?')[0])+'</div><div style="min-width:0"><div>'+esc(x.v.name)+(x.v.un?'<span class="lkdot"></span>':'')+(mu?' <small><i>🔕</i></small>':'')+'</div><small>'+esc(x.c.remark||x.c.name)+'的微信 · '+esc(String(m.t).slice(0,18))+'</small></div></div>'}).join('');var hd1=b.querySelector('.h1');if(hd1)hd1.insertAdjacentHTML('afterend',h);else b.insertAdjacentHTML('afterbegin',h)}catch(e){}return r};
+function lkOpen(cid2,fid){var r=lkRec(cid2),v=r.convs[fid],c=S.ct.find(function(x){return x.id==cid2});if(!v||!c)return;v.un=0;save();var now=Date.now(),mu=r.mute[fid];
+ view(hd(esc(v.name),'<button class="ib" onclick="lkMute(\''+cid2+'\',\''+fid+'\')">'+(mu?'🔕':'🔔')+'</button>',"wxMain()")+'<div class="body" id="lkbd"><div class="lkbn">关联账号 · 这是「'+esc(c.remark||c.name)+'」的微信会话，由 TA 自己回复</div>'+v.ch.filter(function(m){return m.ts<=now}).map(function(m){return'<div class="lkb'+(m.w=='c'?' me':'')+'">'+esc(m.t)+'</div>'}).join('')+'</div>');var b=document.getElementById('lkbd');if(b)b.scrollTop=b.scrollHeight}
+function lkMute(c2,f){var r=lkRec(c2);r.mute[f]=!r.mute[f];save();lkOpen(c2,f)}
+var LKB=0;
+async function lkStep(id,fid,fromSched){var r=lkRec(id),c=S.ct.find(function(x){return x.id==id}),v=r.convs[fid];if(!c||!v)return;var last=v.ch.slice(-8),cfg=r.cfg;
+ var sys='你要模拟一段微信聊天。角色「'+c.name+'」（人设：'+(c.persona||'普通朋友')+'）正在和好友「'+v.name+'」聊天。好友先发一条新消息（符合好友身份、延续话题，也可以开新话题），然后「'+c.name+'」按自己的人设和说话习惯回复。每条不超过40字，口语，不要重复之前说过的话。只输出JSON：{"friend":"好友的消息","reply":"'+c.name+'的回复"}';
+ var j=null;try{j=jp(await ai([{role:'user',content:'之前的聊天：\n'+(last.map(function(m){return(m.w=='c'?c.name:v.name)+'：'+m.t}).join('\n')||'（还没聊过）')+'\n现在时间：'+new Date().toLocaleString('zh-CN')+'。请生成接下来的一来一回。'}],sys,null,cfg.api&&cfg.api.url&&cfg.api.key?cfg.api:undefined))}catch(e){return}
+ if(!j||!j.friend||!j.reply)return;var ft=String(j.friend).trim(),rt=String(j.reply).trim();if(!ft||!rt)return;
+ if(cfg.dedupe&&v.ch.slice(-12).some(function(m){return m.t==ft||m.t==rt})||ft==rt)return;
+ var now=Date.now(),d=(cfg.dmin+Math.random()*Math.max(0,cfg.dmax-cfg.dmin))*1000;v.ch.push({w:'f',t:ft,ts:now});v.ch.push({w:'c',t:rt,ts:now+d});v.ch=v.ch.slice(-80);v.un=(v.un||0)+1;save();
+ var mu=r.mute[fid]||cfg.mute;if(!mu&&!PK)notify('wx',v.name,cfg.noti?ft:'[新消息]',function(){lkOpen(id,fid)});if(cur=='wx'&&wt==0&&!PK)wxMain()}
+async function lkTick(){if(PK||RK||LKB)return;var now=Date.now();Object.keys(S.lk.chars).forEach(function(id){var r=lkRec(id);if(!rkPm(id).link)return;r.sched.filter(function(s){return!s.done&&s.at<=now}).forEach(function(s){s.done=true;var v=r.convs[s.fid];if(v){v.ch.push({w:'c',t:s.t,ts:now});save()}})});
+ var ids=Object.keys(S.lk.chars).filter(function(id){var r=lkRec(id);return rkPm(id).link&&Object.keys(r.convs).length&&now>=(r.next||0)&&S.ct.some(function(c){return c.id==id})});if(!ids.length)return;var id=ids[Math.floor(Math.random()*ids.length)],r=lkRec(id);r.next=now+r.cfg.every*6e4*(0.7+Math.random()*0.6);var fl=Object.keys(r.convs),fid=fl[Math.floor(Math.random()*fl.length)];LKB=1;try{await lkStep(id,fid)}finally{LKB=0;save()}}
+setInterval(lkTick,20000);setTimeout(lkTick,6000);
+function lkCfg(id){id=id||cid;var c=S.ct.find(function(x){return x.id==id});if(!c)return;var r=lkRec(id),g=r.cfg,on=rkPm(id).link,api=g.api||{};
+ var chk=function(k,t,v){return'<label class="sw2">'+t+'<input type="checkbox" '+(v?'checked':'')+' onchange="lkSet(\''+id+'\',\''+k+'\',this.checked)"></label>'};
+ var num=function(k,t,v,mn,mx){return'<label class="lb">'+t+'</label><input class="in" type="number" min="'+mn+'" max="'+mx+'" value="'+v+'" onchange="lkSet(\''+id+'\',\''+k+'\',+this.value)">'};
+ var convs=Object.keys(r.convs).map(function(f){return'<option value="'+f+'">'+esc(r.convs[f].name)+'</option>'}).join('');
+ view(hd('关联账号','',"csM()")+'<div class="body cpage"><div class="chead"><div style="font-size:19px;font-weight:500">'+esc(c.remark||c.name)+'</div><small class="mut">把 TA 的微信关联到你的客户端</small></div>'
+ +'<div class="grp" style="padding:4px 14px">'+'<label class="sw2">关联 TA 的微信账号<input type="checkbox" '+(on?'checked':'')+' onchange="cid=\''+id+'\';rkSet(\'link\',this.checked);lkCfg(\''+id+'\')"></label></div>'
+ +'<p class="mut" style="font-size:12px;line-height:1.7;margin:8px 4px">开启后，TA 好友的会话会出现在你的消息列表里。TA 会按人设自己回复好友（需要消耗 API 次数，默认关闭）。</p>'
+ +(on?'<div class="lbl2">回复</div><div class="grp" style="padding:4px 14px">'+num('every','平均每几分钟产生一次好友对话',g.every,1,120)+num('dmin','回复延迟最短（秒）',g.dmin,0,600)+num('dmax','回复延迟最长（秒）',g.dmax,0,1800)+chk('dedupe','去重（不重复说过的话）',g.dedupe)+'</div>'
+ +'<div class="lbl2">列表与提醒</div><div class="grp" style="padding:4px 14px">'+num('max','列表最多显示几个会话',g.max,1,20)+chk('mute','全部免打扰（不弹通知）',g.mute)+chk('noti','消息提醒显示内容',g.noti)+'</div>'
+ +'<div class="lbl2">独立 API（留空则使用主 API）</div><div class="grp" style="padding:4px 14px"><label class="lb">接口地址</label><input class="in" value="'+esc(api.url||'')+'" placeholder="https://…/v1" onchange="lkApi(\''+id+'\',\'url\',this.value)"><label class="lb">Key</label><input class="in" type="password" value="'+esc(api.key||'')+'" onchange="lkApi(\''+id+'\',\'key\',this.value)"><label class="lb">模型</label><input class="in" value="'+esc(api.model||'')+'" onchange="lkApi(\''+id+'\',\'model\',this.value)"></div>'
+ +'<div class="lbl2">定时消息（TA 在指定时间发给好友）</div><div class="grp" style="padding:8px 14px">'+(r.sched.filter(function(s){return!s.done}).map(function(s,i){return'<div class="row"><div style="flex:1;min-width:0"><small>'+new Date(s.at).toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})+' → '+esc((r.convs[s.fid]||{}).name||'')+'</small><br>'+esc(s.t)+'</div><button class="btn g" onclick="lkDel(\''+id+'\',\''+s.id+'\')">删</button></div>'}).join('')||'<p class="mut" style="margin:4px 0">暂无</p>')+'<select class="in" id="lks-f" style="margin-top:8px">'+convs+'</select><input class="in" id="lks-t" placeholder="消息内容" style="margin-top:6px"><input class="in" id="lks-a" type="datetime-local" style="margin-top:6px"><button class="btn g" style="margin-top:8px" onclick="lkAdd(\''+id+'\')">添加定时消息</button></div>'
+ +'<div class="fl acts" style="margin-top:12px"><button class="btn g" onclick="lkRegen(\''+id+'\')">重新读取 TA 的好友</button></div>':'')+'</div>')}
+function lkSet(id,k,v){var r=lkRec(id);r.cfg[k]=v;save()}
+function lkApi(id,k,v){var r=lkRec(id);r.cfg.api=Object.assign({},r.cfg.api||{});r.cfg.api[k]=v.trim();if(!r.cfg.api.url&&!r.cfg.api.key&&!r.cfg.api.model)r.cfg.api=null;save()}
+function lkAdd(id){var f=document.getElementById('lks-f'),t=document.getElementById('lks-t'),a=document.getElementById('lks-a');if(!f||!f.value||!t.value.trim()||!a.value)return toast('请选好友、填内容和时间');var at=new Date(a.value).getTime();if(!at)return toast('时间无效');var r=lkRec(id);r.sched.push({id:'s'+Date.now(),fid:f.value,t:t.value.trim(),at:at});save();lkCfg(id)}
+function lkDel(id,sid){var r=lkRec(id);r.sched=r.sched.filter(function(s){return s.id!=sid});save();lkCfg(id)}
+function lkRegen(id){cf('重新读取 TA 的好友？会替换已关联的会话。',function(){var r=lkRec(id);r.convs={};save();lkInit(id).then(function(){lkCfg(id)})})}
+/* ---------- 聊天信息入口：权限 + 反查岗 + 关联 ---------- */
+var _csFf=csM;csM=function(){var r=_csFf.apply(this,arguments);try{if(PK)return r;var t=TG(cid);if(!t||t.m)return r;var g=document.querySelector('#fa-rv .grp');if(!g||document.getElementById('rk-pm'))return r;var p=rkPm(cid),sw=function(k,t2,d){return'<label class="sw2" style="display:block">'+t2+'<input type="checkbox" '+(p[k]?'checked':'')+(k!='kick'&&k!='link'&&!p.kick&&(k=='kq'||k=='pop'||k=='kc')?' disabled':'')+' onchange="rkSet(\''+k+'\',this.checked)"><small style="display:block;color:#999;font-size:11.5px;margin-top:2px;font-weight:400">'+d+'</small></label>'};
+ var rk=rkRec(cid);g.insertAdjacentHTML('afterend','<div id="rk-pm"><div class="lbl2">账号权限</div><div class="grp" style="padding:4px 14px">'+sw('kick','允许 TA 顶我的号','TA 可以登录你的账号查看')+sw('kq','被顶号时弹窗询问我','顶号前先问你允不允许')+sw('pop','顶号时 TA 弹窗质问','TA 在窗口里显示查看过程，你也可以质问 TA')+sw('kc','TA 来电时顶我下线','来电先出现「账号已下线」，TA 先查再打')+sw('pk','允许 TA 发描述图 / 生图','关闭后 TA 的图片标记不会生成图片')+sw('link','关联 TA 的微信账号','TA 好友的会话出现在你的消息列表')+'</div><div class="grp"><div class="cell" onclick="lkCfg(\''+cid+'\')">'+ic('user',20)+'<span>关联账号设置</span><small class="mut" style="margin-left:auto;margin-right:8px">'+(p.link?'已开启':'未开启')+'</small><span class="chev">'+ic('back',14)+'</span></div><div class="cell" onclick="rkLog(\''+cid+'\')">'+ic('user',20)+'<span>反查岗记录</span><small class="mut" style="margin-left:auto;margin-right:8px">'+rk.sess.length+' 次</small><span class="chev">'+ic('back',14)+'</span></div></div></div>')}catch(e){}return r};
+</script>
+<script type="text/x-app">
+/* ===== v30：数据注入 + 账号权限分组卡片 ===== */
+S.dt=Object.assign({on:true,acc:true,pk:true,seen:true,lk:true,app:true,act:true},S.dt||{});
+function dtAgo(ts){var d=Math.max(0,Date.now()-ts),m=Math.round(d/6e4);if(m<1)return'刚刚';if(m<60)return m+'分钟前';var h=Math.round(m/60);if(h<24)return h+'小时前';return Math.round(h/24)+'天前'}
+function dtTxt(id,force){var g=S.dt;if(!force&&!g.on)return'';var c=S.ct.find(function(x){return x.id==id});if(!c||PK)return'';var p=rkPm(id),s=[],me=S.wx||{};
+ if(g.acc){var a='对方微信：'+(me.nick||me.id||'未登录')+(me.id&&me.nick?'（'+me.id+'）':'')+'，好友 '+S.ct.length+' 人'+(me.sig?'，签名「'+String(me.sig).slice(0,20)+'」':'')+'；本机登录过 '+(S.accts||[]).length+' 个微信账号';s.push(a)}
+ if(g.pk){var pr=S.pk.chars[id],rr=S.rk.chars[id],t=[];if(pr&&pr.sess&&pr.sess.length){var l=pr.sess[0];t.push('对方顶号登录过你的微信 '+pr.sess.length+' 次，最近一次在'+dtAgo(l.ts)+(l.noticed?'（你当时发现了）':'（你没发现）'))}else t.push('对方还没顶号登录过你的微信');
+  if(rr&&rr.sess&&rr.sess.length){var q=rr.sess.filter(function(x){return x.end!='denied'});t.push('你顶号登录过对方的微信 '+q.length+' 次'+(rr.sess[0]?'，最近一次在'+dtAgo(rr.sess[0].ts):''))}else t.push('你还没顶号登录过对方的微信');
+  if(RK)t.push('此刻你正在顶号查看对方的微信');s.push(t.join('；'))}
+ if(g.seen){var pr2=S.pk.chars[id],rr2=S.rk.chars[id],sn=pr2&&pr2.seen?Object.keys(pr2.seen).sort(function(a,b){return pr2.seen[b]-pr2.seen[a]}).slice(0,6):[];if(sn.length)s.push('对方在你微信里看过：'+sn.join('、'));if(rr2&&rr2.sess&&rr2.sess[0]&&rr2.sess[0].steps&&rr2.sess[0].steps.length){s.push('你最近一次的操作日志：'+rr2.sess[0].steps.slice(0,6).map(function(x){return x.l}).join('→'))}}
+ if(g.lk&&p.link){var lr=S.lk.chars[id],n=lr?Object.keys(lr.convs||{}).length:0;s.push('你的微信已关联到对方的客户端，'+n+' 个好友会话对方能看到'+(lr&&lr.cfg&&lr.cfg.mute?'（全部免打扰）':''))}
+ if(g.app){var ap=[],L=S.ch[id]||[],lm=L.filter(function(m){return!m.ph&&m.k!='pat'&&m.ts}).slice(-1)[0];if(lm)ap.push('微信：最后一条是'+(lm.r=='u'?'对方':'你')+'在'+dtAgo(lm.ts)+'发的');
+  var sk=['c:'+id].concat(c.ph?['n:'+c.ph]:[]),sl=[];sk.forEach(function(k){(S.sm[k]||[]).forEach(function(m){if(m.ts)sl.push(m)})});sl.sort(function(a,b){return a.ts-b.ts});var ls=sl.slice(-1)[0];if(ls)ap.push('短信：最后一条是'+(ls.r=='u'?'对方':'你')+'在'+dtAgo(ls.ts)+'发的');
+  var mo=(S.mo||[]).filter(function(m){return m.by=='me'||m.by==me.id}).sort(function(a,b){return b.ts-a.ts})[0];if(mo)ap.push('对方朋友圈：'+dtAgo(mo.ts)+'发了「'+String(mo.t||'').slice(0,20)+'」');
+  var lo=(S.cs[id]||{}).loc;if(lo&&lo.mode&&lo.mode!='none'&&lo.name)ap.push('线下：你在「'+lo.name+'」');
+  var cl2=(S.calls||[]).filter(function(k){return k.name==c.name||k.n==c.ph})[0];if(cl2)ap.push('通话：最近一次'+(cl2.missed?'未接':cl2.in?'对方来电':'你打出')+'，'+dtAgo(cl2.time));
+  var ev=[];try{S.cal.forEach(function(e){if(e.cid!=id&&e.cid!='*')return;var n=calNext(e);if(!n)return;var df=calDiff(n);if(df>=0&&df<=7)ev.push({t:e.t,df:df,an:e.ty=='an'})});ev.sort(function(a,b){return a.df-b.df});if(ev.length)ap.push((ev[0].an?'纪念日：':'待办日程：')+ev.slice(0,3).map(function(x){return(x.df?x.df+'天后':'今天')+'「'+x.t+'」'}).join('、'))}catch(e){}
+  if(ap.length)s.push('跨 App 近况——'+ap.join('；'))}
+ if(g.act&&p.kick)s.push('你（在对方允许顶号的前提下）可用的动作：查聊天、看朋友圈、看钱包、看好友、打电话、视频、退出登录');
+ return s.length?'\n\n【账号与近况（系统数据，仅供你判断，不要逐条复述）】\n'+s.map(function(x){return'· '+x}).join('\n'):''}
+var _aiDt=ai;ai=function(msgs,sys,on,cfg){try{if(!PK&&sys&&typeof sys=='string'&&sys.indexOf('⁣WB⁣')>=0&&sys.indexOf('【账号与近况')<0&&sys.indexOf('群聊')<0){var id=wbIdOf();if(id&&S.ct.some(function(c){return c.id==id}))sys+=dtTxt(id)}}catch(e){}return _aiDt(msgs,sys,on,cfg)};
+/* 顶号相关提示词里强制带上 */
+var _rkPlanDt=rkPlan;rkPlan=async function(){var R=RK,t=R?dtTxt(R.id,true):'';if(t){window.__dtAdd=t}try{return await _rkPlanDt.apply(this,arguments)}finally{window.__dtAdd=''}};
+var _aiDt2=ai;ai=function(msgs,sys,on,cfg){if(window.__dtAdd&&typeof sys=='string'&&sys.indexOf('【账号与近况')<0)sys+=window.__dtAdd;return _aiDt2(msgs,sys,on,cfg)};
+var _rkRpDt=rkReply;rkReply=async function(){var R=RK;if(R)window.__dtAdd=dtTxt(R.id,true);try{return await _rkRpDt.apply(this,arguments)}finally{window.__dtAdd=''}};
+var _pkAiDt=pkAI;pkAI=async function(u,sys){if(PK)window.__dtAdd=dtTxt(PK.cid,true).replace('此刻你正在顶号查看对方的微信','');try{return await _pkAiDt(u,sys)}finally{window.__dtAdd=''}};
+/* ---- 数据注入设置页 ---- */
+function dtCfg(){var g=S.dt,r=function(k,t,d){return'<label class="cr t"><span>'+t+'<small>'+d+'</small></span><input type="checkbox" '+(g[k]?'checked':'')+' onchange="S.dt.'+k+'=this.checked;save()"></label>'};
+ view(hd('数据注入','',"csM()")+'<div class="body cpage"><div class="chead"><div style="font-size:19px;font-weight:500">账号与近况注入</div><small class="mut">让角色知道账号、顶号和各 App 的情况</small></div>'
+ +'<div class="grp">'+r('on','总开关','关闭后聊天里不再注入下面所有数据（顶号查看时仍会带上）')+'</div>'
+ +'<div class="lbl2">账号</div><div class="grp">'+r('acc','账号资料与好友列表','昵称、微信号、好友数、签名、本机账号数')+r('lk','关联账号情况','是否关联、可见会话数、免打扰')+'</div>'
+ +'<div class="lbl2">顶号</div><div class="grp">'+r('pk','顶号 / 被顶号情况','双方顶号的次数与最近一次时间')+r('seen','看过的内容与操作日志','对方看过的清单、你最近的操作日志')+'</div>'
+ +'<div class="lbl2">近况与动作</div><div class="grp">'+r('app','跨 App 近况','微信、短信、朋友圈、线下、通话、待办与纪念日')+r('act','可用动作清单','查聊天、看朋友圈、看钱包、看好友、打电话、视频、退出')+'</div>'
+ +'<div class="fl acts"><button class="btn g" onclick="dtPrev()">预览当前角色会收到的内容</button></div></div>')}
+function dtPrev(){var id=cid;if(!id||!S.ct.some(function(c){return c.id==id}))return toast('请先从某个角色的聊天信息进入');var t=dtTxt(id,true);modal('<div class="h1" style="font-size:18px">注入预览</div><pre style="white-space:pre-wrap;font:12.5px/1.8 inherit;margin:8px 0;max-height:46vh;overflow:auto">'+esc(t||'（当前没有可注入的内容）')+'</pre><div class="fl acts"><button class="btn" onclick="closeM()">关闭</button></div>')}
+/* ---- 账号权限：重做为分组卡片 ---- */
+var _csFg=csM;csM=function(){var r=_csFg.apply(this,arguments);try{if(PK)return r;var o=document.getElementById('rk-pm');if(!o)return r;var p=rkPm(cid),rk=rkRec(cid),lr=S.lk.chars[cid]||{};
+ var row=function(k,t,d,dis){return'<label class="cr t" style="'+(dis?'opacity:.4':'')+'"><span>'+t+'<small>'+d+'</small></span><input type="checkbox" '+(p[k]?'checked':'')+(dis?' disabled':'')+' onchange="rkSet(\''+k+'\',this.checked)"></label>'},
+ nv=function(t,x,f){return'<div class="cell" onclick="'+f+'">'+ic('user',20)+'<span>'+t+'</span><small class="mut" style="margin-left:auto;margin-right:8px">'+x+'</small><span class="chev" style="margin-left:0">'+ic('back',14)+'</span></div>'},d=!p.kick;
+ o.outerHTML='<div id="rk-pm"><div class="lbl2">顶号权限</div><div class="grp">'+row('kick','允许 TA 顶我的号','TA 可以登录你的账号查看')+row('kq','被顶号时先询问我','顶号前弹窗让你允许或拒绝',d)+row('pop','顶号时 TA 弹窗质问','查看过程窗口，你也可以质问 TA',d)+row('kc','来电时顶我下线','来电先出现「账号已下线」，TA 先查再打',d)+'</div>'
+ +'<div class="lbl2">其他权限</div><div class="grp">'+row('pk','允许 TA 发描述图 / 生图','关闭后 TA 的图片标记不会生成图片')+row('link','关联 TA 的微信账号','TA 好友的会话出现在你的消息列表')+'</div>'
+ +'<div class="lbl2">账号数据</div><div class="grp">'+nv('关联账号设置',p.link?'已开启':'未开启',"lkCfg('"+cid+"')")+nv('反查岗记录',rk.sess.length+' 次',"rkLog('"+cid+"')")+nv('数据注入',S.dt.on?'已开启':'已关闭',"dtCfg()")+'</div></div>'}catch(e){}return r};
 </script>
 <script>
 (function(){var DB='aiphone-db',ST='kv',KEY='aiphone',db=null,ok=false,tmr=0,dirty=false,dead=false,inflight=false,pend=null,warnT=0,LSL=4400000;
