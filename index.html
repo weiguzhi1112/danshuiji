@@ -2011,8 +2011,8 @@ body.fs .hd{padding-top:env(safe-area-inset-top,0px)}
 
 /* ================= 全屏 Web App ================= */
 function isStandalone(){try{return !!(window.matchMedia('(display-mode: standalone)').matches||window.matchMedia('(display-mode: fullscreen)').matches||navigator.standalone)}catch(e){return false}}
-function applyFs(){var m=(S.ui&&S.ui.fsm)||'auto',on=m=='on'||(m=='auto'&&(isStandalone()||Math.min(innerWidth,innerHeight)<=520));
- document.body.classList.toggle('fs',on);document.body.classList.toggle('rsb',on&&!!navigator.standalone)}
+function applyFs(){var m=(S.ui&&S.ui.fsm)||'auto',on=m=='on'||m=='fit'||(m=='auto'&&(isStandalone()||Math.min(innerWidth,innerHeight)<=520));
+ document.body.classList.toggle('fit',m=='fit');document.body.classList.toggle('fs',on);document.body.classList.toggle('rsb',on&&!!navigator.standalone)}
 var _auF=applyUI;applyUI=function(){_auF.apply(this,arguments);applyFs()};
 addEventListener('resize',applyFs);addEventListener('orientationchange',applyFs);
 try{window.matchMedia('(display-mode: standalone)').addEventListener('change',applyFs)}catch(e){}
@@ -2084,7 +2084,7 @@ bootPlay();
 /* ================= 主题页：全屏与安装 ================= */
 var _ptP=A.theme;A.theme=function(){var b0=document.querySelector('.body'),h0=b0&&b0.querySelector('.h1'),keep=(h0&&h0.textContent=='Theme')?b0.scrollTop:0;_ptP.apply(this,arguments);var b=document.querySelector('.body');if(!b||b.querySelector('#instbtn'))return;
  var m=(S.ui&&S.ui.fsm)||'auto';
- b.insertAdjacentHTML('beforeend','<div class="sec" style="margin-top:18px">全屏与安装</div><div class="cr t" style="display:flex;justify-content:space-between;align-items:center;margin-top:8px"><span>全屏显示</span><select class="cri" style="flex:none;direction:rtl" onchange="S.ui.fsm=this.value;save();applyFs()">'+[['auto','自动（手机/桌面应用）'],['on','始终全屏'],['off','模拟手机外壳']].map(function(a){return'<option value="'+a[0]+'" '+(m==a[0]?'selected':'')+'>'+a[1]+'</option>'}).join('')+'</select></div>'
+ b.insertAdjacentHTML('beforeend','<div class="sec" style="margin-top:18px">全屏与安装</div><div class="cr t" style="display:flex;justify-content:space-between;align-items:center;margin-top:8px"><span>全屏显示</span><select class="cri" style="flex:none;direction:rtl" onchange="S.ui.fsm=this.value;save();applyFs()">'+[['auto','自动（手机/桌面应用）'],['on','始终全屏'],['fit','不保留外壳（仅铺满）'],['off','保留手机外壳']].map(function(a){return'<option value="'+a[0]+'" '+(m==a[0]?'selected':'')+'>'+a[1]+'</option>'}).join('')+'</select></div>'
   +'<div class="fl"><button class="btn g" id="instbtn" onclick="pwaInstall()">'+(isStandalone()?'已安装（桌面应用运行中）':'安装到桌面')+'</button></div><p class="mut inst" style="margin-top:6px">安装后从桌面图标打开，无地址栏，全屏运行；iPhone 请用 Safari →「分享」→「添加到主屏幕」。</p>');
  if(keep)b.scrollTop=keep};
 </script>
@@ -2329,11 +2329,12 @@ body.dark #sm .bb.me:not(.sms),body.dark #cm .bb.me{color:#000}
 (function(){var st=document.createElement('style');st.id='fsfix';st.textContent=`
 html{--sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px)}
 body.fs #scr{top:var(--sat)}
-body.fs #sb{top:var(--sat)}
+body.fs #sb{top:0}
 body.fs .hd{padding-top:0}
 body.fs #home{padding-top:64px}
 body.fs #bar{bottom:max(8px,var(--sab))}
-html.sa body.fs::before{content:"";position:fixed;left:0;right:0;top:0;height:var(--sat);background:#000;z-index:9999;pointer-events:none}
+body.fs::before{content:"";position:fixed;left:0;right:0;top:0;height:var(--sat);background:var(--fsbg,#f6f6f4) var(--fsimg,none) center top/cover;z-index:9999;pointer-events:none}
+@media(min-width:700px){body.fs.fit #ph{width:100vw!important;height:100vh!important;border-radius:0!important}}
 html.sa body.fs #sb{display:none}
 html.sa body.fs #boot0{top:0}
 `;document.body.appendChild(st);
@@ -2977,10 +2978,18 @@ function dDo(){var m=dIm;if(!m)return;var rows=m.z.rows.filter(function(r){retur
  cf((dMode=='ow'?'覆盖':'合并')+'导入 '+rows.length+' 个 App 的数据？页面会自动刷新',function(){try{rows.forEach(function(r){r.keys.forEach(function(k){S[k]=dMode=='mg'&&S[k]!==undefined?dMerge(S[k],m.d[k]):m.d[k]})});save();dIm=null;(window.__flush?__flush():Promise.resolve()).then(function(){location.reload()})}catch(e){toast('导入失败：'+e.message)}})}
 /* ===== 退出 / 进入全屏 ===== */
 function fsIs(){return document.body.classList.contains('fs')||!!(document.fullscreenElement||document.webkitFullscreenElement)}
-function fsExit(){S.ui.fsm='off';save();try{if(document.fullscreenElement)document.exitFullscreen();else if(document.webkitFullscreenElement)document.webkitExitFullscreen()}catch(e){}applyFs();try{saApply()}catch(e){}try{icons()}catch(e){}
- toast(isStandalone()?'已退出全屏显示，改为手机外壳；若是从桌面图标打开的，系统层面的全屏要在系统里关闭':'已退出全屏');if(cur=='set'||cur=='theme')go(cur)}
+function fsExit(){modal('<div class="h1" style="font-size:19px">退出全屏</div><p class="mut" style="font-size:13px;line-height:1.8;margin:8px 0 14px">退出后想怎么显示？</p><div class="grp"><div class="cell" onclick="fsExit2(\'off\')"><span>保留手机外壳<small class="mut" style="display:block;font-size:11.5px;margin-top:2px">回到带边框的手机样式</small></span></div><div class="cell" onclick="fsExit2(\'fit\')"><span>不保留外壳，仅铺满屏幕<small class="mut" style="display:block;font-size:11.5px;margin-top:2px">去掉外壳和边框，内容占满整个窗口</small></span></div></div><div class="fl acts"><button class="btn g" onclick="closeM()">取消</button></div>')}
+function fsExit2(m){closeM();S.ui.fsm=m;save();try{if(document.fullscreenElement)document.exitFullscreen();else if(document.webkitFullscreenElement)document.webkitExitFullscreen()}catch(e){}applyFs();try{saApply()}catch(e){}try{icons()}catch(e){}
+ toast(m=='fit'?'已退出全屏，仅铺满屏幕':(isStandalone()?'已改为手机外壳；若是从桌面图标打开的，系统层面的全屏要在系统里关闭':'已退出全屏，保留手机外壳'));if(cur=='set'||cur=='theme')go(cur)}
+
+/* 顶部安全区底色跟随当前页面，不再出现黑色条 */
+function fsTint(){try{if(!document.body.classList.contains('fs'))return;var r=document.documentElement.style,app=document.querySelector('#app.on'),scr=document.getElementById('scr'),c='',img='none',bad=function(x){return!x||x=='rgba(0, 0, 0, 0)'||x=='transparent'};
+ if(app){var a=app.querySelector('.app')||app;c=getComputedStyle(a).backgroundColor;if(bad(c))c=getComputedStyle(app).backgroundColor}
+ if(bad(c)&&scr){var ss=getComputedStyle(scr);c=ss.backgroundColor;img=ss.backgroundImage}
+ r.setProperty('--fsbg',bad(c)?'#f6f6f4':c);r.setProperty('--fsimg',img&&img!='none'?img:'none')}catch(e){}}
+setInterval(fsTint,400);fsTint();
 function fsEnter(){S.ui.fsm='on';save();try{var e=document.documentElement,f=e.requestFullscreen||e.webkitRequestFullscreen;if(f)f.call(e)}catch(x){}applyFs();try{saApply()}catch(e){}try{icons()}catch(e){}toast('已进入全屏');if(cur=='set'||cur=='theme')go(cur)}
-function fsCell(){var on=fsIs();return SCELL('set',on?'退出全屏':'进入全屏',on?'fsExit()':'fsEnter()','',on?'回到带手机外壳的显示':'隐藏外壳，铺满整个屏幕')}
+function fsCell(){var on=fsIs();return SCELL('set',on?'退出全屏':'进入全屏',on?'fsExit()':'fsEnter()','',on?((S.ui&&S.ui.fsm)=='fit'?'当前：仅铺满，无外壳':'选择保留外壳或仅铺满'):'隐藏外壳，铺满整个屏幕')}
 var _aSetFs=A.set;A.set=function(){_aSetFs.apply(this,arguments);try{if(sp)return;var b=document.querySelector('.body');if(!b||b.querySelector('#fsc'))return;var cell=[].filter.call(b.querySelectorAll('.cell'),function(c){return c.textContent.indexOf('外观与主题')>=0})[0];if(!cell)return;var d=document.createElement('div');d.id='fsc';d.innerHTML=fsCell();cell.parentNode.appendChild(d.firstChild);var n=cell.parentNode.lastChild;n.id='fsc'}catch(e){}};
 var _aThFs=A.theme;A.theme=function(){_aThFs.apply(this,arguments);try{var b=document.querySelector('.body');if(!b||b.querySelector('#fsc2'))return;var w=document.createElement('div');w.id='fsc2';w.className='fl';w.innerHTML='<button class="btn g" onclick="'+(fsIs()?'fsExit()':'fsEnter()')+'">'+(fsIs()?'退出全屏':'进入全屏')+'</button>';b.appendChild(w)}catch(e){}};
 </script>
@@ -4914,6 +4923,123 @@ var _csFg=csM;csM=function(){var r=_csFg.apply(this,arguments);try{if(PK)return 
  o.outerHTML='<div id="rk-pm"><div class="lbl2">顶号权限</div><div class="grp">'+row('kick','允许 TA 顶我的号','TA 可以登录你的账号查看')+row('kq','被顶号时先询问我','顶号前弹窗让你允许或拒绝',d)+row('pop','顶号时 TA 弹窗质问','查看过程窗口，你也可以质问 TA',d)+row('kc','来电时顶我下线','来电先出现「账号已下线」，TA 先查再打',d)+'</div>'
  +'<div class="lbl2">其他权限</div><div class="grp">'+row('pk','允许 TA 发描述图 / 生图','关闭后 TA 的图片标记不会生成图片')+row('link','关联 TA 的微信账号','TA 好友的会话出现在你的消息列表')+'</div>'
  +'<div class="lbl2">账号数据</div><div class="grp">'+nv('关联账号设置',p.link?'已开启':'未开启',"lkCfg('"+cid+"')")+nv('反查岗记录',rk.sess.length+' 次',"rkLog('"+cid+"')")+nv('数据注入',S.dt.on?'已开启':'已关闭',"dtCfg()")+'</div></div>'}catch(e){}return r};
+</script>
+<script type="text/x-app">
+/* ===== v31：线下（长文本视觉小说） ===== */
+S.vn=S.vn||{sess:[],cfg:{}};S.vn.sess=S.vn.sess||[];S.vn.cfg=Object.assign({fs:17,tw:true,spd:26,pg:true,inj:true},S.vn.cfg||{});
+P.more='M4.5 12h2M11 12h2M17.5 12h2';Object.assign(P,{off:'M5 3h11a3 3 0 013 3v15H8a3 3 0 01-3-3zM5 18a3 3 0 013-3h11M9 7h6M9 10h4'});
+ICL.push(['off','线下']);LB.off=['线下','Offline'];
+var VN={s:null,i:0,busy:0,tok:0,cnt:0,tw:null,typing:0,skip:0},vnF=null;
+(function(){var st=document.createElement('style');st.textContent=`
+.cr.t small{display:block;color:#999;font-size:11.5px;margin-top:2px;font-weight:400}
+.vnb{padding:0!important;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.vnst{flex:1;min-height:0;position:relative;background:linear-gradient(180deg,#f1eee8,#d8d3c9);background-size:cover;background-position:center;display:flex;align-items:flex-end;justify-content:center}
+body.dark .vnst{background:linear-gradient(180deg,#2a2926,#171715);background-size:cover;background-position:center}
+.vnst.hb::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.18)}
+.vnav{position:absolute;left:50%;bottom:34%;width:46%;max-width:200px;aspect-ratio:3/4;transform:translateX(-50%);border-radius:22px;background-size:cover;background-position:center;background-color:rgba(0,0,0,.06);display:grid;place-items:center;font-size:54px;color:rgba(0,0,0,.25);box-shadow:0 18px 40px rgba(0,0,0,.18)}
+.vnbox{position:relative;width:calc(100% - 28px);margin:0 14px 12px;background:#fff;color:#161616;border-radius:22px;padding:22px 20px 16px;box-shadow:0 10px 36px rgba(0,0,0,.14);max-height:54%;display:flex;flex-direction:column}
+body.dark .vnbox{background:#222220;color:#eee}
+.vnnm{position:absolute;left:18px;top:-13px;background:#161616;color:#fff;font-size:12px;letter-spacing:.12em;padding:4px 14px;border-radius:12px}body.dark .vnnm{background:#f1f1ee;color:#111}
+.vntx{overflow:auto;white-space:pre-wrap;word-break:break-word;font-family:"Noto Serif SC","Songti SC",serif;line-height:2;min-height:120px;-webkit-overflow-scrolling:touch}
+.vntx .vnd{font-weight:400;color:#b05a6e}body.dark .vntx .vnd{color:#e59aae}
+.vnpg{display:flex;justify-content:space-between;font-size:11px;color:#999;margin-top:10px;letter-spacing:.08em}
+.vnact{width:calc(100% - 28px);margin:0 14px 14px;background:#fff;border-radius:20px;padding:12px;box-shadow:0 6px 24px rgba(0,0,0,.1);position:relative}body.dark .vnact{background:#222220}
+.vnop{display:block;width:100%;text-align:left;padding:10px 14px;border-radius:14px;background:#f4f4f2;margin-bottom:8px;font-size:14px;line-height:1.6;color:inherit}body.dark .vnop{background:#2e2e2c}
+.vnin{display:flex;gap:8px}.vnin input{flex:1;height:40px;border-radius:20px;border:1px solid rgba(0,0,0,.14);padding:0 14px;background:none;color:inherit;font-size:14px}
+.vnin button,.vnsm button{height:40px;padding:0 16px;border-radius:20px;background:#111;color:#fff;font-size:13px}body.dark .vnin button{background:#f1f1ee;color:#111}
+.vnsm{display:flex;gap:8px;margin-top:8px}.vnsm button{flex:1;height:34px;background:#efefed;color:#555;font-size:12.5px}body.dark .vnsm button{background:#323230;color:#bbb}
+.vnld{display:flex;align-items:center;justify-content:center;gap:10px;height:48px;font-size:13px;color:#888;letter-spacing:.06em}
+.vnc{background:#f7f7f5;border-radius:18px;padding:16px 18px;margin-bottom:12px}body.dark .vnc{background:#2a2a28}
+.vnc b{font-weight:500;font-size:16px}.vnc small{display:block;color:#999;font-size:12px;margin-top:3px}.vnc p{margin:8px 0 0;font-size:13px;line-height:1.7;color:#777;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.vnlg{font-family:"Noto Serif SC","Songti SC",serif;font-size:14.5px;line-height:1.95;white-space:pre-wrap;margin-bottom:16px}.vnlg.u{color:#b05a6e;border-left:2px solid #d4768b;padding-left:12px}
+.vnlg small{display:block;font-family:inherit;font-size:11px;color:#999;margin-top:4px}.vnlg small u{margin-right:12px}
+`;document.body.appendChild(st)})();
+function vnMe(){var w=S.wx||{};return w.nick||w.id||'我'}
+function vnClean(t){return String(t||'').replace(/[【\[](?:状态|心声|回应|换头像|来电)[:：][^】\]]*[】\]]/g,'').replace(/\*\*/g,'').replace(/\n{3,}/g,'\n\n').trim()}
+function vnPages(t){var p=String(t||'').split(/\n\s*\n/).map(function(x){return x.trim()}).filter(Boolean);if(p.length<=1&&String(t||'').indexOf('\n')>=0)p=String(t).split(/\n+/).map(function(x){return x.trim()}).filter(Boolean);return p.length?p:['……']}
+function vnHl(t){return esc(t).replace(/「[^」]*」|“[^”]*”/g,function(m){return'<b class="vnd">'+m+'</b>'})}
+function vnLast(s){for(var i=s.ch.length-1;i>=0;i--)if(s.ch[i].r=='a')return i;return -1}
+/* ---- 列表 ---- */
+A.off=function(){cur='off';VN.s=null;vnList()};
+function vnList(){var L=S.vn.sess.slice().sort(function(a,b){return(b.ut||0)-(a.ut||0)});
+ view(hd('线下','<button class="ib" onclick="vnNewPage()">'+ic('plus',20)+'</button>','home()')+'<div class="body"><div class="h1" style="font-size:34px;margin-bottom:6px">Offline</div><p class="mut" style="font-size:12.5px;line-height:1.8;margin:0 0 16px">和角色线下见面的长文本故事。篇幅、视角、文风自己定，故事会带回聊天里。</p>'
+ +(L.length?L.map(function(s){var c=TG(s.cid),li=vnLast(s),ex=li>=0?vnClean(s.ch[li].t).replace(/\s+/g,' ').slice(0,80):'';return'<div class="vnc" onclick="vnOpen(\''+s.id+'\')"><div style="display:flex;align-items:center"><b style="flex:1">'+esc(s.title)+'</b><button class="ib" style="margin:-6px -8px -6px 0" onclick="event.stopPropagation();vnCardMenu(\''+s.id+'\')">'+ic('more',18)+'</button></div><small>'+esc(c?(c.remark||c.name):'角色已删除')+' · '+s.ch.filter(function(m){return m.r=='a'}).length+' 回合 · '+new Date(s.ut||s.ts).toLocaleDateString('zh-CN',{month:'numeric',day:'numeric'})+'</small>'+(ex?'<p>'+esc(ex)+'</p>':'')+'</div>'}).join(''):'<p class="mut" style="text-align:center;margin:60px 0;line-height:2">还没有故事<br>点右上角 + 开始第一段线下</p>')+'</div>')}
+function vnCardMenu(id){modal('<div class="grp"><div class="cell" onclick="vnRename(\''+id+'\')"><span>重命名</span></div><div class="cell" onclick="vnDup(\''+id+'\')"><span>复制为新分支</span></div><div class="cell" style="color:#ff3b30" onclick="vnDel(\''+id+'\')"><span>删除故事</span></div></div>')}
+function vnRename(id){var s=S.vn.sess.find(function(x){return x.id==id});closeM();ask('重命名','标题',s.title,function(v){if(v&&v.trim()){s.title=v.trim();save();vnList()}})}
+function vnDup(id){var s=S.vn.sess.find(function(x){return x.id==id});if(!s)return;var n=JSON.parse(JSON.stringify(s));n.id='vn'+Date.now();n.title=s.title+'（分支）';n.ts=n.ut=Date.now();S.vn.sess.push(n);save();closeM();toast('已复制为新分支');if(VN.s)VN.s=n;VN.s?vnOpen(n.id):vnList()}
+function vnDel(id){closeM();cf('删除这个故事？',function(){S.vn.sess=S.vn.sess.filter(function(x){return x.id!=id});save();VN.s=null;vnList()})}
+/* ---- 新故事 ---- */
+function vnNewPage(){var cs=S.ct.filter(function(c){return!c.m});if(!cs.length)return toast('先添加一个角色');if(!vnF)vnF={cid:(cid&&cs.some(function(c){return c.id==cid})?cid:cs[0].id),title:'',setting:'',pov:'2',len:800,style:'',ops:true,ctx:true};var f=vnF;
+ view(hd('新故事','',"vnF=null;vnList()")+'<div class="body"><div class="h1" style="font-size:26px;margin-bottom:12px">新的线下</div>'
+ +'<label class="lb">角色</label><select class="in" onchange="vnF.cid=this.value">'+cs.map(function(c){return'<option value="'+c.id+'" '+(f.cid==c.id?'selected':'')+'>'+esc(c.remark||c.name)+'</option>'}).join('')+'</select>'
+ +'<label class="lb">标题（可空）</label><input class="in" value="'+esc(f.title)+'" onchange="vnF.title=this.value" placeholder="自动命名">'
+ +'<label class="lb">开场设定</label><textarea class="in" rows="5" onchange="vnF.setting=this.value" placeholder="时间、地点、起因。例如：周六傍晚，你们约在海边的咖啡馆，已经很久没见了……（留空则由角色自然开场）">'+esc(f.setting)+'</textarea>'
+ +'<label class="lb">叙述视角</label><select class="in" onchange="vnF.pov=this.value"><option value="2" '+(f.pov=='2'?'selected':'')+'>第二人称（称我为“你”）</option><option value="3" '+(f.pov=='3'?'selected':'')+'>第三人称（称呼名字）</option><option value="1" '+(f.pov=='1'?'selected':'')+'>第一人称（以角色口吻）</option></select>'
+ +'<label class="lb">每回合字数（可自定义）</label><input class="in" type="number" min="100" max="6000" step="50" value="'+f.len+'" onchange="vnF.len=Math.max(100,+this.value||800)">'
+ +'<label class="lb">文风（可空）</label><input class="in" value="'+esc(f.style)+'" onchange="vnF.style=this.value" placeholder="例如：细腻克制、留白多、偏文艺">'
+ +'<div class="grp" style="margin-top:14px"><label class="cr t"><span>提供行动选项<small>每回合末给出 3 个可选行动</small></span><input type="checkbox" '+(f.ops?'checked':'')+' onchange="vnF.ops=this.checked"></label><label class="cr t"><span>带入聊天记忆<small>角色记得你们微信、短信里聊过的事</small></span><input type="checkbox" '+(f.ctx?'checked':'')+' onchange="vnF.ctx=this.checked"></label></div>'
+ +'<div class="fl acts" style="margin-top:12px"><button class="btn g" onclick="vnF=null;vnList()">取消</button><button class="btn" onclick="vnCreate()">开始</button></div></div>')}
+function vnCreate(){var f=vnF;if(!f)return;var c=TG(f.cid);if(!c)return toast('请选择角色');var s={id:'vn'+Date.now(),cid:f.cid,title:f.title.trim()||('与'+(c.remark||c.name)+'的线下'),setting:f.setting.trim(),pov:f.pov,len:f.len,style:f.style.trim(),ops:f.ops,ctx:f.ctx,bg:'',ch:[],sum:'',ts:Date.now(),ut:Date.now()};S.vn.sess.push(s);vnF=null;save();vnOpen(s.id)}
+/* ---- 阅读界面 ---- */
+function vnOpen(id){var s=S.vn.sess.find(function(x){return x.id==id});if(!s)return;cur='off';VN.s=s;VN.skip=0;var li=vnLast(s);if(li<0){vnRender();return vnGen('new')}VN.i=vnPages(s.ch[li].t).length-1;VN.skip=1;vnRender();VN.skip=0}
+function vnRender(){var s=VN.s;if(!s)return;clearInterval(VN.tw);var c=TG(s.cid)||{name:'?'},li=vnLast(s),cfg=S.vn.cfg,tn=li>=0?vnClean(s.ch[li].t):'',pgs=vnPages(tn),n=pgs.length;if(VN.i>n-1)VN.i=n-1;if(VN.i<0)VN.i=0;
+ var last=!cfg.pg||VN.i>=n-1,nm=esc(c.remark||c.name);
+ var box=VN.busy?'<div class="vnbox"><div class="vnnm">'+nm+'</div><div class="vntx" style="font-size:'+cfg.fs+'px;color:#999">正在书写…</div></div>':(li<0?'':'<div class="vnbox" onclick="vnTap(event)"><div class="vnnm">'+nm+'</div><div class="vntx" id="vntx" style="font-size:'+cfg.fs+'px"></div>'+(cfg.pg?'<div class="vnpg"><span>'+(VN.i+1)+' / '+n+'</span><span>'+(last?'':'点击继续 ▾')+'</span></div>':'')+'</div>');
+ var ops=(li>=0&&s.ch[li].ops||[]);
+ var act=VN.busy?'<div class="vnact"><div class="vnld"><span id="vncnt">'+VN.cnt+'</span> 字 · 请稍候<button style="margin-left:6px;font-size:12px;color:#b05a6e" onclick="vnCancel()">取消</button></div></div>':(last&&li>=0?'<div class="vnact">'+ops.map(function(o,i){return'<button class="vnop" onclick="vnPick('+i+')">'+esc(o)+'</button>'}).join('')+'<div class="vnin"><input id="vni" placeholder="写下你的行动或台词…" onkeydown="event.key==\'Enter\'&&vnSend()"><button onclick="vnSend()">发送</button></div><div class="vnsm"><button onclick="vnGen(\'cont\')">继续</button><button onclick="vnGen(\'regen\')">重写</button><button onclick="vnUndo()">撤回</button></div></div>':'');
+ view(hd(esc(s.title),'<button class="ib" onclick="vnMenu()">'+ic('more',20)+'</button>','vnBack()')+'<div class="body vnb"><div class="vnst'+(s.bg?' hb':'')+'" '+(s.bg?'style="background-image:url(\''+esc(s.bg)+'\')"':'')+'><div class="vnav" '+(c.av?'style="background-image:url(\''+esc(c.av)+'\')"':'')+'>'+(c.av?'':esc((c.name||'?')[0]))+'</div><div style="width:100%;display:flex;flex-direction:column;justify-content:flex-end;max-height:100%;position:relative">'+box+act+'</div></div></div>');
+ var el=document.getElementById('vntx');if(el){if(cfg.pg){VN.skip?el.innerHTML=vnHl(pgs[VN.i]):vnType(el,pgs[VN.i])}else{el.innerHTML=pgs.map(vnHl).join('\n\n');el.style.maxHeight='42vh'}}}
+function vnType(el,t){var cfg=S.vn.cfg;if(!cfg.tw){el.innerHTML=vnHl(t);return}var i=0;VN.typing=1;VN.cur=t;VN.tw=setInterval(function(){i++;el.innerHTML=vnHl(t.slice(0,i));el.scrollTop=el.scrollHeight;if(i>=t.length){clearInterval(VN.tw);VN.typing=0;vnTail()}},Math.max(8,+cfg.spd||26))}
+function vnTail(){var s=VN.s;if(!s||VN.busy)return;var li=vnLast(s),pgs=vnPages(vnClean(s.ch[li].t));if(VN.i>=pgs.length-1&&!document.querySelector('.vnact')){var el=document.querySelector('.vnst>div');if(el)vnRender()}}
+function vnTap(e){var s=VN.s;if(!s||VN.busy)return;var li=vnLast(s),pgs=vnPages(vnClean(s.ch[li].t));if(VN.typing){clearInterval(VN.tw);VN.typing=0;var el=document.getElementById('vntx');if(el)el.innerHTML=vnHl(pgs[VN.i]);if(VN.i>=pgs.length-1)vnRender();return}
+ var bx=e&&e.currentTarget&&e.currentTarget.getBoundingClientRect(),left=bx&&e.clientX<bx.left+bx.width*.3;if(left){if(VN.i>0){VN.i--;VN.skip=1;vnRender();VN.skip=0}return}if(VN.i<pgs.length-1){VN.i++;vnRender()}}
+function vnBack(){clearInterval(VN.tw);VN.s=null;vnList()}
+function vnCancel(){VN.tok++;VN.busy=0;var s=VN.s;if(VN.bak&&s){s.ch=VN.bak;VN.bak=null}vnRender()}
+function vnPick(i){var s=VN.s,li=vnLast(s),o=(s.ch[li].ops||[])[i];if(o)vnAct(o)}
+function vnSend(){var i=document.getElementById('vni'),t=i&&i.value.trim();if(!t)return;vnAct(t)}
+function vnAct(t){var s=VN.s;if(!s||VN.busy)return;s.ch.push({r:'u',t:t,ts:Date.now()});VN.bak=null;vnGen('new')}
+function vnUndo(){var s=VN.s;if(!s||VN.busy)return;var li=vnLast(s);if(li<0)return;cf('撤回最近一回合（包括你的行动）？',function(){s.ch=s.ch.slice(0,li);if(s.ch.length&&s.ch[s.ch.length-1].r=='u')s.ch.pop();save();var l2=vnLast(s);VN.i=l2>=0?vnPages(vnClean(s.ch[l2].t)).length-1:0;VN.skip=1;vnRender();VN.skip=0;if(l2<0)vnGen('new')})}
+/* ---- 生成 ---- */
+function vnSys(s,c){var povT={'2':'第二人称：把用户称作“你”，叙述“你”的所见所感与动作。','3':'第三人称：用名字称呼双方，像小说旁白。','1':'第一人称：以「'+c.name+'」的口吻叙述（“我”是'+c.name+'）。'}[s.pov||'2'],me=vnMe();
+ return '你是一位出色的小说作者，正在写一部和角色线下见面的长文本视觉小说，你同时负责推进剧情并扮演「'+c.name+'」。\n角色人设：'+(c.persona||'普通朋友')+'。\n用户扮演「'+me+'」。\n'+(s.setting?'故事开场设定：'+s.setting+'\n':'')+(s.sum?'前情提要：'+s.sum+'\n':'')
+ +'写作要求：\n· 视角——'+povT+'\n· 每回合写一段完整的剧情，约 '+(s.len||800)+' 字，分成 4 到 10 个自然段，段与段之间空一行。\n· 包含环境、动作、神态、心理和对白；对白用「」；细节具体，不要空泛的总结句。\n· 角色按人设行动，有自己的情绪和主见，不要对用户百依百顺，也不要抢着替用户做决定。\n· 绝不替用户说话、写用户的对白或内心；用户的行动和台词（用户的消息）要自然地融入剧情并得到回应。\n· 回合结尾停在用户可以接话或行动的地方。\n· 不要出现“AI”“模型”等元叙述，不要用 markdown、标题或编号。'+(s.style?'\n· 文风：'+s.style+'。':'')
+ +(s.ops?'\n· 全部正文写完后，另起一行写【选项：甲｜乙｜丙】，给出用户下一步可能的三个行动或台词（每个不超过 24 字，口吻是用户本人）。':'')+'\n'+wbTxt()}
+function vnMsgs(s,kind){var T=s.ch.slice(-16);while(T.length&&T[0].r!='u')T.shift();var m=T.map(function(x){return{role:x.r=='u'?'user':'assistant',content:x.r=='u'?x.t:x.t}});if(!m.length)m=[{role:'user',content:'开始。'}];if(kind=='regen'&&m[m.length-1].role=='assistant')m.pop();if(!m.length||m[m.length-1].role!='user')m.push({role:'user',content:'（继续）'});return m}
+async function vnGen(kind){var s=VN.s;if(!s||VN.busy)return;var c=TG(s.cid);if(!c)return toast('这个角色已被删除');
+ if(kind=='regen'){var li=vnLast(s);if(li<0)kind='new';else{VN.bak=s.ch.slice();s.ch=s.ch.slice(0,li)}}
+ else if(kind=='cont'){s.ch.push({r:'u',t:'（继续）',hid:1,ts:Date.now()});VN.bak=null}
+ else if(kind=='new'&&!s.ch.length){s.ch.push({r:'u',t:'开始。',hid:1,ts:Date.now()})}
+ var tok=++VN.tok;VN.busy=1;VN.cnt=0;vnRender();var sys=vnSys(s,c),msgs=vnMsgs(s,kind);
+ if(kind=='regen'&&(!msgs.length||msgs[msgs.length-1].role!='user'))msgs.push({role:'user',content:'（继续）'});
+ xKey=s.ctx===false?null:{id:s.cid,ch:'off'};var r;
+ try{r=await ai(msgs,sys,function(t){VN.cnt+=t.length;var e=document.getElementById('vncnt');if(e)e.textContent=VN.cnt});
+  if(tok!=VN.tok)return}catch(e){xKey=null;if(tok!=VN.tok)return;VN.busy=0;if(VN.bak){s.ch=VN.bak;VN.bak=null}else if(kind=='cont'||kind=='new'){var lu=s.ch[s.ch.length-1];if(lu&&lu.r=='u'&&lu.hid)s.ch.pop()}vnRender();return toast('请求失败：'+(e&&e.message||e))}finally{xKey=null}
+ VN.busy=0;VN.bak=null;var raw=String(r||''),ops=[],mt=raw.match(/[【\[]选项[:：]([\s\S]*?)[】\]]/);if(mt){ops=mt[1].split(/[｜|\n]+/).map(function(x){return x.replace(/^[甲乙丙ABC123①②③][.、:：)）\s]*/,'').trim()}).filter(Boolean).slice(0,4);raw=raw.replace(mt[0],'')}
+ var t=vnClean(raw);if(!t){VN.busy=0;vnRender();return toast('模型没有返回内容，请重试')}
+ s.ch.push({r:'a',t:t,ops:ops,ts:Date.now()});s.ut=Date.now();save();VN.i=0;VN.skip=0;vnRender();vnComp(s)}
+async function vnComp(s){if(s.ch.length<=22||VN.comping)return;VN.comping=1;try{var old=s.ch.slice(0,8),txt=old.map(function(m){return(m.r=='u'?'用户行动：':'剧情：')+m.t.slice(0,600)}).join('\n');var r=await ai([{role:'user',content:(s.sum?'已有前情：'+s.sum+'\n\n':'')+'请把下面这段剧情压缩进前情提要，保留人物关系变化、重要事件、承诺与伏笔，300 字以内，不要评论：\n\n'+txt}],'你是剧情整理助手，只输出前情提要正文。',null);var v=String(r||'').trim();if(v){s.sum=v.slice(0,500);s.ch=s.ch.slice(8);save()}}catch(e){}finally{VN.comping=0}}
+/* ---- 菜单 / 设置 / 回看 ---- */
+function vnMenu(){var s=VN.s,cell=function(t,f,d){return'<div class="cell" '+(d?'style="color:#ff3b30" ':'')+'onclick="closeM();'+f+'"><span>'+t+'</span></div>'};modal('<div class="grp">'+cell('回看全文','vnLog()')+cell('阅读与写作设置','vnSet()')+cell('更换背景','vnBg()')+(s.bg?cell('清除背景','VN.s.bg=\'\';save();vnRender()'):'')+'</div><div class="grp">'+cell('写入聊天记忆','vnSum()')+cell('存档为新分支','vnDup(VN.s.id)')+cell('重新开始','vnRestart()',1)+'</div>')}
+function vnBg(){pick(function(x){VN.s.bg=x;save();vnRender()})}
+function vnRestart(){cf('清空这个故事的所有回合并重新开始？',function(){var s=VN.s;s.ch=[];s.sum='';save();VN.i=0;vnRender();vnGen('new')})}
+function vnSet(){var s=VN.s,g=S.vn.cfg,povs=[['2','第二人称'],['3','第三人称'],['1','第一人称']];modal('<div class="h1" style="font-size:19px">阅读与写作</div><label class="lb">字号 '+g.fs+'</label><input type="range" min="14" max="22" value="'+g.fs+'" oninput="S.vn.cfg.fs=+this.value;this.previousElementSibling.textContent=\'字号 \'+this.value" onchange="save();vnRender()">'
+ +'<div class="grp" style="margin-top:10px"><label class="cr t"><span>逐段阅读<small>关闭则整回合一屏滚动</small></span><input type="checkbox" '+(g.pg?'checked':'')+' onchange="S.vn.cfg.pg=this.checked;save();vnRender()"></label><label class="cr t"><span>打字机效果</span><input type="checkbox" '+(g.tw?'checked':'')+' onchange="S.vn.cfg.tw=this.checked;save()"></label></div>'
+ +'<label class="lb">打字速度（毫秒/字，越小越快）</label><input class="in" type="number" min="8" max="120" value="'+g.spd+'" onchange="S.vn.cfg.spd=Math.max(8,+this.value||26);save()">'
+ +'<div class="sec">本故事</div><label class="lb">每回合字数</label><input class="in" type="number" min="100" max="6000" step="50" value="'+(s.len||800)+'" onchange="VN.s.len=Math.max(100,+this.value||800);save()">'
+ +'<label class="lb">视角</label><select class="in" onchange="VN.s.pov=this.value;save()">'+povs.map(function(p){return'<option value="'+p[0]+'" '+(s.pov==p[0]?'selected':'')+'>'+p[1]+'</option>'}).join('')+'</select>'
+ +'<label class="lb">文风</label><input class="in" value="'+esc(s.style||'')+'" onchange="VN.s.style=this.value;save()">'
+ +'<label class="lb">开场设定</label><textarea class="in" rows="3" onchange="VN.s.setting=this.value;save()">'+esc(s.setting||'')+'</textarea>'
+ +'<div class="grp" style="margin-top:10px"><label class="cr t"><span>提供行动选项</span><input type="checkbox" '+(s.ops?'checked':'')+' onchange="VN.s.ops=this.checked;save()"></label><label class="cr t"><span>带入聊天记忆</span><input type="checkbox" '+(s.ctx!==false?'checked':'')+' onchange="VN.s.ctx=this.checked;save()"></label><label class="cr t"><span>线下剧情带回聊天<small>角色在微信里记得这段故事</small></span><input type="checkbox" '+(g.inj?'checked':'')+' onchange="S.vn.cfg.inj=this.checked;save()"></label></div><div class="fl acts" style="margin-top:12px"><button class="btn" onclick="closeM()">完成</button></div>')}
+function vnLog(){var s=VN.s;if(!s)return;view(hd('回看','', 'vnRender()')+'<div class="body">'+(s.sum?'<div class="vnc"><small style="margin:0 0 6px">前情提要</small><div style="font-size:13.5px;line-height:1.8">'+esc(s.sum)+'</div></div>':'')+s.ch.map(function(m,i){if(m.hid)return'';return'<div class="vnlg '+(m.r=='u'?'u':'')+'">'+(m.r=='u'?esc(m.t):vnHl(m.t))+'<small><u onclick="vnEditT('+i+')">编辑</u><u style="color:#ff3b30" onclick="vnDelFrom('+i+')">删除此处及之后</u></small></div>'}).join('')+'</div>')}
+function vnEditT(i){var s=VN.s,m=s.ch[i];modal('<div class="h1" style="font-size:18px">编辑</div><textarea class="in" id="vne" rows="12">'+esc(m.t)+'</textarea><div class="fl acts" style="margin-top:12px"><button class="btn g" onclick="closeM()">取消</button><button class="btn" onclick="vnEditOk('+i+')">保存</button></div>')}
+function vnEditOk(i){var v=document.getElementById('vne').value.trim();if(v){VN.s.ch[i].t=v;save()}closeM();vnLog()}
+function vnDelFrom(i){cf('删除这一条以及之后的所有内容？',function(){VN.s.ch=VN.s.ch.slice(0,i);save();vnLog()})}
+/* ---- 写入聊天 / 带回聊天 ---- */
+async function vnSum(){var s=VN.s;if(!s)return;var c=TG(s.cid);if(!c)return toast('角色已删除');if(!s.ch.some(function(m){return m.r=='a'}))return toast('还没有剧情');toast('正在整理…');
+ var txt=s.ch.slice(-10).map(function(m){return(m.r=='u'?'用户行动：':'剧情：')+m.t.slice(0,700)}).join('\n');
+ try{var r=await ai([{role:'user',content:(s.sum?'前情：'+s.sum+'\n\n':'')+txt+'\n\n请用 120 字以内总结这次线下发生了什么（谁做了什么、说了什么重要的话、关系有什么变化），第三人称，不要评论。'}],'你是剧情整理助手，只输出总结正文。',null);var v=String(r||'').trim().slice(0,260);if(!v)throw Error('空');s.sum2=v;(S.ch[s.cid]=S.ch[s.cid]||[]).push({r:'a',k:'pat',t:'你们线下见了面：'+v.slice(0,70)+(v.length>70?'…':''),ts:Date.now()});save();toast('已写入聊天')}catch(e){toast('整理失败：'+(e&&e.message||e))}}
+function vnTxt(id){if(!S.vn.cfg.inj)return'';var L=S.vn.sess.filter(function(s){return s.cid==id&&Date.now()-(s.ut||0)<14*864e5&&s.ch.some(function(m){return m.r=='a'})}).sort(function(a,b){return b.ut-a.ut}).slice(0,2);if(!L.length)return'';return'\n\n【你们最近线下发生的事】\n'+L.map(function(s){var li=vnLast(s),v=s.sum2||((s.sum?s.sum+' ':'')+'最近的情节：'+vnClean(s.ch[li].t).replace(/\s+/g,' ').slice(0,220));return'· '+v}).join('\n')+'\n（这是你们真实见面时发生的事，你都记得，自然地接上即可，不必复述。）'}
+var _aiVn=ai;ai=function(msgs,sys,on,cfg){try{if(!PK&&sys&&typeof sys=='string'&&sys.indexOf('⁣WB⁣')>=0&&sys.indexOf('【你们最近线下')<0&&sys.indexOf('群聊')<0&&!(xKey&&xKey.ch=='off')){var id=wbIdOf();if(id&&S.ct.some(function(c){return c.id==id}))sys+=vnTxt(id)}}catch(e){}return _aiVn(msgs,sys,on,cfg)};
 </script>
 <script>
 (function(){var DB='aiphone-db',ST='kv',KEY='aiphone',db=null,ok=false,tmr=0,dirty=false,dead=false,inflight=false,pend=null,warnT=0,LSL=4400000;
