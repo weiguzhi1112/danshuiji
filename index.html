@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="淡水机">
 <meta name="theme-color" content="#000000"><meta name="application-name" content="淡水机">
@@ -2287,7 +2287,7 @@ body.fs #ph{padding-left:env(safe-area-inset-left,0);padding-right:env(safe-area
 var IOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform=='MacIntel'&&navigator.maxTouchPoints>1);
 if(IOS)document.documentElement.classList.add('ios');
 /* 键盘/地址栏：用 visualViewport 同步真实高度 */
-(function(){var vv=window.visualViewport;function f(){var h=vv?vv.height:innerHeight;document.documentElement.style.setProperty('--vvh',h+'px');if(IOS&&vv&&vv.offsetTop)scrollTo(0,0)}
+(function(){var vv=window.visualViewport;function f(){var h=vv?vv.height:innerHeight;document.documentElement.style.setProperty('--vvh',h+'px');if(IOS&&vv&&vv.offsetTop&&!document.documentElement.classList.contains('kbo'))scrollTo(0,0)}
  f();if(vv){vv.addEventListener('resize',f);vv.addEventListener('scroll',f)}addEventListener('orientationchange',function(){setTimeout(f,300)});
  document.addEventListener('focusout',function(){setTimeout(function(){scrollTo(0,0);f()},120)})})();
 /* 图标：使用「淡水」图标 */
@@ -5354,6 +5354,31 @@ function bkCard(){var u=S.ui,d=u.bkd||7,l=u.bkl;return '<div class="sec">备份�
 var _pgdBk=PG.data;PG.data=function(){return _pgdBk.apply(this,arguments)+bkCard()};
 function bkCheck(){try{var u=S.ui;if(u.bkr===false)return;if(!u.bk0){u.bk0=Date.now();save();return}var base=u.bkl||u.bk0,days=Math.floor((Date.now()-base)/864e5);if(days<(u.bkd||7))return;if(Date.now()-(u.bkn||0)<432e5)return;u.bkn=Date.now();save();notify('set','备份提醒',(u.bkl?'已 '+days+' 天没有备份':'还没有备份过')+'数据，点此去导出',function(){go('set');sp='data';A.set()})}catch(e){}}
 setTimeout(bkCheck,9000);setInterval(bkCheck,36e5);
+</script>
+
+<script type="text/x-app">
+/* ===== v43：键盘弹出时整页贴合可视区，输入框永远在键盘上方 ===== */
+var KB={open:0,raf:0};
+function kbEd(){var a=document.activeElement;return!!a&&(a.tagName=='INPUT'||a.tagName=='TEXTAREA'||a.isContentEditable)&&!(a.type&&/^(checkbox|radio|range|button|file)$/.test(a.type))}
+function kbApply(h,t){var de=document.documentElement,full=window.innerHeight,kb=Math.max(0,Math.round(full-h-t)),on=kbEd()&&(full-h)>90&&document.body.classList.contains('fs');
+ if(on){var cm=document.getElementById('cm')||document.getElementById('sm'),near=cm&&cm.scrollHeight-cm.scrollTop-cm.clientHeight<140;de.style.setProperty('--vt',Math.round(t)+'px');de.style.setProperty('--kb',kb+'px');if(!KB.open){de.classList.add('kbo');KB.open=1}
+  if(near&&cm)requestAnimationFrame(function(){cm.scrollTop=cm.scrollHeight});
+ }else if(KB.open){KB.open=0;de.classList.remove('kbo');de.style.removeProperty('--vt');de.style.removeProperty('--kb');if(window.visualViewport&&visualViewport.offsetTop)scrollTo(0,0)}}
+function kbSync(){if(KB.raf)return;KB.raf=requestAnimationFrame(function(){KB.raf=0;var vv=window.visualViewport;if(vv)kbApply(vv.height,vv.offsetTop)})}
+(function(){var vv=window.visualViewport;if(vv){vv.addEventListener('resize',kbSync);vv.addEventListener('scroll',kbSync)}
+ document.addEventListener('focusin',function(){kbSync();setTimeout(kbSync,120);setTimeout(kbSync,380);setTimeout(kbSync,800)});
+ document.addEventListener('focusout',function(){setTimeout(kbSync,60);setTimeout(kbSync,300)});
+ var st=document.createElement('style');st.textContent=`
+html.kbo,html.kbo body{overflow:hidden}
+html.kbo{--sab:0px}
+html.kbo body.fs{position:fixed!important;top:var(--vt,0px)!important;bottom:var(--kb,0px)!important;left:0!important;right:0!important;width:auto!important;height:auto!important;min-height:0!important}
+html.kbo body.fs #ph{position:absolute!important;top:0!important;left:0!important;right:0!important;bottom:0!important;width:auto!important;height:auto!important;max-height:none!important}
+@media(min-width:700px){html.kbo body.fs #ph{left:50%!important;right:auto!important;width:min(100%,460px)!important;transform:translateX(-50%)!important}}
+html.kbo body.fs #ph #fn,html.kbo body.fs #ph #fd{display:none!important}
+html.kbo #bar{display:none!important}
+html.kbo .ims .mi,html.kbo .mi{padding-bottom:8px!important}
+html.kbo .cin{padding-bottom:8px!important;margin-bottom:0!important}
+`;document.body.appendChild(st)})();
 </script>
 
 <script>
