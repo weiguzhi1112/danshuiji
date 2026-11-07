@@ -5512,9 +5512,9 @@ try{let r;try{r=await ai(toMsgs(true),sys,gp?null:d=>{acc+=d;L[L.length-1].t=acc
 <style id="visual-polish-v46">
 /* v46 — quiet editorial polish, consistent iOS bottom sheets and controls */
 :root{--v46-paper:#fbfaf7;--v46-card:#fff;--v46-line:rgba(32,31,27,.09);--v46-muted:#89877f;--v46-shadow:0 18px 54px rgba(30,28,22,.14)}
-#ph{background:var(--v46-paper);box-shadow:0 0 0 8px rgba(255,255,255,.92),0 28px 76px rgba(28,26,20,.13)}
-#scr{background-color:var(--v46-paper)}
-#app{background:transparent}
+#ph{box-shadow:0 0 0 8px rgba(255,255,255,.92),0 28px 76px rgba(28,26,20,.13)}
+/* #scr keeps its original per-theme and per-screen background */
+/* #app keeps its original screen-specific background */
 #app .hd{min-height:54px;padding:0 18px;border-bottom:1px solid var(--v46-line);background:rgba(251,250,247,.88);-webkit-backdrop-filter:blur(18px) saturate(1.25);backdrop-filter:blur(18px) saturate(1.25)}
 #app .hd b{font-family:Georgia,"Songti SC",serif;font-size:15px;font-weight:500;letter-spacing:.08em}
 #app .hd .ib{width:36px;height:36px;border:1px solid var(--v46-line);background:rgba(255,255,255,.66);transition:background .18s,transform .18s}
@@ -5560,8 +5560,8 @@ try{let r;try{r=await ai(toMsgs(true),sys,gp?null:d=>{acc+=d;L[L.length-1].t=acc
 #md:not(.pg) .dp button{border-radius:18px;background:#f2f1ed}
 #md:not(.pg) .tgrid{gap:10px}
 #md:not(.pg) .tgrid label{min-height:90px;border:1px solid var(--v46-line);border-radius:17px;background:#f7f6f2;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;font-size:13px}
-#md.pg{z-index:201!important;background:var(--v46-paper)!important;backdrop-filter:none!important}
-#md.pg>div{background:var(--v46-paper)!important;padding-bottom:max(28px,env(safe-area-inset-bottom))!important}
+#md.pg{z-index:201!important;backdrop-filter:none!important}
+#md.pg>div{padding-bottom:max(28px,env(safe-area-inset-bottom))!important}
 #md.pg .pgh{background:rgba(251,250,247,.94);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border-bottom:1px solid var(--v46-line)}
 #nt{border:1px solid rgba(255,255,255,.8);box-shadow:0 12px 34px rgba(30,28,22,.14)}
 .pop{border:1px solid var(--v46-line);border-radius:18px;box-shadow:var(--v46-shadow);overflow:hidden}
@@ -5569,8 +5569,8 @@ try{let r;try{r=await ai(toMsgs(true),sys,gp?null:d=>{acc+=d;L[L.length-1].t=acc
 @keyframes v46ShadeIn{from{opacity:0}to{opacity:1}}
 @keyframes v46SheetIn{from{opacity:.65;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
 body.dark{--v46-paper:#171714;--v46-card:#23231f;--v46-line:rgba(255,255,255,.09);--v46-muted:#a5a39a;--v46-shadow:0 18px 54px rgba(0,0,0,.4)}
-body.dark #ph{background:#171714}
-body.dark #scr{background-color:#171714}
+/* preserve original dark-mode device background */
+/* preserve original dark-mode screen background */
 body.dark #app .hd,body.dark #app .tabs{background:rgba(28,28,25,.9);border-color:var(--v46-line)}
 body.dark #app .hd .ib{background:#292923;border-color:var(--v46-line)}
 body.dark #app .grp,body.dark #app .sw2{background:rgba(39,39,34,.82);border-color:var(--v46-line)}
@@ -5580,13 +5580,13 @@ body.dark #md{background:rgba(0,0,0,.42)!important}
 body.dark #md:not(.pg)>div{background:#24241f;color:#f1f0eb;border-color:rgba(255,255,255,.06)}
 body.dark #md:not(.pg)>div:before{background:#5a5a51}
 body.dark #md:not(.pg) .grp,body.dark #md:not(.pg) .tgrid label{background:#2c2c26;border-color:var(--v46-line)}
-body.dark #md.pg,body.dark #md.pg>div{background:#171714!important}
+/* preserve full-screen page backgrounds in dark mode */
 body.dark #md.pg .pgh{background:rgba(23,23,20,.94)}
 @media(min-width:700px){#md:not(.pg){align-items:center!important;padding:24px!important}#md:not(.pg)>div{max-width:420px;max-height:82%;border-radius:26px;padding:28px 26px 24px}#md:not(.pg)>div:before{margin-top:-14px}}
 @media(max-width:360px){#app .body{padding-left:17px;padding-right:17px}#md:not(.pg)>div{padding-left:18px;padding-right:18px;border-radius:25px 25px 0 0}#md:not(.pg) .h1{font-size:23px!important}}
 @media(prefers-reduced-motion:reduce){#md,#md:not(.pg)>div,#app .btn,#app .hd .ib{animation:none!important;transition:none!important}}
 </style>
-<script id="visual-polish-v46-js">
+<script id="visual-polish-v47-js">
 (function(){
   var root=document.getElementById('md');
   if(!root||root.__v46)return;root.__v46=true;
@@ -5601,4 +5601,9 @@ body.dark #md.pg .pgh{background:rgba(23,23,20,.94)}
 /* Ensure feature modules added after the original app bootstrap are executed once. */
 (function(){var source=document.getElementById('role-media-v45');if(!source||source.dataset.executed==='1')return;source.dataset.executed='1';var runner=document.createElement('script');runner.textContent=source.textContent;document.body.appendChild(runner)})();
 </script>
+
+<style id="v47-background-preservation">
+/* v47: 页面背景由原页面与主题系统自行控制；此处不覆盖 #scr、#app、.body 或全屏页面的 background。 */
+@media(prefers-reduced-motion:reduce){#app .hd,#app .tabs{transition:none!important}}
+</style>
 </body></html>
