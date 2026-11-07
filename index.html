@@ -557,9 +557,9 @@ function mkSave(i){const n=$('#mk-n').value.trim();if(!n)return toast('请填写
 function mkDel(i){const id=S.masks[i].id;S.masks.splice(i,1);S.ct.forEach(c=>c.mask==id&&(c.mask=''));if(S.maskDef==id)S.maskDef='';save();A.mask()}
 /* character create / edit page */
 function addF(){$('.pop')?.remove();cEdit()}function editC(id){cEdit(id)}
-function cEdit(id){cur='wx';const c=id?S.ct.find(x=>x.id==id):{},v=k=>esc(c[k]||''),f=(k,l)=>`<label class="lb">${l}</label><input class="in" id="ce-${k}" value="${v(k)}">`,o=(a,x)=>a.map(([k,t])=>`<option value="${esc(k)}" ${x==k?'selected':''}>${esc(t)}</option>`).join('');tmp.cav=c.av||'';
-view(hd(id?'联系人资料':'创建角色','','wt=1;wxMain()')+`<div class="body"><div style="display:flex;align-items:center;gap:16px;margin-bottom:16px"><div class="av" id="ce-av" style="width:72px;height:72px;border-radius:22px;background-image:url('${v('av')}')" onclick="pick(u=>{tmp.cav=u;$('#ce-av').style.backgroundImage='url('+u+')'})">${c.av?'':ic('img')}</div><small class="mut">点击更换头像<br>上传或 URL</small></div>${f('name','昵称')}${f('remark','备注')}${f('wxid','微信号')}${f('ph','手机号')}${f('area','地区')}${f('sign','个性签名')}<label class="lb">性别</label><select class="in" id="ce-sex">${o([['','未设置'],['男','男'],['女','女']],c.sex)}</select><label class="lb">分组</label><select class="in" id="ce-g">${o([['','未分组'],...S.grp.map(g=>[g,g])],c.g)}</select><label class="lb">使用面具</label><select class="in" id="ce-mask">${o([['','跟随默认'],...S.masks.map(m=>[m.id,m.name])],c.mask)}</select><label class="lb">人设</label><textarea class="in" id="ce-persona" rows="5">${v('persona')}</textarea><label class="lb">开场白（仅创建时发出）</label><input class="in" id="ce-greet" value="${v('greet')}"><div class="fl"><button class="btn" onclick="cSave('${id||''}')">保存</button><button class="btn g" onclick="cSave('${id||''}',1)">保存并生成二维码</button></div>${id?`<div class="sec">操作</div><div class="fl"><button class="btn g" onclick="chat('${id}')">发消息</button><button class="btn g" onclick="cur='tel';dial('${c.ph||''}')">打电话</button><button class="btn g" onclick="cur='sms';smt('c:${id}')">发短信</button><button class="btn g" onclick="qrM({name:S.ct.find(x=>x.id=='${id}').name,wxid:'${c.wxid||''}',ph:'${c.ph||''}',persona:S.ct.find(x=>x.id=='${id}').persona,av:''})">二维码</button><button class="btn g" onclick="cf('删除联系人？',()=>{S.ct=S.ct.filter(x=>x.id!='${id}');save();wt=1;wxMain()})">删除</button></div>`:''}</div>`)}
-function cSave(id,q){const g=k=>$('#ce-'+k).value.trim(),n=g('name');if(!n)return toast('请填写昵称');const d={name:n,remark:g('remark'),wxid:g('wxid'),ph:g('ph'),area:g('area'),sign:g('sign'),sex:$('#ce-sex').value,g:$('#ce-g').value,mask:$('#ce-mask').value,persona:$('#ce-persona').value,greet:g('greet'),av:tmp.cav||''};let c=id&&S.ct.find(x=>x.id==id);if(c)Object.assign(c,d);else{c={id:'c'+Date.now(),...d};S.ct.push(c);if(d.greet)S.ch[c.id]=[{r:'a',t:d.greet,ts:Date.now()}]}
+function cEdit(id){cur='wx';const c=id?S.ct.find(x=>x.id==id):{},v=k=>esc(c[k]||''),f=(k,l)=>`<label class="lb">${l}</label><input class="in" id="ce-${k}" value="${v(k)}">`,o=(a,x)=>a.map(([k,t])=>`<option value="${esc(k)}" ${x==k?'selected':''}>${esc(t)}</option>`).join('');tmp.cav=c.av||'';tmp.cavBase=c.av||'';
+view(hd(id?'联系人资料':'创建角色','','wt=1;wxMain()')+`<div class="body"><div style="display:flex;align-items:center;gap:16px;margin-bottom:16px"><div class="av" id="ce-av" style="width:72px;height:72px;border-radius:22px;background-image:url('${v('av')}')" onclick="roleFilePick('image/*',u=>{tmp.cav=u;$('#ce-av').style.backgroundImage='url('+u+')'})">${c.av?'':ic('img')}</div><small class="mut">点击更换头像<br>上传或 URL</small></div><button class="btn g" onclick="roleSpace('${id}','look')">角色空间</button>${f('name','昵称')}${f('remark','备注')}${f('wxid','微信号')}${f('ph','手机号')}${f('area','地区')}${f('sign','个性签名')}<label class="lb">性别</label><select class="in" id="ce-sex">${o([['','未设置'],['男','男'],['女','女']],c.sex)}</select><label class="lb">分组</label><select class="in" id="ce-g">${o([['','未分组'],...S.grp.map(g=>[g,g])],c.g)}</select><label class="lb">使用面具</label><select class="in" id="ce-mask">${o([['','跟随默认'],...S.masks.map(m=>[m.id,m.name])],c.mask)}</select><label class="lb">人设</label><textarea class="in" id="ce-persona" rows="5">${v('persona')}</textarea><label class="lb">开场白（仅创建时发出）</label><input class="in" id="ce-greet" value="${v('greet')}"><div class="fl"><button class="btn" onclick="cSave('${id||''}')">保存</button><button class="btn g" onclick="cSave('${id||''}',1)">保存并生成二维码</button></div>${id?`<div class="sec">操作</div><div class="fl"><button class="btn g" onclick="chat('${id}')">发消息</button><button class="btn g" onclick="cur='tel';dial('${c.ph||''}')">打电话</button><button class="btn g" onclick="cur='sms';smt('c:${id}')">发短信</button><button class="btn g" onclick="qrM({name:S.ct.find(x=>x.id=='${id}').name,wxid:'${c.wxid||''}',ph:'${c.ph||''}',persona:S.ct.find(x=>x.id=='${id}').persona,av:''})">二维码</button><button class="btn g" onclick="cf('删除联系人？',()=>{S.ct=S.ct.filter(x=>x.id!='${id}');save();wt=1;wxMain()})">删除</button></div>`:''}</div>`)}
+function cSave(id,q){const g=k=>$('#ce-'+k).value.trim(),n=g('name');if(!n)return toast('请填写昵称');const d={name:n,remark:g('remark'),wxid:g('wxid'),ph:g('ph'),area:g('area'),sign:g('sign'),sex:$('#ce-sex').value,g:$('#ce-g').value,mask:$('#ce-mask').value,persona:$('#ce-persona').value,greet:g('greet'),av:tmp.cav||''};let c=id&&S.ct.find(x=>x.id==id);if(c){Object.assign(c,d);if(tmp.cav!==tmp.cavBase){c.baseAv=d.av;c.activeOutfit=''}}else{c={id:'c'+Date.now(),...d,baseAv:d.av,activeOutfit:''};S.ct.push(c);if(d.greet)S.ch[c.id]=[{r:'a',t:d.greet,ts:Date.now()}]}
 if(c.ph){const e=S.pb.find(x=>x.cid==c.id);e?Object.assign(e,{name:c.remark||c.name,num:c.ph}):S.pb.push({id:'p'+Date.now(),name:c.remark||c.name,num:c.ph,cid:c.id})}save();wt=1;wxMain();q&&qrM({name:c.name,wxid:c.wxid,ph:c.ph,persona:c.persona,av:c.av})}
 /* 淡水机: contacts + fixed dial pad */
 var dnv='';const dk=k=>{const i=$('#dn');i.value+=k;dnv=i.value},db=()=>{const i=$('#dn');i.value=i.value.slice(0,-1);dnv=i.value};
@@ -1103,7 +1103,7 @@ tg=(k,l)=>`<label class="cr t"><span>${l}</span><input type="checkbox" ${c[k]?'c
 ac=(i,t,a)=>`<div class="cell" onclick="cQ('${id}','${a}')">${ic(i,20)}<span>${t}</span><span class="chev">${ic('back',14)}</span></div>`;
 tmp.cav=c.av||'';
 view(hd(id?'联系人':'新联系人','','wt=1;wxMain()')+`<div class="body cpage">
-<div class="chead"><div class="av" id="ce-av" style="background-image:url('${v('av')}')" onclick="pick(u=>{tmp.cav=u;$('#ce-av').style.backgroundImage='url('+u+')'})">${c.av?'':ic('img',26)}</div><input class="cname" id="ce-name" value="${v('name')}" placeholder="昵称"><small class="mut">点击头像更换</small></div>
+<div class="chead"><div class="av" id="ce-av" style="background-image:url('${v('av')}')" onclick="roleFilePick('image/*',u=>{tmp.cav=u;$('#ce-av').style.backgroundImage='url('+u+')'})">${c.av?'':ic('img',26)}</div><input class="cname" id="ce-name" value="${v('name')}" placeholder="昵称"><small class="mut">点击头像更换</small></div>
 <div class="grp">${row('备注',inp('remark'))}${row('微信号',inp('wxid'))}${row('手机号',inp('ph'))}</div>
 <div class="lbl2">人设</div><div class="grp"><textarea class="cri ct" id="ce-persona" rows="5" placeholder="性格、说话方式、与你的关系……">${v('persona')}</textarea></div>
 ${id?`<input type="hidden" id="ce-greet" value="${v('greet')}">`:`<div class="grp">${row('开场白',inp('greet','角色先说的第一句'))}</div>`}
@@ -5404,5 +5404,201 @@ var ls=null,lts=0;try{ls=localStorage.aiphone;lts=+localStorage.aiphone_ts||0}ca
 if(ls!=null&&(str==null||lts>ts)){str=ls;ts=lts||Date.now();if(ok){pend={s:ls,ts:ts};pump()}}
 window.__ST=str==null?'':str;try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
 var L=document.querySelectorAll('script[type="text/x-app"]');for(var i=0;i<L.length;i++){var n=document.createElement('script');n.textContent=L[i].textContent;document.body.appendChild(n)}})()})();
+</script>
+
+<style id="nav-bubble-hotfix-v44">
+/* v44：返回按钮点击区域与聊天气泡布局修复 */
+#app.app.on { isolation:isolate; }
+#app .hd, #app .hd.imh {
+  position:relative; z-index:120!important; flex-shrink:0;
+  pointer-events:auto!important;
+}
+#app .hd button, #app .hd .ib, #app .hd .imb, #app .hd .imv {
+  position:relative; z-index:121!important; pointer-events:auto!important;
+  touch-action:manipulation; -webkit-user-select:none; user-select:none;
+}
+#app .hd button::before { pointer-events:none!important; }
+#app .ims { min-height:0; }
+#app .ims #cm {
+  min-width:0; min-height:0; width:100%;
+  overflow-x:hidden!important; overscroll-behavior-x:contain;
+}
+#app .ims .bwr { min-width:0; max-width:100%; }
+#app .ims .bcol {
+  min-width:0; width:fit-content;
+  max-width:min(76%, calc(100vw - 76px));
+}
+#app .ims .bb, #app #sm .bb, #app #cm .bb {
+  min-width:0; max-width:100%; box-sizing:border-box;
+  white-space:pre-wrap; overflow-wrap:anywhere; word-break:break-word;
+  line-height:1.45;
+}
+#app .ims .bb img, #app #sm .bb img, #app #cm .bb img {
+  max-width:100%; height:auto; object-fit:contain;
+}
+#app .ims .bb pre, #app #sm .bb pre, #app #cm .bb pre {
+  max-width:100%; white-space:pre-wrap; overflow-wrap:anywhere;
+}
+#app .ims .bb table, #app #sm .bb table, #app #cm .bb table {
+  max-width:100%; display:block; overflow-x:auto;
+}
+@media (max-width:430px) {
+  #app .ims .bcol { max-width:calc(100vw - 76px); }
+}
+</style>
+<script id="nav-bubble-hotfix-js-v44">
+(function(){
+  if(window.__navBubbleHotfix44)return;
+  window.__navBubbleHotfix44=1;
+  /* 顶栏点击区置于页面内容之上，保留每个页面原有的返回逻辑 */
+  document.addEventListener('click',function(e){
+    var b=e.target&&e.target.closest&&e.target.closest(
+      '#app .hd button, #app .hd .ib, #app .hd .imb, #app .hd .imv'
+    );
+    if(b&&!b.disabled)b.style.pointerEvents='auto';
+  },true);
+  document.addEventListener('focusout',function(){
+    requestAnimationFrame(function(){
+      var h=document.querySelector('#app .hd');
+      if(h)h.style.pointerEvents='auto';
+    });
+  });
+  var app=document.getElementById('app');
+  if(app&&window.MutationObserver){
+    var ob=new MutationObserver(function(){
+      var cm=app.querySelector('#cm');
+      if(cm){cm.style.minWidth='0';cm.style.overflowX='hidden';}
+    });
+    ob.observe(app,{childList:true,subtree:true});
+  }
+})();
+</script>
+
+<style id="role-media-v45">
+.rsp{padding:16px 18px 90px;overflow:auto;min-height:0}.rsp-hero{display:flex;align-items:center;gap:14px;padding:18px 0 22px}.rsp-avatar{width:86px;height:86px;border-radius:26px;background:#eeece8 center/cover;display:grid;place-items:center;overflow:hidden;flex:none;border:1px solid rgba(0,0,0,.06)}.rsp-avatar img{width:100%;height:100%;object-fit:cover}.rsp-title{font:500 23px/1.2 Georgia,serif;letter-spacing:-.3px}.rsp-sub{font-size:12px;color:var(--muted,#999);margin-top:6px}.rsp-tabs{display:flex;gap:7px;padding:4px;background:rgba(120,120,120,.09);border-radius:14px;margin:0 0 18px}.rsp-tabs button{flex:1;border:0;background:transparent;border-radius:11px;padding:10px 4px;font-size:13px;color:inherit}.rsp-tabs button.on{background:var(--card,#fff);box-shadow:0 2px 9px rgba(0,0,0,.06)}.rsp-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.rsp-tile{border-radius:16px;overflow:hidden;background:rgba(130,130,130,.08);position:relative;min-width:0}.rsp-tile img{width:100%;aspect-ratio:1;object-fit:cover;display:block}.rsp-tile .rsp-cap{padding:9px 10px;font-size:12px;display:flex;align-items:center;justify-content:space-between;gap:5px}.rsp-tile .rsp-cap small{color:var(--muted,#999)}.rsp-empty{padding:34px 14px;text-align:center;color:var(--muted,#999);font-size:13px;line-height:1.8;border:1px dashed rgba(130,130,130,.35);border-radius:16px}.rsp-actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 18px}.rsp-actions .btn{flex:1;min-width:110px}.rsp-note{font-size:11px;color:var(--muted,#999);line-height:1.6;margin:12px 0}.rsp-viewer{max-height:68vh;width:100%;object-fit:contain;border-radius:14px;background:#111}.media-bubble{max-width:min(240px,68vw);border-radius:13px;display:block;overflow:hidden}.media-bubble img{width:100%;max-height:300px;object-fit:cover;display:block}.media-bubble audio{width:220px;max-width:68vw;height:38px}.rsp-record{display:flex;gap:10px;align-items:center;padding:12px;border-radius:14px;background:rgba(130,130,130,.1);margin:12px 0}.rsp-record .dot{width:9px;height:9px;border-radius:50%;background:#d45b56;animation:rspPulse 1s infinite}@keyframes rspPulse{50%{opacity:.25}}.rsp-btn{border:0;background:transparent;color:inherit;padding:8px 10px;border-radius:10px;font-size:13px}
+#app #cm .m img{cursor:zoom-in}#app #cm .m audio{display:block;max-width:100%}
+@media(max-width:380px){.rsp{padding-left:14px;padding-right:14px}.rsp-grid{gap:8px}}
+</style>
+<script type="text/x-app" id="role-media-v45">
+/* v45 — 角色形象、相册与真实语音消息 */
+function roleImageFromFile(file,maxEdge=1280,quality=.76){return new Promise((resolve,reject)=>{if(!file||!file.type||!file.type.startsWith('image/'))return reject(Error('请选择图片文件'));if(file.size>18*1024*1024)return reject(Error('图片不能超过 18MB'));const url=URL.createObjectURL(file),im=new Image();im.onload=()=>{try{const k=Math.min(1,maxEdge/Math.max(im.width,im.height)),cv=document.createElement('canvas');cv.width=Math.max(1,Math.round(im.width*k));cv.height=Math.max(1,Math.round(im.height*k));const cx=cv.getContext('2d');cx.fillStyle='#fff';cx.fillRect(0,0,cv.width,cv.height);cx.drawImage(im,0,0,cv.width,cv.height);resolve(cv.toDataURL('image/jpeg',quality))}catch(e){reject(e)}finally{URL.revokeObjectURL(url)}};im.onerror=()=>{URL.revokeObjectURL(url);reject(Error('图片读取失败'))};im.src=url})}
+function roleFilePick(opts,cb){const f=document.createElement('input');f.type='file';f.accept=opts||'image/*';f.multiple=false;f.style.display='none';document.body.appendChild(f);f.onchange=async()=>{const file=f.files&&f.files[0];if(!file){f.remove();return}try{const data=file.type.startsWith('image/')?await roleImageFromFile(file):await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)});cb(data,file)}catch(e){toast(e.message||'文件读取失败')}finally{f.remove()}};f.click()}
+function roleEnsure(c){if(!Array.isArray(c.wardrobe))c.wardrobe=[];if(!Array.isArray(c.gallery))c.gallery=[];if(!c.baseAv)c.baseAv=c.av||''}
+function roleSaveAvatar(id,u){const c=TG(id);if(!c)return;roleEnsure(c);c.av=u;c.baseAv=u;c.activeOutfit='';save();toast('头像已更新');roleSpace(id,'look')}
+function roleSpace(id,tab){const c=TG(id);if(!c)return;roleEnsure(c);tab=tab||'look';const head=hd('角色空间',`<button class="ib" onclick="cEdit('${id}')">编辑资料</button>`,'wt=1;wxMain()');let body='';
+if(tab==='look')body=`<div class="rsp-hero"><div class="rsp-avatar" onclick="roleFilePick('image/*',u=>roleSaveAvatar('${id}',u))">${c.av?`<img src="${esc(c.av)}">`:ic('user',30)}</div><div style="min-width:0;flex:1"><div class="rsp-title">${esc(c.remark||c.name)}</div><div class="rsp-sub">角色头像 · 点击图片即可更换</div><div class="rsp-actions"><button class="btn g" onclick="roleFilePick('image/*',u=>roleSaveAvatar('${id}',u))">更换头像</button></div></div></div><div class="sec">当前形象</div><div class="rsp-note">切换衣橱造型会同步更新联系人列表与聊天中的角色头像。</div><div class="rsp-grid">${c.baseAv?`<div class="rsp-tile" onclick="roleSetOutfit('${id}','base')"><img src="${esc(c.baseAv)}"><div class="rsp-cap"><span>基础形象</span><small>${!c.activeOutfit?'当前使用':'恢复'}</small></div></div>`:''}${c.wardrobe.map((o,i)=>`<div class="rsp-tile"><img src="${esc(o.u)}" onclick="roleSetOutfit('${id}','${o.id}')"><div class="rsp-cap"><span>${esc(o.name||'造型 '+(i+1))}</span><button class="rsp-btn" onclick="roleSetOutfit('${id}','${o.id}')">${c.activeOutfit===o.id?'使用中':'使用'}</button></div></div>`).join('')||'<div class="rsp-empty" style="grid-column:1/-1">衣橱还是空的。添加几套角色造型，就能随时切换。</div>'}</div><div class="rsp-actions"><button class="btn" onclick="roleAddOutfit('${id}')">＋ 添加新造型</button></div>`;
+else if(tab==='wardrobe')body=`<div class="rsp-actions"><button class="btn" onclick="roleAddOutfit('${id}')">＋ 上传一套造型</button><button class="btn g" onclick="roleSetOutfit('${id}','base')">恢复基础头像</button></div><p class="rsp-note">每套造型独立保存。使用后会将该图片设为角色当前头像。</p><div class="rsp-grid">${c.wardrobe.map((o,i)=>`<div class="rsp-tile"><img src="${esc(o.u)}" onclick="openRoleImage('${id}','outfit','${o.id}')"><div class="rsp-cap"><span>${esc(o.name||'造型 '+(i+1))}</span><button class="rsp-btn" onclick="roleRemoveOutfit('${id}','${o.id}')">删除</button></div></div>`).join('')||'<div class="rsp-empty" style="grid-column:1/-1">还没有保存的造型。你可以上传角色不同场景、服装或状态的图片。</div>'}</div>`;
+else body=`<div class="rsp-actions"><button class="btn" onclick="roleAddGallery('${id}')">＋ 添加照片</button><button class="btn g" onclick="roleImportChatImages('${id}')">从聊天图片整理</button></div><p class="rsp-note">角色相册与聊天记录分开管理。保存到相册后，即使清理聊天消息也能保留这张照片。</p><div class="rsp-grid">${c.gallery.map((g,i)=>`<div class="rsp-tile"><img src="${esc(g.u||g)}" onclick="openRoleImage('${id}','gallery','${g.id||i}')"><div class="rsp-cap"><span>${esc(g.name||'收藏照片')}</span><button class="rsp-btn" onclick="roleRemoveGallery('${id}','${g.id||i}')">移除</button></div></div>`).join('')||'<div class="rsp-empty" style="grid-column:1/-1">相册还没有照片。你可以上传图片，或把聊天中收到的图片收藏进来。</div>'}</div>`;
+view(head+`<div class="rsp"><div class="rsp-tabs"><button class="${tab==='look'?'on':''}" onclick="roleSpace('${id}','look')">形象</button><button class="${tab==='wardrobe'?'on':''}" onclick="roleSpace('${id}','wardrobe')">衣橱</button><button class="${tab==='gallery'?'on':''}" onclick="roleSpace('${id}','gallery')">相册</button></div>${body}</div>`)}
+function roleAddOutfit(id){const c=TG(id);if(!c)return;const name=prompt('给这套造型起个名字','日常');if(name===null)return;roleFilePick('image/*',u=>{roleEnsure(c);c.wardrobe.push({id:'out'+Date.now(),name:name.trim()||'新造型',u,ts:Date.now()});save();roleSpace(id,'wardrobe')})}
+function roleSetOutfit(id,oid){const c=TG(id);if(!c)return;roleEnsure(c);if(oid==='base'){c.av=c.baseAv||'';c.activeOutfit=''}else{const o=c.wardrobe.find(x=>x.id===oid);if(!o)return;c.av=o.u;c.activeOutfit=o.id}save();roleSpace(id,'look')}
+function roleRemoveOutfit(id,oid){const c=TG(id);if(!c)return;roleEnsure(c);const was=c.activeOutfit===oid;c.wardrobe=c.wardrobe.filter(x=>x.id!==oid);if(was){c.av=c.baseAv||'';c.activeOutfit=''}save();roleSpace(id,'wardrobe')}
+function roleAddGallery(id){const c=TG(id);if(!c)return;roleFilePick('image/*',u=>{roleEnsure(c);c.gallery.unshift({id:'gal'+Date.now(),u,name:'收藏照片',ts:Date.now()});save();roleSpace(id,'gallery')})}
+function roleRemoveGallery(id,gid){const c=TG(id);if(!c)return;roleEnsure(c);c.gallery=c.gallery.filter((g,i)=>(g.id||String(i))!==String(gid));save();roleSpace(id,'gallery')}
+function roleImportChatImages(id){const c=TG(id);if(!c)return;roleEnsure(c);const imgs=(S.ch[id]||[]).filter(m=>m.k==='img'&&m.u);if(!imgs.length)return toast('这段聊天里还没有图片');let added=0;imgs.forEach(m=>{if(!c.gallery.some(g=>g.u===m.u)){c.gallery.unshift({id:'gal'+Date.now()+'_'+(++added),u:m.u,name:'聊天收藏',ts:m.ts||Date.now()})}});save();roleSpace(id,'gallery');toast(added?'已整理 '+added+' 张图片':'这些图片已经收藏过了')}
+function openRoleImage(id,kind,key){const c=TG(id);if(!c)return;roleEnsure(c);let u='';if(kind==='outfit')u=(c.wardrobe.find(x=>x.id===key)||{}).u||'';else if(kind==='gallery')u=(c.gallery.find((x,i)=>(x.id||String(i))===String(key))||{}).u||'';else u=(S.ch[id]||[])[+key]?.u||'';if(!u)return;window.__rolePendingImage={id,u};modal(`<div class="h1" style="font-size:19px">图片预览</div><img class="rsp-viewer" src="${esc(u)}"><div class="fl" style="margin-top:12px"><button class="btn g" onclick="closeM()">关闭</button><button class="btn" onclick="roleStorePendingGallery()">收藏到角色相册</button></div>`)}
+function roleStoreGallery(id,enc){const c=TG(id);if(!c)return;const u=decodeURIComponent(enc);roleEnsure(c);if(!c.gallery.some(g=>g.u===u))c.gallery.unshift({id:'gal'+Date.now(),u,name:'聊天收藏',ts:Date.now()});save();closeM();toast('已收藏到角色相册')}
+function roleStorePendingGallery(){const p=window.__rolePendingImage;if(!p)return;roleStoreGallery(p.id,encodeURIComponent(p.u));window.__rolePendingImage=null}
+function chat(id){cid=id;const c=TG(id);if(!c)return;view(hd(esc(c.remark||c.name)+(c.m?` (${c.m.length})`:''),`<button class="ib" title="角色空间" onclick="roleSpace('${id}')">${ic('img',18)}</button>`,'wxMain()')+`<div id="cm" style="background-image:${S.ui.cw?`url('${S.ui.cw}')`:'none'}"></div><div id="tp" class="tp" style="display:none">${[['img','图片','tImg2()'],['rp','红包','tMoney(\'rp\')'],['tf','转账','tMoney(\'tf\')'],['vo','语音','recordVoice()'],['pat','拍一拍','tPat2()']].map(([i,t,f])=>`<button onclick="${f}"><span>${ic(i,20)}</span>${t}</button>`).join('')}</div><div class="cin"><button class="ib" onclick="$('#tp').style.display=$('#tp').style.display=='none'?'flex':'none'">${ic('plus',20)}</button><input id="ci" onkeydown="event.key=='Enter'&&snd()"><button class="ib" onclick="snd()">${ic('send',18)}</button></div>`);rc()}
+function rc(){const b=$('#cm');if(!b)return;b.innerHTML=(S.ch[cid]||[]).map((m,i)=>{const u=m.r==='u';let h;if(m.k==='pat')return `<div class="mut" style="text-align:center;font-size:11px">${esc(m.t)}</div>`;if(m.k==='img')h=`<img class="media-bubble" src="${esc(m.u)}" loading="lazy" decoding="async" onclick="openRoleImage('${cid}','chat','${i}')">`;else if(m.k==='audio')h=`<audio controls preload="metadata" src="${esc(m.u)}"></audio><small class="mut" style="display:block;margin-top:4px">语音 · ${m.dur||0} 秒</small>`;else if(m.k==='rp'||m.k==='tf')h=`<div style="display:flex;gap:10px;align-items:center;min-width:150px">${ic(m.k,22)}<div><b style="font-weight:500">${m.k==='rp'?esc(m.w||'恭喜发财'):'转账'}</b><br><small style="opacity:.7">¥ ${esc(m.a)}</small></div></div>`;else if(m.k==='vo')h=`<span style="display:flex;gap:8px;align-items:center">${ic('vo',18)}${m.s}″</span>`;else h=esc(m.t);return `<div style="display:flex;flex-direction:column;align-items:${u?'flex-end':'flex-start'};min-width:0">${m.n?`<small class="mut" style="margin:0 0 3px 6px">${esc(m.n)}</small>`:''}<div class="m ${u?'u':''}">${h}</div></div>`}).join('');b.scrollTop=b.scrollHeight}
+function tImg2(){modal('<div class="h1" style="font-size:19px">发送图片</div><div class="tgrid"><label>从相册选择<input type="file" accept="image/*" multiple style="display:none" id="v45-img-a"></label><label>立即拍照<input type="file" accept="image/*" capture="environment" style="display:none" id="v45-img-c"></label></div><p class="rsp-note">支持一次选择多张图片，图片会自动压缩后保存。</p><div class="fl"><button class="btn g" onclick="closeM()">取消</button><button class="btn" id="v45-img-url">使用图片链接</button></div>');const send=async files=>{files=[...files].slice(0,9);if(!files.length)return;closeM();const arr=[];for(const f of files){try{arr.push(await roleImageFromFile(f,1280,.74))}catch(e){toast(e.message)}}if(arr.length)arr.forEach((u,i)=>put({k:'img',u,t:'[图片]',ts:Date.now()+i}))};$('#v45-img-a').onchange=e=>send(e.target.files);$('#v45-img-c').onchange=e=>send(e.target.files);$('#v45-img-url').onclick=()=>{const u=prompt('输入图片 URL');if(u&&/^https?:\/\//i.test(u)){closeM();put({k:'img',u,t:'[图片]'})}else if(u)toast('请输入有效的 http 或 https 图片地址')}}
+async function recordVoice(){if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder)return toast('当前浏览器不支持录音，请使用 HTTPS 页面或更新浏览器');try{const stream=await navigator.mediaDevices.getUserMedia({audio:true});const mime=['audio/webm;codecs=opus','audio/webm','audio/mp4'].find(x=>MediaRecorder.isTypeSupported(x))||'';const rec=new MediaRecorder(stream,mime?{mimeType:mime}:undefined),chunks=[],started=Date.now();let cancelled=false;modal(`<div class="h1" style="font-size:19px">录制语音</div><div class="rsp-record"><span class="dot"></span><div><b>正在录音</b><div class="rsp-note" id="v45-rec-time">点击结束录音后发送</div></div></div><div class="fl"><button class="btn g" id="v45-rec-cancel">取消</button><button class="btn" id="v45-rec-stop">结束并发送</button></div>`);rec.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};rec.onstop=()=>{stream.getTracks().forEach(t=>t.stop());if(cancelled)return;const blob=new Blob(chunks,{type:rec.mimeType||'audio/webm'});if(blob.size>6*1024*1024){toast('语音文件过大，请缩短录音');return}const r=new FileReader();r.onload=()=>{put({k:'audio',u:r.result,dur:Math.max(1,Math.round((Date.now()-started)/1000)),t:'[语音消息]'})};r.readAsDataURL(blob)};rec.start();$('#v45-rec-cancel').onclick=()=>{cancelled=true;if(rec.state!=='inactive')rec.stop();chunks.length=0;closeM()};$('#v45-rec-stop').onclick=()=>{if(rec.state!=='inactive')rec.stop();closeM()};}catch(e){toast('无法使用麦克风：请检查浏览器权限')}}
+/* Images are passed to vision-capable OpenAI-compatible / Anthropic endpoints when possible. */
+async function put(m){const L=S.ch[cid]=S.ch[cid]||[],id=cid,c=TG(id),gp=!!(c&&c.m);L.push({r:'u',ts:Date.now(),...m});L.push({r:'a',t:'…',ts:Date.now()});rc();let acc='';const sys=gp?`这是微信群聊「${c.name}」。成员：${c.m.map(i=>{const x=S.ct.find(y=>y.id==i);return x?x.name+'（'+(x.persona||'普通人')+'）':''}).join('；')}。请让1到3位成员按各自人设回复，只输出JSON数组：[{"n":"成员名","t":"内容"}]，口语简短。\n${wbTxt()}`:`你是${c.name}，正在用微信和用户聊天。人设：${c.persona||'普通朋友'}。语气自然口语、简短，不要提及自己是AI。用户可能发送图片，请在接口支持视觉识别时认真观察图片内容并自然回应；如果无法读取图片，不要假装看到了。\n${wbTxt()}`;
+const toMsgs=vision=>L.slice(0,-1).slice(-16).map(x=>{const role=x.r==='u'?'user':'assistant';if(x.k==='img'&&x.u&&vision){if((S[S.act||'main']||{}).type==='anthropic'&&x.u.startsWith('data:image/')){const z=x.u.match(/^data:(image\/[\w.+-]+);base64,(.*)$/);if(z)return{role,content:[{type:'text',text:'用户发送了一张图片，请结合图片内容回复。'},{type:'image',source:{type:'base64',media_type:z[1],data:z[2]}}]}}return{role,content:[{type:'text',text:'用户发送了一张图片，请结合图片内容回复。'},{type:'image_url',image_url:{url:x.u}}]}};return{role,content:x.t|| (x.k==='audio'?'[用户发送了一段语音，时长'+(x.dur||0)+'秒]':'')}});
+try{let r;try{r=await ai(toMsgs(true),sys,gp?null:d=>{acc+=d;L[L.length-1].t=acc;rc()})}catch(err){if(L.some(x=>x.r==='u'&&x.k==='img')&&/image|vision|content|400|unsupported|invalid/i.test(String(err.message||err))){r=await ai(toMsgs(false),sys,gp?null:d=>{acc+=d;L[L.length-1].t=acc;rc()});if(!r)r='我收到你发来的图片了，不过当前模型可能不支持看图。'}else throw err}if(gp){let a;try{a=JSON.parse(r.replace(/```json|```/g,'').trim())}catch(e){a=[{n:c.name,t:r}]}L.pop();a.forEach(x=>L.push({r:'a',t:String(x.t),n:x.n,ts:Date.now()}))}else L[L.length-1].t=r||acc}catch(e){L[L.length-1].t='［请求失败］'+e.message}save();cur==='wx'&&cid===id&&$('#app').classList.contains('on')?rc():notify('wx',c.name,(L[L.length-1].t||'').slice(0,30))}
+</script>
+
+<style id="visual-polish-v46">
+/* v46 — quiet editorial polish, consistent iOS bottom sheets and controls */
+:root{--v46-paper:#fbfaf7;--v46-card:#fff;--v46-line:rgba(32,31,27,.09);--v46-muted:#89877f;--v46-shadow:0 18px 54px rgba(30,28,22,.14)}
+#ph{background:var(--v46-paper);box-shadow:0 0 0 8px rgba(255,255,255,.92),0 28px 76px rgba(28,26,20,.13)}
+#scr{background-color:var(--v46-paper)}
+#app{background:transparent}
+#app .hd{min-height:54px;padding:0 18px;border-bottom:1px solid var(--v46-line);background:rgba(251,250,247,.88);-webkit-backdrop-filter:blur(18px) saturate(1.25);backdrop-filter:blur(18px) saturate(1.25)}
+#app .hd b{font-family:Georgia,"Songti SC",serif;font-size:15px;font-weight:500;letter-spacing:.08em}
+#app .hd .ib{width:36px;height:36px;border:1px solid var(--v46-line);background:rgba(255,255,255,.66);transition:background .18s,transform .18s}
+#app .hd .ib:active{transform:scale(.94);background:#eae8e1;color:var(--ink)}
+#app .body{padding:18px 22px 76px}
+#app .h1{font-family:Georgia,"Songti SC",serif;font-weight:400;letter-spacing:-.035em;line-height:1.12;margin:8px 0 22px}
+#app .sec{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--v46-muted);margin:26px 0 10px}
+#app .grp{background:rgba(255,255,255,.78);border:1px solid var(--v46-line);border-radius:20px;box-shadow:0 5px 18px rgba(34,31,24,.025);overflow:hidden}
+#app .cell{padding:15px 16px;border-color:var(--v46-line);font-size:14px;line-height:1.45}
+#app .row{padding:14px 2px;border-color:var(--v46-line)}
+#app .av{border-radius:16px;background-color:#efeee9}
+#app .btn{min-height:38px;padding:0 17px;border-radius:999px;font-size:12px;letter-spacing:.045em;font-weight:500;transition:transform .16s,opacity .16s,background .16s;box-shadow:0 3px 10px rgba(24,23,19,.07)}
+#app .btn:active{transform:scale(.97);opacity:.82}
+#app .btn.g{background:#efeee9;color:#33312b;box-shadow:none}
+#app .btn.dg{background:#f8e9e6!important;color:#a83c32!important;box-shadow:none}
+#app .in{width:100%;min-height:44px;padding:11px 13px;margin:4px 0 13px;border:1px solid rgba(40,38,32,.11);border-radius:13px;background:rgba(246,245,241,.85);font-size:14px;transition:border-color .18s,background .18s}
+#app textarea.in{min-height:88px;resize:vertical;line-height:1.6}
+#app .in:focus{border-color:rgba(50,48,40,.38);background:#fff}
+#app .lb{font-size:10px;letter-spacing:.16em;color:#858278;margin:5px 0 3px;text-transform:none}
+#app .sw2{border:1px solid var(--v46-line);border-radius:15px;background:rgba(255,255,255,.7);padding:13px 15px}
+#app .tabs{background:rgba(251,250,247,.9);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border-color:var(--v46-line)}
+#app .tabs button{letter-spacing:.08em}
+#app .m{border-radius:18px 18px 18px 6px;box-shadow:0 2px 8px rgba(30,28,22,.035)}
+#app .m.u{border-radius:18px 18px 6px 18px;box-shadow:none}
+#app .cin{background:rgba(251,250,247,.94);border-color:var(--v46-line);padding-bottom:max(12px,env(safe-area-inset-bottom))}
+#app .cin input{min-height:40px;background:#efeee9;border-radius:20px;padding:9px 15px}
+#md{z-index:200!important;align-items:flex-end!important;justify-content:center!important;padding:0!important;background:rgba(25,24,21,.22)!important;-webkit-backdrop-filter:blur(12px) saturate(1.15)!important;backdrop-filter:blur(12px) saturate(1.15)!important;overscroll-behavior:contain;}
+#md.on{animation:v46ShadeIn .2s ease both}
+#md:not(.pg)>div{position:relative;width:100%;max-width:430px;max-height:min(88%,760px);margin:0 auto;border-radius:28px 28px 0 0;padding:28px 22px max(22px,env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain;background:var(--v46-card);color:var(--ink);box-shadow:0 -14px 54px rgba(0,0,0,.16);border:1px solid rgba(255,255,255,.65);animation:v46SheetIn .28s cubic-bezier(.2,.8,.2,1) both;scrollbar-width:thin;}
+#md:not(.pg)>div:before{content:"";display:block;width:38px;height:4px;border-radius:9px;background:#d7d5ce;margin:-14px auto 20px;}
+#md:not(.pg) .h1{font-family:Georgia,"Songti SC",serif;font-size:25px!important;line-height:1.12;letter-spacing:-.035em;font-weight:400;margin:0 0 17px;color:var(--ink)}
+#md:not(.pg) p{font-size:13px;line-height:1.7}
+#md:not(.pg) .mut{color:var(--v46-muted)}
+#md:not(.pg) .lb{margin-top:9px}
+#md:not(.pg) .in{min-height:46px;padding:12px 14px;border:1px solid var(--v46-line);border-radius:14px;background:#f6f5f1;margin:5px 0 13px}
+#md:not(.pg) textarea.in{min-height:92px}
+#md:not(.pg) .grp{margin:12px 0 16px;border-radius:17px;background:#f6f5f1;border:1px solid rgba(30,28,22,.045)}
+#md:not(.pg) .cell{padding:15px 15px;border-color:rgba(30,28,22,.07);font-size:14px}
+#md:not(.pg) .row{padding:12px 0}
+#md:not(.pg) .fl{display:flex;gap:9px;justify-content:stretch;align-items:center;margin:16px 0 2px}
+#md:not(.pg) .fl .btn{flex:1;min-width:0;min-height:43px;border-radius:14px;padding:0 12px;font-size:12.5px}
+#md:not(.pg) .fl .btn.g{background:#efeee9}
+#md:not(.pg) .dp button{border-radius:18px;background:#f2f1ed}
+#md:not(.pg) .tgrid{gap:10px}
+#md:not(.pg) .tgrid label{min-height:90px;border:1px solid var(--v46-line);border-radius:17px;background:#f7f6f2;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;font-size:13px}
+#md.pg{z-index:201!important;background:var(--v46-paper)!important;backdrop-filter:none!important}
+#md.pg>div{background:var(--v46-paper)!important;padding-bottom:max(28px,env(safe-area-inset-bottom))!important}
+#md.pg .pgh{background:rgba(251,250,247,.94);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border-bottom:1px solid var(--v46-line)}
+#nt{border:1px solid rgba(255,255,255,.8);box-shadow:0 12px 34px rgba(30,28,22,.14)}
+.pop{border:1px solid var(--v46-line);border-radius:18px;box-shadow:var(--v46-shadow);overflow:hidden}
+.pop button{padding:13px 17px}
+@keyframes v46ShadeIn{from{opacity:0}to{opacity:1}}
+@keyframes v46SheetIn{from{opacity:.65;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+body.dark{--v46-paper:#171714;--v46-card:#23231f;--v46-line:rgba(255,255,255,.09);--v46-muted:#a5a39a;--v46-shadow:0 18px 54px rgba(0,0,0,.4)}
+body.dark #ph{background:#171714}
+body.dark #scr{background-color:#171714}
+body.dark #app .hd,body.dark #app .tabs{background:rgba(28,28,25,.9);border-color:var(--v46-line)}
+body.dark #app .hd .ib{background:#292923;border-color:var(--v46-line)}
+body.dark #app .grp,body.dark #app .sw2{background:rgba(39,39,34,.82);border-color:var(--v46-line)}
+body.dark #app .btn.g,body.dark #md:not(.pg) .fl .btn.g{background:#34342e;color:#eee}
+body.dark #app .in,body.dark #md:not(.pg) .in{background:#2b2b26;border-color:var(--v46-line);color:#f1f0eb}
+body.dark #md{background:rgba(0,0,0,.42)!important}
+body.dark #md:not(.pg)>div{background:#24241f;color:#f1f0eb;border-color:rgba(255,255,255,.06)}
+body.dark #md:not(.pg)>div:before{background:#5a5a51}
+body.dark #md:not(.pg) .grp,body.dark #md:not(.pg) .tgrid label{background:#2c2c26;border-color:var(--v46-line)}
+body.dark #md.pg,body.dark #md.pg>div{background:#171714!important}
+body.dark #md.pg .pgh{background:rgba(23,23,20,.94)}
+@media(min-width:700px){#md:not(.pg){align-items:center!important;padding:24px!important}#md:not(.pg)>div{max-width:420px;max-height:82%;border-radius:26px;padding:28px 26px 24px}#md:not(.pg)>div:before{margin-top:-14px}}
+@media(max-width:360px){#app .body{padding-left:17px;padding-right:17px}#md:not(.pg)>div{padding-left:18px;padding-right:18px;border-radius:25px 25px 0 0}#md:not(.pg) .h1{font-size:23px!important}}
+@media(prefers-reduced-motion:reduce){#md,#md:not(.pg)>div,#app .btn,#app .hd .ib{animation:none!important;transition:none!important}}
+</style>
+<script id="visual-polish-v46-js">
+(function(){
+  var root=document.getElementById('md');
+  if(!root||root.__v46)return;root.__v46=true;
+  root.addEventListener('click',function(e){if(e.target===root&&!root.classList.contains('pg')){if(typeof closeM==='function')closeM();else root.classList.remove('on')}});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&root.classList.contains('on')&&!root.classList.contains('pg')){if(typeof closeM==='function')closeM();else root.classList.remove('on')}});
+  var obs=new MutationObserver(function(){var open=root.classList.contains('on');root.setAttribute('aria-hidden',open?'false':'true');if(open){root.setAttribute('role','presentation');var box=root.firstElementChild;if(box){box.setAttribute('role','dialog');box.setAttribute('aria-modal','true')}}});
+  obs.observe(root,{attributes:true,attributeFilter:['class']});
+})();
+</script>
+
+<script id="late-app-block-loader-v46">
+/* Ensure feature modules added after the original app bootstrap are executed once. */
+(function(){var source=document.getElementById('role-media-v45');if(!source||source.dataset.executed==='1')return;source.dataset.executed='1';var runner=document.createElement('script');runner.textContent=source.textContent;document.body.appendChild(runner)})();
 </script>
 </body></html>
