@@ -5356,6 +5356,87 @@ function bkCheck(){try{var u=S.ui;if(u.bkr===false)return;if(!u.bk0){u.bk0=Date.
 setTimeout(bkCheck,9000);setInterval(bkCheck,36e5);
 </script>
 
+<script type="text/x-app">
+/* ===== v43 修复：世界书导入 / 关联账号返回 ===== */
+(function(){
+var st=document.createElement('style');
+st.textContent='#app .hd .ib,.pgh .ib{position:relative;touch-action:manipulation;-webkit-tap-highlight-color:transparent}#app .hd .ib::after,.pgh .ib::after{content:"";position:absolute;inset:-10px}';
+document.head.appendChild(st);
+
+/* —— 世界书导入：不限制文件类型、兼容多种格式、给出明确提示 —— */
+function isE(x){return x&&typeof x=='object'&&!Array.isArray(x)&&('content' in x)}
+function take(v,out){if(!v||typeof v!='object')return;(Array.isArray(v)?v:Object.keys(v).map(function(k){return v[k]})).forEach(function(x){if(isE(x))out.push(x)})}
+function wbRaw(j){
+ var out=[],seen=[],PREF=['entries','wb','character_book','worldbook','worldBook','lorebook','data','book'];
+ function walk(o,d){
+  if(!o||typeof o!='object'||d>5||seen.indexOf(o)>=0)return;seen.push(o);
+  if(Array.isArray(o)){if(o.some(isE)){take(o,out);return}o.forEach(function(x){if(!out.length)walk(x,d+1)});return}
+  if(o.entries&&typeof o.entries=='object'){take(o.entries,out);if(out.length)return}
+  if(isE(o)){out.push(o);return}
+  PREF.forEach(function(k){if(!out.length&&o[k])walk(o[k],d+1)});
+  Object.keys(o).forEach(function(k){if(!out.length&&PREF.indexOf(k)<0)walk(o[k],d+1)});
+ }
+ walk(j,0);return out}
+function wbOne(e){
+ var str=function(v){return v==null?'':String(v)},
+ arr=function(v){return [].concat(v==null?[]:v).map(str).join(',')},
+ num=function(v,d){v=parseFloat(v);return isFinite(v)?v:d};
+ if(typeof e.pos=='string'&&('keys' in e||'title' in e))return norm(Object.assign({},e,{content:str(e.content)}));
+ var p=e.position,pos=typeof p=='string'?(/before/i.test(p)?'before':/depth|@d/i.test(p)?'depth':'after'):({0:'before',1:'after',4:'depth'}[p]||'after');
+ return norm({title:str(e.comment||e.title||e.name)||'导入',content:str(e.content),keys:arr(e.key||e.keys),keys2:arr(e.keysecondary),
+  logic:LG[e.selectiveLogic]||'any',constant:!!e.constant,prob:num(e.probability,100),pos:pos,depth:num(e.depth,4),role:RL[e.role]||'system',
+  scan:num(e.scanDepth,4)||4,nonrec:!!e.excludeRecursion,order:num(e.order,100),group:str(e.group),
+  chars:arr(e.characterFilter&&e.characterFilter.names),vec:!!e.vectorized,on:!e.disable&&e.enabled!==false})}
+window.wbImp=function(){
+ var f=document.createElement('input');f.type='file';f.style.cssText='position:fixed;left:-9999px;top:0;opacity:0';
+ document.body.appendChild(f);
+ f.onchange=function(){
+  var file=f.files&&f.files[0];if(!file){f.remove();return}
+  var r=new FileReader();
+  r.onerror=function(){f.remove();toast('读取文件失败')};
+  r.onload=function(){
+   f.remove();var t=String(r.result||'').replace(/^\uFEFF/,''),j;
+   try{j=JSON.parse(t)}catch(e){toast('这不是有效的 JSON 文件');return}
+   var raw=wbRaw(j),n=0;
+   raw.forEach(function(e){var w=wbOne(e);if(!String(w.content).trim()&&!String(w.keys).trim())return;S.wb.push(w);n++});
+   if(!n){toast('没有识别到世界书条目');return}
+   try{wq=''}catch(e){}
+   save();toast('已导入 '+n+' 条');A.book()};
+  r.readAsText(file)};
+ f.click()};
+
+/* —— 关联账号：返回键兜底，读取好友时不再抢屏幕 —— */
+window.lkBack=function(id){
+ id=id||cid;cid=id;
+ try{csM()}catch(e){}
+ var t=(document.querySelector('#app .hd b')||{}).textContent||'';
+ if(!t||/关联账号/.test(t)){try{chat(id)}catch(e){try{home()}catch(e2){}}}};
+var _lkCfg0=lkCfg;
+window.lkCfg=function(id){
+ id=id||cid;
+ try{_lkCfg0.call(this,id)}catch(e){toast('打开失败：'+(e&&e.message||e));return}
+ var b=document.querySelector('#app .hd .ib');
+ if(b&&/关联账号/.test((document.querySelector('#app .hd b')||{}).textContent||''))b.setAttribute('onclick',"lkBack('"+id+"')")};
+function lkRefresh(id){
+ try{
+  var t=(document.querySelector('#app .hd b')||{}).textContent||'';
+  if(/关联账号/.test(t)){lkCfg(id);return}
+  if(cur=='wx'&&wt==0&&!PK&&!document.querySelector('#app .hd'))wxMain()
+ }catch(e){}}
+var LKI={};
+window.lkInit=async function(id){
+ var r=lkRec(id);if(Object.keys(r.convs).length||LKI[id])return;
+ LKI[id]=1;var pr=pkRec(id);toast('正在读取 TA 的微信好友…');
+ try{
+  if(!pr||!pr.d)await Promise.race([pkGen(id),new Promise(function(_,rj){setTimeout(function(){rj(Error('读取超时，请检查 API 后重试'))},120000)})]);
+  pr=pkRec(id);var d=pr.d,now=Date.now();
+  (d.ct||[]).forEach(function(f){var L=(d.ch[f.id]||[]).map(function(m){return{w:m.r=='u'?'c':'f',t:m.t,ts:m.ts}});if(L.length)r.convs[f.id]={name:f.remark||f.name,ch:L,un:0}});
+  r.gen=now;save();toast('已关联：TA 的好友会话出现在你的消息列表');lkRefresh(id)
+ }catch(e){
+  toast('读取失败：'+(e&&e.message||e));var c=S.cs[id];if(c&&c.pm)c.pm.link=false;save();lkRefresh(id)
+ }finally{LKI[id]=0}};
+})();
+</script>
 <script>
 (function(){var DB='aiphone-db',ST='kv',KEY='aiphone',db=null,ok=false,tmr=0,dirty=false,dead=false,inflight=false,pend=null,warnT=0,LSL=4400000;
 window.__info={engine:'',last:0,size:0,err:''};
