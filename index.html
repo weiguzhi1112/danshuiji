@@ -1895,7 +1895,7 @@ function bootPlay(force){var ph=document.getElementById('ph');if(!ph)return;if(!
  requestAnimationFrame(f)}
 window.bootPlay=bootPlay;
 if(S.fxs.boot===undefined)S.fxs.boot=true;
-var _ptB=PG.theme;PG.theme=function(){return _ptB.apply(this,arguments)+'<div class="sec" style="margin-top:18px">开机动画</div><label class="sw2" style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">打开时播放粒子开机动画<input type="checkbox" '+(S.fxs.boot!==false?'checked':'')+' onchange="S.fxs.boot=this.checked;save()"></label><div class="fl"><button class="btn g" onclick="bootPlay(true)">预览动画</button></div>'};
+var _ptB=PG.theme;PG.theme=function(){return _ptB.apply(this,arguments)+'<div class="sec" style="margin-top:18px">开机动画</div><label class="sw2" style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">打开时播放月相星宿开屏动画<input type="checkbox" '+(S.fxs.boot!==false?'checked':'')+' onchange="S.fxs.boot=this.checked;save()"></label><div class="fl"><button class="btn g" onclick="bootPlay(true)">预览动画</button></div>'};
 </script>
 <script type="text/x-app">
 (function(){var st=document.createElement('style');st.textContent=`
@@ -2079,7 +2079,6 @@ function bootPlay(force){var ph=document.getElementById('ph'),b0=document.getEle
   if(t<T4)requestAnimationFrame(f);else close()}
  requestAnimationFrame(f)}
 window.bootPlay=bootPlay;
-bootPlay();
 
 /* ================= 主题页：全屏与安装 ================= */
 var _ptP=A.theme;A.theme=function(){var b0=document.querySelector('.body'),h0=b0&&b0.querySelector('.h1'),keep=(h0&&h0.textContent=='Theme')?b0.scrollTop:0;_ptP.apply(this,arguments);var b=document.querySelector('.body');if(!b||b.querySelector('#instbtn'))return;
@@ -5319,7 +5318,7 @@ input[type=datetime-local],input[type=date],input[type=time]{min-height:1.6em}
 <script type="text/x-app">
 /* ===== v43：会话管理（全部已读/仅未读/批量管理）+ 备份提醒 ===== */
 var CMG={on:0,sel:{},unr:0};
-function cmTag(){document.querySelectorAll('#app .body .row').forEach(function(r){if(r.dataset.cid||!r.onclick)return;var got=null,o=chat;chat=function(i){got=i};try{r.onclick()}catch(e){}chat=o;if(got)r.dataset.cid=got})}
+function cmTag(){document.querySelectorAll('#app .body .row').forEach(function(r){if(r.dataset.cid||!r.onclick||r.classList.contains('lkrow')||!/chat\(/.test(r.getAttribute('onclick')||''))return;var got=null,o=chat;chat=function(i){got=i};try{r.onclick()}catch(e){}chat=o;if(got)r.dataset.cid=got})}
 function cmRows(){return[].slice.call(document.querySelectorAll('#app .body .row[data-cid]'))}
 function cmMenu(){var n=Object.keys(S.un||{}).filter(function(k){return S.un[k]}).length;modal('<div class="h1" style="font-size:19px">消息</div><div class="grp" style="margin-top:10px"><div class="cell" onclick="closeM();cmAllRead()"><span>全部标为已读</span><small class="mut">'+(n?n+' 个未读会话':'无未读')+'</small></div><div class="cell" onclick="closeM();CMG.unr=!CMG.unr;wxMain()"><span>'+(CMG.unr?'显示全部会话':'仅显示未读')+'</span></div><div class="cell" onclick="closeM();cmBatch(1)"><span>批量管理</span></div></div>')}
 function cmAllRead(){var n=Object.keys(S.un||{}).filter(function(k){return S.un[k]}).length;if(!n)return toast('没有未读消息');cf('将 '+n+' 个会话全部标为已读？',function(){S.un={};save();try{icons()}catch(e){}wxMain();toast('已全部标为已读')})}
@@ -5520,7 +5519,7 @@ window.linkM=function(){
  view(hd('关联账号','','wt=2;wxMain()')+'<div class="body qlk">'
   +'<div class="qk-hero">'+pair+'<div><b>关联账号</b><small>一键切换账号，其他账号的新消息也不会漏掉</small></div></div>'
   +'<div class="qk-sec">当前登录</div><div class="qk-card">'+cur+'</div>'
-  +'<div class="qk-sec">已关联账号 · '+L.length+'/'+MAXL+'</div><div class="qk-card">'+list+'</div>'+add
+  +'<div class="qk-sec">已关联账号 · '+L.length+'/'+MAXL+'</div><div class="qk-card">'+list+'</div>'+add+(window.rlEntry?rlEntry():'')
   +'<div class="qk-sec">消息设置</div><div class="grp">'+tg('tip','关联账号消息提醒','其他账号有新消息时，在消息页顶部提示')+tg('detail','显示消息内容','关闭后只显示「新消息」')+tg('verify','切换账号时验证密码','防止他人误切到你的小号')+'</div>'
   +'<p class="qk-ft">关联后，这些账号之间可以快速切换，无需重复退出登录。关联需要验证对方账号的密码，解除关联不会删除任何账号和聊天记录。</p>'
   +'</div>')};
@@ -5586,12 +5585,12 @@ wxMain=function(){
  return r};
 
 /* —— 全局返回保护 —— */
-var BK='#app .hd>.ib:first-child,.pgh>.ib:first-child';
+var BK='#app .hd>.ib:first-child,#app .hd>.imb:first-child,.pgh>.ib:first-child';
 function vis(el){var r=el.getBoundingClientRect();return r.width>0&&r.height>0}
 function topBack(){
  var m=document.getElementById('md');
  if(m&&m.classList.contains('on')){var p=m.querySelector('.pgh>.ib:first-child');return p||'modal'}
- var app=document.getElementById('app');if(app&&app.classList.contains('on')){var b=app.querySelector('.hd>.ib:first-child');if(b&&vis(b))return b}
+ var app=document.getElementById('app');if(app&&app.classList.contains('on')){var b=app.querySelector('.hd>.ib:first-child,.hd>.imb:first-child');if(b&&vis(b))return b}
  return null}
 function doBack(){var t=topBack();if(!t)return false;if(t==='modal'){closeM();return true}t.click();return true}
 function snap(){var a=document.getElementById('app'),m=document.getElementById('md');
@@ -5626,6 +5625,377 @@ document.addEventListener('touchend',function(e){
  try{doBack()}catch(x){}
 },{passive:true,capture:true});
 document.addEventListener('keydown',function(e){if(e.key=='Escape'){var a=document.activeElement;if(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&e.target!==document.body)return;try{doBack()}catch(x){}}});
+})();
+</script>
+<script type="text/x-app">
+/* ===== v45：关联角色账号重构 + 月相星宿开屏 ===== */
+(function(){
+var css=[
+'#app .hd>.imb{position:relative;touch-action:manipulation}#app .hd>.imb::after{content:"";position:absolute;inset:-10px}',
+/* 关联角色账号 */
+'.rl-hero{display:flex;align-items:center;gap:14px;padding:18px;border-radius:20px;color:#fff;background:linear-gradient(135deg,#8f7bff,#4f64f5);margin:4px 0 6px;box-shadow:0 8px 22px rgba(95,110,245,.28)}',
+'.rl-hero b{display:block;font-size:17px;font-weight:600;letter-spacing:.04em}',
+'.rl-hero small{display:block;font-size:12px;line-height:1.55;opacity:.92;margin-top:3px}',
+'.rl-hero .qk-pair .qk-av{border-color:#fff}',
+'.rl-sw{flex:none;display:flex;align-items:center}',
+'.rl-st{font-size:11px;padding:0 7px;line-height:18px;border-radius:9px;background:#e8e8ff;color:#5b6cff;flex:none}',
+'.rl-st.off{background:#eee;color:#999}.rl-st.bz{background:#fff3d6;color:#c58a00}',
+'.rl-bar{display:flex;gap:14px;overflow-x:auto;padding:4px 2px 12px;margin:2px -2px 6px;-webkit-overflow-scrolling:touch;scrollbar-width:none}',
+'.rl-bar::-webkit-scrollbar{display:none}',
+'.rl-chip{flex:none;width:54px;text-align:center;cursor:pointer;position:relative;-webkit-tap-highlight-color:transparent}',
+'.rl-chip .qk-av{width:48px;height:48px;margin:0 auto;box-shadow:0 0 0 2px transparent;transition:box-shadow .2s}',
+'.rl-chip.on .qk-av{box-shadow:0 0 0 2px #fff,0 0 0 4px #12b7f5}',
+'.rl-chip small{display:block;font-size:11px;color:#8e8e93;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+'.rl-chip.on small{color:#12b7f5}',
+'.rl-chip .qk-bd{position:absolute;top:-3px;right:1px;min-width:16px;height:16px;font-size:10px;border:2px solid #fff;box-sizing:content-box;padding:0 3px}',
+'.rl-chip.add .qk-av{background:transparent;border:1.5px dashed #b8b8bd;color:#9a9aa0;font-weight:300;font-size:24px}',
+'.rl-bn{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:14px;background:#eef0ff;color:#5b6cff;font-size:12.5px;margin:0 0 10px}',
+'.rl-bn span{flex:1;min-width:0}.rl-bn button{border:0;background:none;color:#5b6cff;font-size:12.5px;padding:2px 4px}',
+'.rl-cv{display:flex;flex-direction:column;gap:10px;padding-bottom:40px}',
+'.rl-t{align-self:center;font-size:11px;color:#b0b0b5;margin:8px 0 0}',
+'.rl-m{display:flex;gap:9px;align-items:flex-end;max-width:100%}.rl-m.me{flex-direction:row-reverse}',
+'.rl-m .qk-av{width:34px;height:34px;font-size:13px}',
+'.rl-bb{max-width:72%;padding:9px 13px;border-radius:16px;background:#f0f0ee;font-size:14.5px;line-height:1.55;word-break:break-word;border-bottom-left-radius:5px}',
+'.rl-m.me .rl-bb{background:#dff4fd;border-bottom-left-radius:16px;border-bottom-right-radius:5px}',
+'.rl-ty{display:inline-flex;gap:4px;padding:12px 14px}.rl-ty i{width:6px;height:6px;border-radius:50%;background:#a8a8ad;animation:rlty 1s infinite}.rl-ty i:nth-child(2){animation-delay:.15s}.rl-ty i:nth-child(3){animation-delay:.3s}',
+'@keyframes rlty{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-4px);opacity:1}}',
+'.rl-acc{display:flex;align-items:center;gap:14px;padding:16px}.rl-acc .qk-av{width:62px;height:62px;font-size:24px}',
+'.rl-tip{font-size:12px;line-height:1.75;color:#9a9aa0;margin:8px 6px}',
+'body.dark .rl-bn{background:#1e2140;color:#a9b4ff}body.dark .rl-bn button{color:#a9b4ff}',
+'body.dark .rl-bb{background:#2a2a26}body.dark .rl-m.me .rl-bb{background:#143a49}',
+'body.dark .rl-chip .qk-bd{border-color:#1c1c19}body.dark .rl-chip.on .qk-av{box-shadow:0 0 0 2px #1c1c19,0 0 0 4px #12b7f5}',
+'body.dark .rl-st{background:#26294d;color:#aab3ff}body.dark .rl-st.off{background:#2a2a26;color:#888}',
+/* 开屏 */
+'#boot{background:#04050d;transition:opacity .7s ease}',
+'#boot .bs{bottom:84px;top:auto!important;color:rgba(235,238,255,.78);font-size:12.5px;letter-spacing:6px;text-shadow:none;transition:opacity .5s}'
+].join('');
+var st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
+
+/* ================= 关联角色账号 ================= */
+var RLB={},RLO='main',RLD='chat',RLC=null,RLT=0;
+S.lk=S.lk||{chars:{}};S.lk.chars=S.lk.chars||{};
+function ro(){if(typeof PK!='undefined'&&PK){toast('查岗模式是只读的，不能操作');return true}return false}
+function ct(id){return S.ct.find(function(x){return x.id==id})}
+function cn(c){return c.remark||c.name||'?'}
+function isOn(id){try{return !!rkPm(id).link}catch(e){return false}}
+function letter(s){return esc(String(s||'?').charAt(0).toUpperCase())}
+function avc(c){return '<div class="qk-av"'+(c.av?' style="background-image:url(\''+esc(c.av)+'\')"':'')+'>'+(c.av?'':letter(cn(c)))+'</div>'}
+function avl(n){return '<div class="qk-av" style="background:linear-gradient(135deg,#ffd7a8,#ff9f7a)">'+letter(n)+'</div>'}
+function tmf(ts){var d=new Date(ts),n=new Date(),p=function(x){return x<10?'0'+x:x},hm=p(d.getHours())+':'+p(d.getMinutes());if(d.toDateString()==n.toDateString())return hm;if(d.toDateString()==new Date(n-864e5).toDateString())return '昨天 '+hm;return (d.getMonth()+1)+'月'+d.getDate()+'日 '+hm}
+function tms(ts){var d=new Date(ts),n=new Date(),p=function(x){return x<10?'0'+x:x};if(d.toDateString()==n.toDateString())return p(d.getHours())+':'+p(d.getMinutes());if(d.toDateString()==new Date(n-864e5).toDateString())return '昨天';return (d.getMonth()+1)+'/'+d.getDate()}
+function txt(m){return String(m.t||'').slice(0,26)}
+function convs(id){
+ var r=lkRec(id),now=Date.now();
+ return Object.keys(r.convs).map(function(f){var v=r.convs[f],vis=v.ch.filter(function(m){return m.ts<=now}),m=vis[vis.length-1];return{cid:id,fid:f,v:v,m:m,ts:m?m.ts:0}}).sort(function(a,b){return b.ts-a.ts})}
+function onMain(){
+ var h=document.querySelector('#app .hd b'),b=document.querySelector('#app .body .h1');
+ return !!(h&&/消息/.test(h.textContent)&&b&&/Messages/.test(b.textContent)&&!document.getElementById('rlcv'))}
+function view2(hdHtml,body,p,id){
+ var old=document.querySelector('#app .rlp'),keep=(old&&old.dataset.p==p&&(old.dataset.id||'')==(id||''))?old.scrollTop:0;
+ view(hdHtml+'<div class="body qlk rlp" data-p="'+p+'" data-id="'+esc(id||'')+'">'+body+'</div>');
+ if(keep){var b=document.querySelector('#app .rlp');if(b)b.scrollTop=keep}}
+function sw(id,on){return '<label class="rl-sw" onclick="event.stopPropagation()"><input type="checkbox" '+(on?'checked':'')+' onchange="rlSet(\''+id+'\',this.checked)"></label>'}
+
+window.rlSet=function(id,on){
+ if(ro())return;var c=S.cs[id]=S.cs[id]||{};c.pm=Object.assign({},c.pm||{});c.pm.link=!!on;save();
+ if(on)lkInit(id);rlRefresh(id)};
+function rlRefresh(id){
+ try{
+  var m=document.querySelector('#app .rlp');
+  if(m){var p=m.dataset.p;if(p=='list')rlList();else if(p=='detail'&&m.dataset.id==id)rlDetail(id);return}
+  if(onMain())wxMain()
+ }catch(e){}}
+
+/* —— 角色列表 —— */
+window.rlList=function(o){
+ if(ro())return;if(typeof o=='string')RLO=o;
+ try{closeM()}catch(e){}
+ var all=S.ct.filter(function(c){return !c.m}),on=all.filter(function(c){return isOn(c.id)}),off=all.filter(function(c){return !isOn(c.id)});
+ var pair='<div class="qk-pair">'+(on[0]?avc(on[0]):'<div class="qk-av" style="background:#c9c1ff">TA</div>')+(on[1]?avc(on[1]):'<div class="qk-av" style="background:#aeb8ff">TA</div>')+'</div>';
+ var row=function(c){
+  var id=c.id,o2=isOn(id),bz=!!RLB[id],cs=o2?convs(id):[],un=o2?lkUn(id):0,last=cs.length&&cs[0].ts?cs[0].ts:0,
+  sub=bz?'正在读取 TA 的微信好友…':o2?(cs.length?cs.length+' 个会话'+(last?' · 最近 '+tms(last):''):'尚未读取到好友'):'未关联';
+  return '<div class="qk-row" data-id="'+esc(id)+'" onclick="rlDetail(this.dataset.id,\'list\')">'+avc(c)+'<div class="qk-mid"><div class="qk-nm"><span>'+esc(cn(c))+'</span>'+(bz?'<i class="rl-st bz">读取中</i>':o2?'<i class="rl-st">已关联</i>':'')+'</div><div class="qk-sub">'+sub+'</div></div><div class="qk-end">'+(un?'<span class="qk-bd">'+(un>99?'99+':un)+'</span>':'')+'</div>'+sw(id,o2)+'</div>'};
+ var body='<div class="rl-hero">'+pair+'<div><b>关联角色账号</b><small>登录 TA 的微信，看 TA 的好友会话；TA 会按人设自己和好友聊天</small></div></div>'
+  +(all.length?'':'<div class="qk-card" style="margin-top:14px"><div class="qk-empty">还没有角色<br>先在微信里添加好友，再回来关联</div></div>')
+  +(on.length?'<div class="qk-sec">已关联 · '+on.length+'</div><div class="qk-card">'+on.map(row).join('')+'</div>':'')
+  +(off.length?'<div class="qk-sec">'+(on.length?'可关联的角色':'角色')+' · '+off.length+'</div><div class="qk-card">'+off.map(row).join('')+'</div>':'')
+  +'<p class="rl-tip">开启关联会读取 TA 的好友并持续生成对话，需要消耗 API 次数。点角色可以调整对话频率、提醒方式、独立 API 和定时消息。关闭关联后，已读取的会话会保留。</p>';
+ view2(hd('关联角色账号','','rlBackList()'),body,'list','')};
+window.rlBackList=function(){if(RLO=='qk'){linkM();return}wt=0;wxMain()};
+
+/* —— 角色详情 —— */
+window.rlDetail=function(id,o){
+ if(ro())return;var c=ct(id);if(!c)return;if(o)RLD=o;
+ var r=lkRec(id),g=r.cfg,on=isOn(id),bz=!!RLB[id],api=g.api||{},cs=convs(id),n=cs.length;
+ var chk=function(k,t,d,v){return '<label class="cr t"><span>'+t+(d?'<small>'+d+'</small>':'')+'</span><input type="checkbox" '+(v?'checked':'')+' onchange="lkSet(\''+id+'\',\''+k+'\',this.checked)"></label>'};
+ var num=function(k,t,v,mn,mx){return '<div class="cr t"><span>'+t+'</span><input class="cri" type="number" min="'+mn+'" max="'+mx+'" value="'+v+'" style="flex:none;width:76px;text-align:right" onchange="lkSet(\''+id+'\',\''+k+'\',+this.value)"></div>'};
+ var convRows=cs.map(function(x){var mu=r.mute[x.fid];
+  return '<div class="qk-row" data-c="'+esc(id)+'" data-f="'+esc(x.fid)+'" onclick="rlConv(this.dataset.c,this.dataset.f)">'+avl(x.v.name)+'<div class="qk-mid"><div class="qk-nm"><span>'+esc(x.v.name)+'</span></div><div class="qk-sub">'+(x.m?esc(txt(x.m)):'暂无消息')+'</div></div><div class="qk-end">'+(x.ts?'<span class="qk-time">'+tms(x.ts)+'</span>':'')+(x.v.un?'<span class="qk-bd">'+x.v.un+'</span>':'')+'</div><label class="rl-sw" onclick="event.stopPropagation()" title="提醒"><input type="checkbox" '+(mu?'':'checked')+' onchange="lkMuteSet(\''+id+'\',\''+x.fid+'\',!this.checked)"></label></div>'}).join('');
+ var sch=r.sched.filter(function(s){return !s.done}).map(function(s){return '<div class="qk-row" style="cursor:default"><div class="qk-mid"><div class="qk-sub" style="margin:0 0 3px">'+new Date(s.at).toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})+' → '+esc((r.convs[s.fid]||{}).name||'')+'</div><div style="font-size:14px">'+esc(s.t)+'</div></div><button class="btn g" onclick="lkDel(\''+id+'\',\''+s.id+'\')">删</button></div>'}).join('');
+ var opts=Object.keys(r.convs).map(function(f){return '<option value="'+esc(f)+'">'+esc(r.convs[f].name)+'</option>'}).join('');
+ var body='<div class="qk-card"><div class="rl-acc">'+avc(c)+'<div class="qk-mid"><div class="qk-nm" style="font-size:18px"><span>'+esc(cn(c))+'</span>'+(bz?'<i class="rl-st bz">读取中</i>':on?'<i class="rl-st">已关联</i>':'<i class="rl-st off">未关联</i>')+'</div><div class="qk-sub">微信号：'+esc(c.wxid||('wxid_'+id))+'</div></div></div>'
+  +'<label class="cr t" style="padding:14px 16px;border-top:1px solid rgba(128,128,128,.14)"><span>关联 TA 的微信账号<small>开启后，TA 的好友会话会出现在你的消息页</small></span><input type="checkbox" '+(on?'checked':'')+' onchange="rlSet(\''+esc(id)+'\',this.checked)"></label></div>';
+ if(on){
+  body+='<div class="qk-sec">好友会话 · '+n+'</div><div class="qk-card">'+(convRows||'<div class="qk-empty">'+(bz?'正在读取 TA 的好友…':'还没有读取到好友')+'</div>')+'</div>'
+   +'<p class="rl-tip" style="margin-top:6px">右侧开关：该好友来消息时是否提醒。</p>'
+   +'<div class="qk-sec">对话节奏</div><div class="grp">'+num('every','平均每几分钟产生一次好友对话',g.every,1,120)+num('dmin','TA 回复延迟最短（秒）',g.dmin,0,600)+num('dmax','TA 回复延迟最长（秒）',g.dmax,0,1800)+chk('dedupe','去重','不重复说过的话',g.dedupe)+'</div>'
+   +'<div class="qk-sec">列表与提醒</div><div class="grp">'+num('max','列表最多显示几个会话',g.max,1,20)+chk('mute','全部免打扰','不弹出通知',g.mute)+chk('noti','提醒里显示消息内容','',g.noti)+'</div>'
+   +'<div class="qk-sec">独立 API（留空则使用主 API）</div><div class="grp" style="padding:4px 14px"><label class="lb">接口地址</label><input class="in" value="'+esc(api.url||'')+'" placeholder="https://…/v1" onchange="lkApi(\''+id+'\',\'url\',this.value)"><label class="lb">Key</label><input class="in" type="password" value="'+esc(api.key||'')+'" onchange="lkApi(\''+id+'\',\'key\',this.value)"><label class="lb">模型</label><input class="in" value="'+esc(api.model||'')+'" onchange="lkApi(\''+id+'\',\'model\',this.value)"></div>'
+   +'<div class="qk-sec">定时消息（TA 在指定时间发给好友）</div><div class="grp" style="padding:8px 14px">'+(sch||'<p class="mut" style="margin:6px 0">暂无</p>')+(opts?'<select class="in" id="lks-f" style="margin-top:8px">'+opts+'</select><input class="in" id="lks-t" placeholder="消息内容" style="margin-top:6px"><input class="in" id="lks-a" type="datetime-local" style="margin-top:6px"><button class="btn g" style="margin-top:8px" onclick="lkAdd(\''+id+'\')">添加定时消息</button>':'')+'</div>'
+   +'<div class="fl acts" style="margin-top:14px"><button class="btn g" onclick="lkRegen(\''+id+'\')">重新读取 TA 的好友</button></div>'
+ }else body+='<p class="rl-tip">开启关联后，TA 好友的会话会出现在你的消息列表里，TA 会按人设自己回复好友（需要消耗 API 次数）。</p>';
+ view2(hd(esc(cn(c)),'',"rlBack('"+id+"')"),body,'detail',id)};
+window.rlBack=function(id){
+ if(RLD=='list'){rlList();return}
+ if(RLD=='main'){LKV=id;wt=0;wxMain();return}
+ lkBack(id)};
+window.lkCfg=function(id){
+ id=id||cid;var m=document.querySelector('#app .rlp');
+ rlDetail(id,(m&&m.dataset.p=='detail'&&m.dataset.id==id)?RLD:'chat')};
+
+/* —— 读取好友 —— */
+var LKI2={};
+window.lkInit=async function(id){
+ var r=lkRec(id);if(Object.keys(r.convs).length||LKI2[id])return;
+ LKI2[id]=1;RLB[id]=1;rlRefresh(id);toast('正在读取 TA 的微信好友…');
+ try{
+  var pr=pkRec(id);
+  if(!pr||!pr.d)await Promise.race([pkGen(id),new Promise(function(_,rj){setTimeout(function(){rj(Error('读取超时，请检查 API 后重试'))},120000)})]);
+  pr=pkRec(id);var d=pr.d,now=Date.now();
+  (d.ct||[]).forEach(function(f){var L=(d.ch[f.id]||[]).map(function(m){return{w:m.r=='u'?'c':'f',t:m.t,ts:m.ts}});if(L.length)r.convs[f.id]={name:f.remark||f.name,ch:L,un:0}});
+  r.gen=now;save();toast('已关联：TA 的好友会话出现在你的消息列表')
+ }catch(e){
+  toast('读取失败：'+(e&&e.message||e));var c=S.cs[id];if(c&&c.pm)c.pm.link=false;save()
+ }finally{LKI2[id]=0;RLB[id]=0;rlRefresh(id)}};
+
+/* —— 后台对话：不再抢屏幕 —— */
+window.lkStep=async function(id,fid){
+ var r=lkRec(id),c=ct(id),v=r.convs[fid];if(!c||!v)return;var last=v.ch.slice(-8),cfg=r.cfg;
+ var sys='你要模拟一段微信聊天。角色「'+c.name+'」（人设：'+(c.persona||'普通朋友')+'）正在和好友「'+v.name+'」聊天。好友先发一条新消息（符合好友身份、延续话题，也可以开新话题），然后「'+c.name+'」按自己的人设和说话习惯回复。每条不超过40字，口语，不要重复之前说过的话。只输出JSON：{"friend":"好友的消息","reply":"'+c.name+'的回复"}';
+ var j=null;
+ try{j=jp(await ai([{role:'user',content:'之前的聊天：\n'+(last.map(function(m){return(m.w=='c'?c.name:v.name)+'：'+m.t}).join('\n')||'（还没聊过）')+'\n现在时间：'+new Date().toLocaleString('zh-CN')+'。请生成接下来的一来一回。'}],sys,null,cfg.api&&cfg.api.url&&cfg.api.key?cfg.api:undefined))}catch(e){return}
+ if(!j||!j.friend||!j.reply)return;var ft=String(j.friend).trim(),rt=String(j.reply).trim();if(!ft||!rt)return;
+ if(cfg.dedupe&&v.ch.slice(-12).some(function(m){return m.t==ft||m.t==rt})||ft==rt)return;
+ var now=Date.now(),d=(cfg.dmin+Math.random()*Math.max(0,cfg.dmax-cfg.dmin))*1000;
+ v.ch.push({w:'f',t:ft,ts:now});v.ch.push({w:'c',t:rt,ts:now+d});v.ch=v.ch.slice(-80);
+ var viewing=document.getElementById('rlcv')&&RLC&&RLC.cid==id&&RLC.fid==fid;
+ v.un=viewing?0:(v.un||0)+1;save();
+ var mu=r.mute[fid]||cfg.mute;
+ if(!mu&&!viewing&&!(typeof PK!='undefined'&&PK))notify('wx',v.name,cfg.noti?ft:'[新消息]',function(){rlConv(id,fid)});
+ try{if(viewing)rlConv(id,fid,true);else if(onMain())wxMain();else{var m=document.querySelector('#app .rlp');if(m&&m.dataset.p=='detail'&&m.dataset.id==id)rlDetail(id);else if(m&&m.dataset.p=='list')rlList()}}catch(e){}};
+window.lkConv=function(c2,f){rlConv(c2,f)};
+
+/* —— 会话页 —— */
+window.rlConv=function(cid2,fid,quiet){
+ var r=lkRec(cid2),v=r.convs[fid],c=ct(cid2);if(!v||!c)return;
+ LKV=cid2;v.un=0;if(!quiet)save();
+ var now=Date.now(),mu=r.mute[fid]||r.cfg.mute,L=v.ch.filter(function(m){return m.ts<=now}),pend=v.ch.some(function(m){return m.w=='c'&&m.ts>now});
+ var h='',lt=0;
+ L.forEach(function(m){if(m.ts-lt>600000)h+='<div class="rl-t">'+tmf(m.ts)+'</div>';lt=m.ts;var me=m.w=='c';h+='<div class="rl-m'+(me?' me':'')+'">'+(me?avc(c):avl(v.name))+'<div class="rl-bb">'+esc(m.t)+'</div></div>'});
+ if(pend)h+='<div class="rl-m me">'+avc(c)+'<div class="rl-bb rl-ty"><i></i><i></i><i></i></div></div>';
+ if(!L.length)h+='<div class="qk-empty">还没有聊天记录</div>';
+ RLC={cid:cid2,fid:fid,n:L.length,p:pend};
+ var old=document.getElementById('rlcv'),nearBottom=!old||(old.scrollHeight-old.scrollTop-old.clientHeight<80);
+ view(hd(esc(v.name),'<button class="ib" onclick="rlMute(\''+cid2+'\',\''+fid+'\')">'+(mu?'🔕':'🔔')+'</button>',"lkSw('"+cid2+"')")
+  +'<div class="body rl-cv" id="rlcv"><div class="rl-bn"><span>已登录「'+esc(cn(c))+'」的微信 · 只读，TA 会自己回复</span></div>'+h+'</div>');
+ var b=document.getElementById('rlcv');if(b&&nearBottom)b.scrollTop=b.scrollHeight;
+ clearInterval(RLT);
+ RLT=setInterval(function(){
+  var e=document.getElementById('rlcv');if(!e||!RLC){clearInterval(RLT);return}
+  var vv=(lkRec(RLC.cid).convs||{})[RLC.fid];if(!vv)return;var t=Date.now();
+  var n2=vv.ch.filter(function(m){return m.ts<=t}).length,p2=vv.ch.some(function(m){return m.w=='c'&&m.ts>t});
+  if(n2!=RLC.n||p2!=RLC.p)rlConv(RLC.cid,RLC.fid,true)},1500)};
+window.rlMute=function(c2,f){var r=lkRec(c2);r.mute[f]=!r.mute[f];save();rlConv(c2,f,true)};
+window.lkConvRefresh=function(){if(RLC)rlConv(RLC.cid,RLC.fid,true)};
+window.lkSw=function(id){LKV=id||null;clearInterval(RLT);wt=0;wxMain()};
+
+/* —— 消息页：账号切换条 + 角色会话列表 —— */
+function rlMain(){
+ if((typeof PK!='undefined'&&PK)||wt!=0||!S.wx)return;
+ var b=document.querySelector('#app .body');if(!b||!b.querySelector('.h1'))return;
+ b.querySelectorAll('.lkbar,.lkbn,.lkrow,.rl-bar,.rl-lv').forEach(function(e){e.remove()});
+ var ids=lkIds(),busy=S.ct.filter(function(c){return RLB[c.id]});
+ if(!ids.length&&!busy.length){LKV=null;return}
+ if(LKV&&ids.indexOf(LKV)<0)LKV=null;
+ var me=S.wx,chip=function(id,nm,on,un,a){return '<div class="rl-chip'+(on?' on':'')+'" onclick="lkSw('+(id?"'"+id+"'":'null')+')">'+a+(un?'<span class="qk-bd">'+(un>9?'9+':un)+'</span>':'')+'<small>'+esc(nm)+'</small></div>'};
+ var bar='<div class="rl-bar">'+chip('',vnMe(),!LKV,0,'<div class="qk-av"'+(me.av?' style="background-image:url(\''+esc(me.av)+'\')"':'')+'>'+(me.av?'':letter(vnMe()))+'</div>')
+  +ids.map(function(id){var c=ct(id);return chip(id,cn(c),LKV==id,lkUn(id),avc(c))}).join('')
+  +busy.filter(function(c){return ids.indexOf(c.id)<0}).map(function(c){return '<div class="rl-chip" style="opacity:.55">'+avc(c)+'<small>读取中…</small></div>'}).join('')
+  +'<div class="rl-chip add" onclick="rlList(\'main\')"><div class="qk-av">+</div><small>管理</small></div></div>';
+ var h1=b.querySelector('.h1');h1.insertAdjacentHTML('afterend',bar);
+ if(LKV){
+  [].slice.call(b.children).forEach(function(e){if(e.classList.contains('row')||e.tagName=='P')e.remove()});
+  var c=ct(LKV),r=lkRec(LKV),now=Date.now(),L=convs(LKV).filter(function(x){return x.m}).slice(0,r.cfg.max);
+  var rows=L.map(function(x){var mu=r.mute[x.fid]||r.cfg.mute;
+   return '<div class="qk-row" style="padding-left:2px;padding-right:2px;border-color:rgba(128,128,128,.14)" data-c="'+esc(x.cid)+'" data-f="'+esc(x.fid)+'" onclick="rlConv(this.dataset.c,this.dataset.f)">'+avl(x.v.name)+'<div class="qk-mid"><div class="qk-nm"><span>'+esc(x.v.name)+'</span>'+(mu?'<small style="color:#9a9aa0;font-size:11px">免打扰</small>':'')+'</div><div class="qk-sub">'+esc(txt(x.m))+'</div></div><div class="qk-end"><span class="qk-time">'+tms(x.m.ts)+'</span>'+(x.v.un?'<span class="qk-bd">'+x.v.un+'</span>':'')+'</div></div>'}).join('');
+  b.insertAdjacentHTML('beforeend','<div class="rl-lv"><div class="rl-bn"><span>已登录「'+esc(cn(c))+'」的微信 · 只读，TA 会自己回复好友</span><button onclick="rlDetail(\''+LKV+'\',\'main\')">设置</button></div>'+(rows||'<div class="qk-empty">暂无会话<br>TA 会按设置的节奏和好友聊起来</div>')+'</div>')}}
+var _wxR=wxMain;
+wxMain=function(){var r=_wxR.apply(this,arguments);try{rlMain()}catch(e){}return r};
+
+window.rlEntry=function(){
+ var all=S.ct.filter(function(c){return !c.m}),n=all.filter(function(c){return isOn(c.id)}).length;
+ return '<div class="qk-sec">角色账号</div><div class="qk-card"><div class="qk-row" onclick="rlList(\'qk\')"><div class="qk-av" style="background:linear-gradient(135deg,#b69cff,#5f6ef5);font-size:15px">TA</div><div class="qk-mid"><div class="qk-nm"><span>关联角色账号</span></div><div class="qk-sub">'+(n?'已关联 '+n+' 个角色 · 查看 TA 们的好友会话':'登录 TA 的微信，旁观 TA 和好友聊天')+'</div></div><span class="chev">'+ic('back',14)+'</span></div></div>'};
+
+/* ================= 开屏：月相 · 负片显影 · 二十八宿 · 粒子 ================= */
+function mul(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+var NAMES='角亢氐房心尾箕斗牛女虚危室壁奎娄胃昴毕觜参井鬼柳星张翼轸'.split(''),
+ CNT=[2,4,4,4,3,7,4,7,6,4,2,3,2,2,7,3,3,7,7,3,7,7,5,7,6,6,7,4],
+ COL=['#8fe8d4','#a3b6ff','#f2f2fa','#ff9c8c'],
+ SPEC={
+  5:null,
+  6:{p:[[-.75,-.5],[.75,-.5],[.35,.7],[-.35,.7]],l:[[0,1],[1,2],[2,3],[3,0]]},
+  7:{p:[[-.95,.45],[-.6,.3],[-.25,.1],[.05,0],[.55,0],[.6,.55],[.1,.6]],l:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,3]]},
+  17:{p:[[-.3,-.2],[0,-.35],[.3,-.15],[-.1,.1],[.2,.2],[-.35,.3],[.05,.45]],l:[]},
+  20:{p:[[-.5,-.8],[.5,-.75],[-.25,0],[0,.05],[.25,.1],[-.55,.85],[.55,.8]],l:[[0,2],[1,4],[2,3],[3,4],[2,5],[4,6]]},
+  21:{p:[[-.6,-.5],[.6,-.5],[-.6,.5],[.6,.5],[-.8,0],[.8,0]],l:[[0,1],[2,3],[0,2],[1,3],[4,5]]},
+  27:{p:[[0,-.85],[.55,-.05],[0,.85],[-.55,-.05]],l:[[0,1],[1,2],[2,3],[3,0]]}
+ };
+function bootPlay(force){
+ var ph=document.getElementById('ph'),b0=document.getElementById('boot0');
+ if(!ph)return;
+ if((!force&&S.fxs&&S.fxs.boot===false)||document.getElementById('boot')){b0&&b0.remove();return}
+ var RM=false;try{RM=matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){}
+ var W=ph.clientWidth||390,H=ph.clientHeight||800,D=Math.min(2,window.devicePixelRatio||1.5),TAU=Math.PI*2;
+ var o=document.createElement('div');o.id='boot';
+ var c=document.createElement('canvas');c.width=Math.round(W*D);c.height=Math.round(H*D);o.appendChild(c);
+ var cap=document.createElement('div');cap.className='bs';o.appendChild(cap);
+ ph.appendChild(o);b0&&b0.remove();
+ var g=c.getContext('2d');g.scale(D,D);
+ var R=mul(20260);
+ var cx=W/2,cy=H*.40,Rm=Math.min(W*.17,H*.1),rx=W*.39,ry=H*.285,tilt=-.1,ct0=Math.cos(tilt),st0=Math.sin(tilt),asz=Math.min(W,H)*.042;
+ var mini=Rm*1.82,minr=Rm*.19;
+ /* 二十八宿 */
+ var AS=[];
+ for(var i=0;i<28;i++){
+  var sp=SPEC[i],pts,ls=[];
+  if(sp&&sp.p){pts=sp.p;ls=sp.l}
+  else{var n=CNT[i];pts=[];for(var k=0;k<n;k++)pts.push([-.9+1.8*k/Math.max(1,n-1),(R()-.5)*1.15]);for(k=0;k<n-1;k++)ls.push([k,k+1]);if(n>=5&&R()<.5)ls.push([1,n-2])}
+  AS.push({n:NAMES[i],p:pts,l:ls,rot:R()*TAU,col:COL[Math.floor(i/7)],t0:850+i*52,br:pts.map(function(){return R()})})}
+ function rp(i,t){var a=-Math.PI/2+(i+.5)/28*TAU+t*.00005,x=Math.cos(a)*rx,y=Math.sin(a)*ry;return[cx+x*ct0-y*st0,cy+x*st0+y*ct0]}
+ /* 尘埃 */
+ var DU=[];for(i=0;i<(W<500?170:240);i++)DU.push({x:R()*W,y:R()*H,vx:(R()-.5)*.012,vy:(R()-.5)*.012,s:.4+R()*1.1,tw:R()*TAU,a:.15+R()*.55});
+ /* 粒子文字「淡水机」 */
+ var fs=Math.round(Math.min(W*.2,68)),ty=Math.min(cy+ry+fs*.95+26,H-130),oc=document.createElement('canvas');
+ oc.width=Math.ceil(fs*3.5);oc.height=Math.ceil(fs*1.5);
+ var og=oc.getContext('2d'),TP=[];
+ try{og.fillStyle='#fff';og.font='700 '+fs+'px "Songti SC","STSong","Noto Serif CJK SC","Source Han Serif SC",serif';og.textAlign='center';og.textBaseline='middle';og.fillText('淡水机',oc.width/2,oc.height/2);
+  var px=og.getImageData(0,0,oc.width,oc.height).data;
+  for(var y=0;y<oc.height;y+=3)for(var x=0;x<oc.width;x+=3)if(px[(y*oc.width+x)*4+3]>128)TP.push([x-oc.width/2,y-oc.height/2])}catch(e){}
+ for(i=TP.length-1;i>0;i--){var j=Math.floor(R()*(i+1)),tmp=TP[i];TP[i]=TP[j];TP[j]=tmp}
+ TP=TP.slice(0,W<500?620:820).map(function(p){
+  var src=R()<.55?rp(Math.floor(R()*28),0):[cx+(R()-.5)*Rm*2,cy+(R()-.5)*Rm*2];
+  return{tx:cx+p[0],ty:ty+p[1],sx:src[0],sy:src[1],cxp:cx+(R()-.5)*W*.9,cyp:cy+(R()-.5)*H*.5,dl:1700+R()*1100,s:.7+R()*.8,tw:R()*TAU}});
+ /* 彗星 */
+ var CM=[];for(i=0;i<6;i++)CM.push({a:R()*TAU,w:(.5+R()*.5)*(i%2?1:-1),h:[]});
+ /* 噪点 */
+ var nc=document.createElement('canvas');nc.width=nc.height=96;var ng=nc.getContext('2d'),nd=ng.createImageData(96,96);
+ for(i=0;i<nd.data.length;i+=4){var v=R()*255|0;nd.data[i]=nd.data[i+1]=nd.data[i+2]=v;nd.data[i+3]=60}ng.putImageData(nd,0,0);
+ var grain=g.createPattern(nc,'repeat');
+ /* 月面斑 */
+ var MA=[];for(i=0;i<9;i++){var a=R()*TAU,d=Math.sqrt(R())*.7;MA.push([Math.cos(a)*d,Math.sin(a)*d,.1+R()*.2,.08+R()*.1])}
+ var TS=RM?.35:1,T_END=4700,gone=0,t0=performance.now(),lastCap='';
+ function close(){if(gone)return;gone=1;o.style.opacity=0;setTimeout(function(){o.remove()},760)}
+ o.onclick=close;
+ function e3(x){return x<0?0:x>1?1:1-Math.pow(1-x,3)}
+ function eio(x){x=x<0?0:x>1?1:x;return x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2}
+ function star(X,Y,r,a,col){g.globalAlpha=a;g.fillStyle=col;g.beginPath();g.arc(X,Y,r,0,TAU);g.fill();
+  if(r>1.7){g.globalAlpha=a*.55;g.strokeStyle=col;g.lineWidth=.6;g.beginPath();g.moveTo(X-r*3,Y);g.lineTo(X+r*3,Y);g.moveTo(X,Y-r*3);g.lineTo(X,Y+r*3);g.stroke()}}
+ /* 月相：p 0新月→.5满月→1新月 */
+ function moon(X,Y,r,p,glow){
+  var ph2=p*TAU,k=Math.cos(ph2),wax=p<=.5;
+  g.save();g.translate(X,Y);if(!wax)g.scale(-1,1);
+  g.globalAlpha=1;g.fillStyle='#161a33';g.beginPath();g.arc(0,0,r,0,TAU);g.fill();
+  g.strokeStyle='rgba(190,200,255,.28)';g.lineWidth=.8;g.stroke();
+  if(p>.004&&p<.996){
+   g.beginPath();g.arc(0,0,r,-Math.PI/2,Math.PI/2,false);
+   g.ellipse(0,0,Math.max(.01,Math.abs(r*k)),r,0,Math.PI/2,-Math.PI/2,k>0);
+   g.closePath();
+   if(glow){g.save();g.shadowColor='rgba(255,246,214,.9)';g.shadowBlur=r*.5;g.fillStyle='#f4efd8';g.fill();g.restore()}
+   g.save();g.clip();
+   var gr=g.createRadialGradient(-r*.25,-r*.25,r*.1,0,0,r*1.05);gr.addColorStop(0,'#fffbea');gr.addColorStop(1,'#d3cbb0');
+   g.fillStyle=gr;g.fillRect(-r,-r,r*2,r*2);
+   if(glow){g.fillStyle='#5b5a55';MA.forEach(function(m){g.globalAlpha=m[3];g.beginPath();g.arc(m[0]*r,m[1]*r,m[2]*r,0,TAU);g.fill()})}
+   g.restore()}
+  g.restore();g.globalAlpha=1}
+ function phName(p){var q=p>.5?1-p:p;return q<.04?'新月':q<.2?'蛾眉月':q<.3?'上弦月':q<.46?'盈凸月':'满月'}
+ function frame(now){
+  if(gone)return;
+  var t=(window.__bootT!=null)?window.__bootT:(now-t0)/TS;
+  /* 负片 → 显影 */
+  var inv=RM?0:t<1500?1:t<3100?1-eio((t-1500)/1600):0;
+  if(!RM&&t>1900&&t<2300)inv=Math.max(0,Math.min(1,inv+Math.sin((t-1900)/400*Math.PI*3)*.16));
+  o.style.filter=inv>.003?'invert('+inv.toFixed(3)+')':'none';
+  /* 背景 */
+  g.globalAlpha=1;g.fillStyle='#04050d';g.fillRect(0,0,W,H);
+  var nb=g.createRadialGradient(cx,cy,0,cx,cy,Math.max(W,H)*.7);nb.addColorStop(0,'rgba(60,70,140,.30)');nb.addColorStop(.5,'rgba(25,30,70,.18)');nb.addColorStop(1,'rgba(4,5,13,0)');
+  g.fillStyle=nb;g.fillRect(0,0,W,H);
+  /* 胶片边 */
+  var fa=Math.max(0,1-Math.max(0,t-1500)/1400);
+  if(fa>0){g.globalAlpha=fa*.9;g.fillStyle='#0b0e22';g.fillRect(0,0,22,H);g.fillRect(W-22,0,22,H);
+   g.fillStyle='#04050d';var off=(t*.04)%28;
+   for(var yy=-28+off;yy<H;yy+=28){g.beginPath();g.rect(6,yy,10,14);g.rect(W-16,yy,10,14);g.fill()}
+   g.globalAlpha=fa*.55;g.fillStyle='#aab4ff';g.font='8px monospace';g.textAlign='center';
+   g.save();g.translate(11,H*.5);g.rotate(-Math.PI/2);g.fillText('淡水机  400  ▸ 27 ▸ 27A',0,3);g.restore()}
+  /* 尘埃 */
+  for(var q=0;q<DU.length;q++){var d=DU[q];d.x=(d.x+d.vx*16+W)%W;d.y=(d.y+d.vy*16+H)%H;
+   star(d.x,d.y,d.s,d.a*(.5+.5*Math.sin(t/260+d.tw))*Math.min(1,t/500),'#cfd6ff')}
+  /* 浑天仪环与刻度 */
+  var ra=e3((t-200)/900);
+  if(ra>0){g.globalAlpha=ra*.5;g.strokeStyle='#8f9bd6';g.lineWidth=.7;
+   g.beginPath();g.arc(cx,cy,Rm*1.42,0,TAU);g.stroke();
+   g.beginPath();g.arc(cx,cy,Rm*2.35,0,TAU);g.stroke();
+   g.globalAlpha=ra*.42;g.beginPath();var ro=t*.00011;
+   for(q=0;q<120;q++){var aa=ro+q/120*TAU,l=q%5?3:6;g.moveTo(cx+Math.cos(aa)*Rm*2.35,cy+Math.sin(aa)*Rm*2.35);g.lineTo(cx+Math.cos(aa)*(Rm*2.35+l),cy+Math.sin(aa)*(Rm*2.35+l))}g.stroke();
+   /* 黄道 */
+   g.save();g.translate(cx,cy);g.rotate(tilt);g.globalAlpha=ra*.34;g.setLineDash([2,6]);g.beginPath();g.ellipse(0,0,rx,ry,0,0,TAU*Math.min(1,(t-200)/1800));g.stroke();g.restore();g.setLineDash([])}
+  /* 二十八宿 */
+  for(i=0;i<28;i++){
+   var A=AS[i],pa=e3((t-A.t0)/420);if(pa<=0)continue;
+   var P=rp(i,t),lp=e3((t-A.t0-260)/520),ca=Math.cos(A.rot),sa=Math.sin(A.rot);
+   var sc=function(p){return[P[0]+(p[0]*ca-p[1]*sa)*asz,P[1]+(p[0]*sa+p[1]*ca)*asz]};
+   if(lp>0&&A.l.length){g.globalAlpha=pa*.55;g.strokeStyle=A.col;g.lineWidth=.8;g.beginPath();
+    A.l.forEach(function(L,li){var a1=sc(A.p[L[0]]),a2=sc(A.p[L[1]]),f=Math.min(1,lp*A.l.length-li);if(f<=0)return;g.moveTo(a1[0],a1[1]);g.lineTo(a1[0]+(a2[0]-a1[0])*f,a1[1]+(a2[1]-a1[1])*f)});g.stroke()}
+   A.p.forEach(function(p,pi){var s2=sc(p),br=.55+.45*Math.sin(t/230+A.br[pi]*TAU);star(s2[0],s2[1],(.9+A.br[pi]*1.1)*(pi==0?1.25:1),pa*br,A.col)});
+   /* 宿名 */
+   var dx=P[0]-cx,dy=P[1]-cy,len=Math.hypot(dx,dy)||1,lx=P[0]+dx/len*(asz*1.25+8),ly=P[1]+dy/len*(asz*1.25+8);
+   g.globalAlpha=pa*.78;g.fillStyle=A.col;g.font='11px "Songti SC","STSong",serif';g.textAlign='center';g.textBaseline='middle';g.fillText(A.n,lx,ly)}
+  /* 八相小月环 */
+  var pm=eio((t-300)/2700)*.5,mr=e3((t-500)/700);
+  if(mr>0){for(i=0;i<8;i++){var aa2=-Math.PI/2+i/8*TAU+t*.00018,mx=cx+Math.cos(aa2)*mini*mr,my=cy+Math.sin(aa2)*mini*mr,pp=i/8;
+    g.globalAlpha=mr*.9;moon(mx,my,minr,pp,false);
+    var act=Math.abs(((pp-pm*2)+1.5)%1-.5)<.07;if(act){g.globalAlpha=mr*.8;g.strokeStyle='#ffe9a8';g.lineWidth=1;g.beginPath();g.arc(mx,my,minr+3,0,TAU);g.stroke()}}}
+  /* 主月 */
+  var mg=g.createRadialGradient(cx,cy,Rm*.6,cx,cy,Rm*(2.1+pm*1.2));mg.addColorStop(0,'rgba(255,244,205,'+(.1+pm*.5)+')');mg.addColorStop(1,'rgba(255,244,205,0)');
+  g.globalAlpha=Math.min(1,t/400);g.fillStyle=mg;g.fillRect(cx-Rm*4,cy-Rm*4,Rm*8,Rm*8);
+  g.globalAlpha=Math.min(1,t/350);moon(cx,cy,Rm*(1+.012*Math.sin(t/500)),pm,true);
+  /* 彗星 */
+  var ca=e3((t-900)/900);
+  if(ca>0)CM.forEach(function(m){var aa=m.a+m.w*t/1000*1.1,x=Math.cos(aa)*rx,y=Math.sin(aa)*ry,X=cx+x*ct0-y*st0,Y=cy+x*st0+y*ct0;m.h.push([X,Y]);if(m.h.length>14)m.h.shift();
+   for(var k=1;k<m.h.length;k++){g.globalAlpha=ca*k/m.h.length*.7;g.strokeStyle='#ffe9c4';g.lineWidth=k/m.h.length*2;g.beginPath();g.moveTo(m.h[k-1][0],m.h[k-1][1]);g.lineTo(m.h[k][0],m.h[k][1]);g.stroke()}
+   star(X,Y,2,ca,'#fff6dc')});
+  /* 粒子成字 */
+  var fade=t>T_END-700?Math.max(0,1-(t-(T_END-700))/700):1;
+  for(i=0;i<TP.length;i++){var p=TP[i],k=e3((t-p.dl)/900);if(k<=0)continue;
+   var u=1-k,X=u*u*p.sx+2*u*k*p.cxp+k*k*p.tx,Y=u*u*p.sy+2*u*k*p.cyp+k*k*p.ty;
+   if(k>=1){X+=Math.sin(t/340+p.tw)*.5;Y+=Math.cos(t/300+p.tw)*.5}
+   var al=(k<1?.35+.5*k:.88)*(.7+.3*Math.sin(t/200+p.tw))*fade;
+   star(X,Y,p.s*(k>=1?1:.7),al,k>=1?'#fff1cf':'#ffd9a0');
+   if(k>=1&&(i%7==0)){g.globalAlpha=al*.18;g.fillStyle='#ffd9a0';g.beginPath();g.arc(X,Y,p.s*3.2,0,TAU);g.fill()}}
+  /* 胶片噪点 / 划痕 */
+  if(fa>0&&!RM){g.save();g.globalAlpha=.06+.1*fa;g.translate((Math.random()*96)|0,(Math.random()*96)|0);g.fillStyle=grain;g.fillRect(-96,-96,W+192,H+192);g.restore();
+   if(Math.random()<.16){g.globalAlpha=.16*fa;g.fillStyle='#cfd6ff';g.fillRect(Math.random()*W,0,.7,H)}}
+  g.globalAlpha=1;
+  /* 字幕与收尾 */
+  var cp=t<3200?phName(pm):'二十八宿 · 星象已定';
+  if(cp!==lastCap){lastCap=cp;cap.textContent=cp.split('').join(' ')}
+  cap.style.opacity=t>500&&t<T_END-600?1:0;
+  if(t>T_END-700){o.style.opacity=fade;var z=1+(1-fade)*.05;c.style.transform='scale('+z+')'}
+  if(t<T_END)requestAnimationFrame(frame);else close()}
+ requestAnimationFrame(frame);
+ return o}
+window.bootPlay=bootPlay;
+try{bootPlay()}catch(e){var b0=document.getElementById('boot0');b0&&b0.remove()}
 })();
 </script>
 <script>
