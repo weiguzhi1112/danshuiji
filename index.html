@@ -5437,6 +5437,197 @@ window.lkInit=async function(id){
  }finally{LKI[id]=0}};
 })();
 </script>
+<script type="text/x-app">
+/* ===== v44：QQ 风格「关联账号」 + 全局返回保护 ===== */
+(function(){
+var css=[
+'#nt.toast{pointer-events:none}',
+'.qlk{padding-bottom:44px}',
+'.qk-hero{display:flex;align-items:center;gap:14px;padding:18px;border-radius:20px;color:#fff;background:linear-gradient(135deg,#12b7f5,#0b8ee6);margin:4px 0 6px;box-shadow:0 8px 22px rgba(18,183,245,.28)}',
+'.qk-hero b{display:block;font-size:17px;font-weight:600;letter-spacing:.04em}',
+'.qk-hero small{display:block;font-size:12px;line-height:1.55;opacity:.92;margin-top:3px}',
+'.qk-pair{display:flex;flex:none}',
+'.qk-pair .qk-av{width:42px;height:42px;font-size:16px;border:2px solid #fff}',
+'.qk-pair .qk-av+.qk-av{margin-left:-14px}',
+'.qk-sec{font-size:12.5px;color:#8e8e93;margin:18px 6px 8px;letter-spacing:.06em}',
+'.qk-card{background:#f7f7f5;border-radius:18px;overflow:hidden}',
+'.qk-row{display:flex;align-items:center;gap:13px;padding:13px 16px;border-bottom:1px solid #ececea;cursor:pointer;-webkit-tap-highlight-color:transparent}',
+'.qk-row:last-child{border-bottom:0}.qk-row:active{background:rgba(0,0,0,.05)}',
+'.qk-av{width:46px;height:46px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:18px;font-weight:600;color:#fff;background:linear-gradient(135deg,#7fd6fb,#12b7f5);background-size:cover;background-position:center;background-repeat:no-repeat}',
+'.qk-mid{flex:1;min-width:0}',
+'.qk-nm{font-size:16px;display:flex;align-items:center;gap:6px;min-width:0}',
+'.qk-nm span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+'.qk-sub{font-size:12.5px;color:#9a9aa0;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+'.qk-tag{flex:none;font-size:10.5px;color:#12b7f5;border:1px solid #12b7f5;border-radius:6px;padding:0 5px;line-height:16px}',
+'.qk-bd{flex:none;min-width:18px;height:18px;border-radius:9px;background:#fa5151;color:#fff;font-size:11px;display:grid;place-items:center;padding:0 5px;box-sizing:border-box}',
+'.qk-time{font-size:11px;color:#b0b0b5;flex:none}',
+'.qk-end{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex:none}',
+'.qk-add .qk-pl{width:46px;height:46px;border-radius:50%;border:1.5px dashed #12b7f5;color:#12b7f5;display:grid;place-items:center;font-size:26px;font-weight:300;flex:none;box-sizing:border-box}',
+'.qk-add .qk-nm{color:#12b7f5}',
+'.qk-ft{font-size:12px;line-height:1.75;color:#9a9aa0;margin:10px 6px}',
+'.qk-empty{padding:26px 16px;text-align:center;color:#a0a0a5;font-size:13px;line-height:1.75}',
+'.qk-bn{display:flex;align-items:center;gap:12px;padding:11px 14px;margin:6px 0 12px;border-radius:16px;background:#eaf8fe;cursor:pointer}',
+'.qk-bn .qk-av{width:38px;height:38px;font-size:15px}',
+'.qk-sh-hd{display:flex;align-items:center;gap:13px;margin-bottom:14px}',
+'.qk-sb{display:block;width:100%;padding:14px;border:0;border-radius:14px;background:#12b7f5;color:#fff;font-size:15px;margin-top:10px}',
+'.qk-sb.g{background:#f0f0ee;color:#333}.qk-sb.r{background:#fff0f0;color:#fa5151}',
+'.qk-pw{width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #e3e3e0;border-radius:12px;font-size:16px;background:#fff;outline:0}',
+'.qk-pw:focus{border-color:#12b7f5}',
+'.qk-er{color:#fa5151;font-size:12.5px;min-height:18px;margin:8px 2px 0}',
+'@keyframes qkshake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}.qk-shake{animation:qkshake .32s}',
+'body.dark .qk-card{background:#232320}body.dark .qk-row{border-color:#2c2c28}body.dark .qk-bn{background:#142a33}',
+'body.dark .qk-sb.g{background:#2a2a26;color:#eee}body.dark .qk-sb.r{background:#3a2222}body.dark .qk-pw{background:#1c1c19;border-color:#333;color:#eee}'
+].join('');
+var st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
+
+/* —— toast 不再拦截点击 —— */
+var _nQ=notify;
+notify=function(app,t,x,f){var r=_nQ.apply(this,arguments);try{var n=document.getElementById('nt');if(n)n.classList.toggle('toast',!t&&!app)}catch(e){}return r};
+
+/* —— 数据 —— */
+var MAXL=3;
+function nm(a){return a.nick||a.id}
+function av(a){var l=String(nm(a)||'?').charAt(0).toUpperCase();return '<div class="qk-av"'+(a.av?' style="background-image:url(\''+esc(a.av)+'\')"':'')+'>'+(a.av?'':esc(l))+'</div>'}
+function txt(m){return m.k=='img'?'[图片]':m.k=='stk'?'[表情]':m.k=='vo'?'[语音]':m.k=='rp'?'[红包]':m.k=='tf'?'[转账]':m.k=='card'?'[名片]':m.k=='loc'?'[位置]':String(m.t||'').slice(0,24)}
+function tm(ts){var d=new Date(ts),n=new Date(),p=function(x){return x<10?'0'+x:x};if(d.toDateString()==n.toDateString())return p(d.getHours())+':'+p(d.getMinutes());var y=new Date(n-864e5);if(d.toDateString()==y.toDateString())return '昨天';return (d.getMonth()+1)+'/'+d.getDate()}
+function stat(a){
+ var me=S.wx&&a.id==S.wx.id,d=me?{ct:S.ct,ch:S.ch,un:S.un}:(a.data||null),un=0,last=null;
+ if(d){var u=d.un||{};Object.keys(u).forEach(function(k){un+=(+u[k]||0)});
+  var ch=d.ch||{},ct=d.ct||[];
+  Object.keys(ch).forEach(function(k){var L=ch[k]||[];if(!L.length)return;var m=L[L.length-1];if(!m||!m.ts||m.k=='pat')return;
+   if(!last||m.ts>last.ts){var c=ct.find(function(x){return x.id==k});last={ts:m.ts,name:c?(c.remark||c.name):'',text:txt(m)}}})}
+ return{un:un,last:last}}
+function linked(){var me=S.wx;return((me&&me.links)||[]).map(function(id){return S.accts.find(function(a){return a.id==id})}).filter(function(a){return a&&a.id!=me.id})}
+function setLinks(id,on){
+ var me=S.wx,a=S.accts.find(function(x){return x.id==id}),mi=S.accts.find(function(x){return x.id==me.id});
+ var f=function(L,x){L=(L||[]).filter(function(y){return y!=x});if(on)L.push(x);return L};
+ me.links=f(me.links,id);if(mi)mi.links=me.links.slice();if(a)a.links=f(a.links,me.id);save()}
+function ro(){if(typeof PK!='undefined'&&PK){toast('查岗模式是只读的，不能操作');return true}return false}
+
+/* —— 关联账号主页 —— */
+window.linkM=function(){
+ if(ro())return;var me=S.wx;if(!me)return;
+ try{closeM()}catch(e){}
+ S.lkx=Object.assign({tip:true,detail:true,verify:false},S.lkx||{});
+ var L=linked(),sm=stat(me);
+ var pair='<div class="qk-pair">'+av(me)+(L[0]?av(L[0]):'<div class="qk-av" style="background:#bfe9fb">+</div>')+'</div>';
+ var cur='<div class="qk-row" style="cursor:default">'+av(me)+'<div class="qk-mid"><div class="qk-nm"><span>'+esc(nm(me))+'</span><i class="qk-tag">当前</i></div><div class="qk-sub">微信号：'+esc(me.id)+'</div></div></div>';
+ var rows=L.map(function(a){var s=stat(a);
+  return '<div class="qk-row" data-id="'+esc(a.id)+'" onclick="qkAct(this.dataset.id)">'+av(a)+'<div class="qk-mid"><div class="qk-nm"><span>'+esc(nm(a))+'</span></div><div class="qk-sub">'+(s.last?(S.lkx.detail?esc((s.last.name?s.last.name+'：':'')+s.last.text):'[新消息]'):'微信号：'+esc(a.id))+'</div></div><div class="qk-end">'+(s.last?'<span class="qk-time">'+tm(s.last.ts)+'</span>':'')+(s.un&&S.lkx.tip?'<span class="qk-bd">'+(s.un>99?'99+':s.un)+'</span>':'<span class="chev">'+ic('back',14)+'</span>')+'</div></div>'}).join('');
+ var list=rows||'<div class="qk-empty">还没有关联账号<br>关联后可以在账号间快速切换</div>';
+ var add=L.length<MAXL?'<div class="qk-card qk-add" style="margin-top:12px"><div class="qk-row" onclick="qkAdd()"><div class="qk-pl">+</div><div class="qk-mid"><div class="qk-nm"><span>添加关联账号</span></div><div class="qk-sub">还可以关联 '+(MAXL-L.length)+' 个账号</div></div><span class="chev">'+ic('back',14)+'</span></div></div>':'<p class="qk-ft" style="text-align:center">已达到关联上限（'+MAXL+' 个）</p>';
+ var tg=function(k,t,d){return '<label class="cr t"><span>'+t+'<small>'+d+'</small></span><input type="checkbox" '+(S.lkx[k]?'checked':'')+' onchange="S.lkx.'+k+'=this.checked;save()"></label>'};
+ view(hd('关联账号','','wt=2;wxMain()')+'<div class="body qlk">'
+  +'<div class="qk-hero">'+pair+'<div><b>关联账号</b><small>一键切换账号，其他账号的新消息也不会漏掉</small></div></div>'
+  +'<div class="qk-sec">当前登录</div><div class="qk-card">'+cur+'</div>'
+  +'<div class="qk-sec">已关联账号 · '+L.length+'/'+MAXL+'</div><div class="qk-card">'+list+'</div>'+add
+  +'<div class="qk-sec">消息设置</div><div class="grp">'+tg('tip','关联账号消息提醒','其他账号有新消息时，在消息页顶部提示')+tg('detail','显示消息内容','关闭后只显示「新消息」')+tg('verify','切换账号时验证密码','防止他人误切到你的小号')+'</div>'
+  +'<p class="qk-ft">关联后，这些账号之间可以快速切换，无需重复退出登录。关联需要验证对方账号的密码，解除关联不会删除任何账号和聊天记录。</p>'
+  +'</div>')};
+
+/* —— 点击已关联账号：操作面板 —— */
+window.qkAct=function(id){
+ var a=S.accts.find(function(x){return x.id==id});if(!a)return;var s=stat(a);
+ modal('<div class="qk-sh-hd">'+av(a)+'<div class="qk-mid"><div class="qk-nm"><span>'+esc(nm(a))+'</span></div><div class="qk-sub">微信号：'+esc(a.id)+(s.un?' · '+s.un+' 条未读':'')+'</div></div></div>'
+  +'<button class="qk-sb" data-id="'+esc(id)+'" onclick="qkSw(this.dataset.id)">切换到该账号</button>'
+  +'<button class="qk-sb r" data-id="'+esc(id)+'" onclick="qkUnAsk(this.dataset.id)">解除关联</button>'
+  +'<button class="qk-sb g" onclick="closeM()">取消</button>')};
+window.qkSw=function(id){
+ if(ro())return;closeM();var a=S.accts.find(function(x){return x.id==id});if(!a)return;
+ var go2=function(){try{swAcct(id);toast('已切换到「'+nm(a)+'」')}catch(e){toast('切换失败：'+(e&&e.message||e))}};
+ if(S.lkx&&S.lkx.verify)ask('切换账号','输入「'+id+'」的密码','',function(p){if(p!=a.pw)return toast('密码错误');go2()},'password');else go2()};
+window.qkUnAsk=function(id){
+ var a=S.accts.find(function(x){return x.id==id});if(!a)return;
+ modal('<div class="h1" style="font-size:17px">解除与「'+esc(nm(a))+'」的关联？</div><p class="mut" style="margin-top:8px;line-height:1.7">解除后将不能快速切换，也不再收到它的消息提醒。账号和聊天记录都会保留。</p>'
+  +'<button class="qk-sb r" data-id="'+esc(id)+'" onclick="qkUnDo(this.dataset.id)">解除关联</button><button class="qk-sb g" onclick="closeM()">取消</button>')};
+window.qkUnDo=function(id){if(ro())return;setLinks(id,false);closeM();toast('已解除关联');linkM()};
+window.unlink=function(id){qkUnAsk(id)};
+
+/* —— 添加关联账号 —— */
+window.qkAdd=function(){
+ if(ro())return;var me=S.wx,L=linked();
+ if(L.length>=MAXL)return toast('最多只能关联 '+MAXL+' 个账号');
+ var c=S.accts.filter(function(a){return a.id!=me.id&&!(me.links||[]).includes(a.id)});
+ if(!c.length){
+  modal('<div class="h1" style="font-size:18px">添加关联账号</div><p class="mut" style="margin:10px 0;line-height:1.75">本机上暂时没有其他可关联的账号。<br>先退出当前账号并注册另一个账号，再回来关联。</p>'
+   +'<button class="qk-sb" onclick="qkReg()">退出并去注册新账号</button><button class="qk-sb g" onclick="closeM()">取消</button>');return}
+ modal('<div class="h1" style="font-size:18px">选择要关联的账号</div><div class="qk-card" style="margin-top:12px">'
+  +c.map(function(a){return '<div class="qk-row" data-id="'+esc(a.id)+'" onclick="qkPw(this.dataset.id)">'+av(a)+'<div class="qk-mid"><div class="qk-nm"><span>'+esc(nm(a))+'</span></div><div class="qk-sub">微信号：'+esc(a.id)+'</div></div><span class="chev">'+ic('back',14)+'</span></div>'}).join('')
+  +'</div><button class="qk-sb g" onclick="closeM()">取消</button>')};
+window.qkReg=function(){closeM();cf('将退出当前账号，前往登录 / 注册页。确定吗？',function(){try{outW()}catch(e){toast('操作失败')}})};
+window.link=function(id){qkPw(id)};
+window.qkPw=function(id){
+ if(ro())return;var a=S.accts.find(function(x){return x.id==id});if(!a)return;
+ modal('<div class="qk-sh-hd">'+av(a)+'<div class="qk-mid"><div class="qk-nm"><span>关联「'+esc(nm(a))+'」</span></div><div class="qk-sub">请输入该账号的登录密码</div></div></div>'
+  +'<input class="qk-pw" id="qk-pw" type="password" placeholder="密码" autocomplete="off" onkeydown="event.key==\'Enter\'&&qkPwOk(\''+esc(id)+'\')">'
+  +'<div class="qk-er" id="qk-er"></div>'
+  +'<button class="qk-sb" onclick="qkPwOk(\''+esc(id)+'\')">关联</button><button class="qk-sb g" onclick="closeM()">取消</button>');
+ setTimeout(function(){var i=document.getElementById('qk-pw');if(i)i.focus()},80)};
+window.qkPwOk=function(id){
+ var a=S.accts.find(function(x){return x.id==id}),i=document.getElementById('qk-pw');if(!a||!i)return;
+ if(i.value!=a.pw){var e=document.getElementById('qk-er');if(e)e.textContent='密码错误，请重试';i.classList.remove('qk-shake');void i.offsetWidth;i.classList.add('qk-shake');i.value='';i.focus();return}
+ if(linked().length>=MAXL){closeM();return toast('最多只能关联 '+MAXL+' 个账号')}
+ setLinks(id,true);closeM();toast('已关联「'+nm(a)+'」');linkM()};
+
+/* —— 消息页顶部：关联账号新消息提醒 —— */
+var _wxQ=wxMain;
+wxMain=function(){
+ var r=_wxQ.apply(this,arguments);
+ try{
+  if((typeof PK!='undefined'&&PK)||wt!=0||!S.wx||!S.lkx||S.lkx.tip===false)return r;
+  var b=document.querySelector('#app .body');if(!b||b.querySelector('#qk-bn'))return r;
+  var L=linked().map(function(a){return{a:a,s:stat(a)}}).filter(function(x){return x.s.un>0});
+  if(!L.length)return r;
+  var tot=L.reduce(function(n,x){return n+x.s.un},0),f=L.sort(function(x,y){return(y.s.last?y.s.last.ts:0)-(x.s.last?x.s.last.ts:0)})[0];
+  var sub=S.lkx.detail&&f.s.last?esc(nm(f.a)+'：'+(f.s.last.name?f.s.last.name+'：':'')+f.s.last.text):'你有 '+tot+' 条未读消息';
+  var html='<div id="qk-bn" class="qk-bn" onclick="linkM()">'+av(f.a)+'<div class="qk-mid"><div class="qk-nm"><span>关联账号有新消息</span></div><div class="qk-sub">'+sub+'</div></div><span class="qk-bd">'+(tot>99?'99+':tot)+'</span></div>';
+  var h=b.querySelector('.h1');if(h)h.insertAdjacentHTML('afterend',html);else b.insertAdjacentHTML('afterbegin',html)
+ }catch(e){}
+ return r};
+
+/* —— 全局返回保护 —— */
+var BK='#app .hd>.ib:first-child,.pgh>.ib:first-child';
+function vis(el){var r=el.getBoundingClientRect();return r.width>0&&r.height>0}
+function topBack(){
+ var m=document.getElementById('md');
+ if(m&&m.classList.contains('on')){var p=m.querySelector('.pgh>.ib:first-child');return p||'modal'}
+ var app=document.getElementById('app');if(app&&app.classList.contains('on')){var b=app.querySelector('.hd>.ib:first-child');if(b&&vis(b))return b}
+ return null}
+function doBack(){var t=topBack();if(!t)return false;if(t==='modal'){closeM();return true}t.click();return true}
+function snap(){var a=document.getElementById('app'),m=document.getElementById('md');
+ return((a.querySelector('.hd b')||{}).textContent||'')+'|'+a.innerHTML.length+'|'+(a.classList.contains('on')?1:0)+'|'+(m.classList.contains('on')?m.innerHTML.length:0)}
+function fallback(){
+ try{
+  var m=document.getElementById('md');if(m&&m.classList.contains('on')){closeM();return}
+  if(cur=='wx'&&S.wx&&!(typeof PK!='undefined'&&PK)){wt=0;wxMain();return}
+  home()
+ }catch(e){try{home()}catch(e2){}}}
+/* 提示条盖住返回键时，把点击转交给返回键 */
+document.addEventListener('click',function(e){
+ var t=e.target;if(!t||!t.closest)return;
+ var nt=t.closest('#nt');
+ if(nt){
+  var bs=document.querySelectorAll(BK);
+  for(var i=0;i<bs.length;i++){var r=bs[i].getBoundingClientRect();
+   if(e.clientX>=r.left-14&&e.clientX<=r.right+14&&e.clientY>=r.top-14&&e.clientY<=r.bottom+14){e.stopPropagation();e.preventDefault();nt.classList.remove('on');bs[i].click();return}}
+  return}
+ var b=t.closest(BK);
+ if(b&&!b._qkw){
+  var s0=snap();
+  setTimeout(function(){try{if(snap()===s0)fallback()}catch(e){}},360)}
+},true);
+/* 左边缘右滑返回 / Esc 返回 */
+var sx=0,sy=0,t0=0;
+function edge(x){var s=document.getElementById('scr'),l=s?s.getBoundingClientRect().left:0;return x-l<=24}
+document.addEventListener('touchstart',function(e){var t=e.touches[0];sx=t.clientX;sy=t.clientY;t0=Date.now()},{passive:true,capture:true});
+document.addEventListener('touchend',function(e){
+ var t=e.changedTouches[0];
+ if(!edge(sx)||t.clientX-sx<72||Math.abs(t.clientY-sy)>55||Date.now()-t0>650)return;
+ try{doBack()}catch(x){}
+},{passive:true,capture:true});
+document.addEventListener('keydown',function(e){if(e.key=='Escape'){var a=document.activeElement;if(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&e.target!==document.body)return;try{doBack()}catch(x){}}});
+})();
+</script>
 <script>
 (function(){var DB='aiphone-db',ST='kv',KEY='aiphone',db=null,ok=false,tmr=0,dirty=false,dead=false,inflight=false,pend=null,warnT=0,LSL=4400000;
 window.__info={engine:'',last:0,size:0,err:''};
